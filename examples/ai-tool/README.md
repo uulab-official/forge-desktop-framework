@@ -27,7 +27,7 @@ pnpm --filter @forge-example/ai-tool dev
 examples/ai-tool/
 ├── electron/            # Electron main + preload
 ├── src/                 # React UI (Tailwind)
-├── python/worker/
+├── worker/
 │   ├── core/            # protocol.py + dispatcher.py (copied from framework)
 │   ├── actions/
 │   │   ├── sentiment.py # Keyword-based sentiment analysis
@@ -48,7 +48,7 @@ Replace the keyword matcher in `actions/sentiment.py`:
 
 ```python
 from transformers import pipeline
-from core.dispatcher import register
+from forge_worker import register
 
 classifier = pipeline("sentiment-analysis")
 
@@ -71,7 +71,7 @@ def handle_sentiment(payload):
 Then uncomment the relevant lines in `requirements.txt` and install:
 
 ```bash
-pip install -r python/worker/requirements.txt
+pip install -r worker/requirements.txt
 ```
 
 ### Why Stubs?

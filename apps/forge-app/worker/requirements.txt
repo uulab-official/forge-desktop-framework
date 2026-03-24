@@ -1,0 +1,5 @@
+# In development (from monorepo root):
+# pip install -e ../../packages/worker-runtime
+#
+# In production (published):
+# forge-worker-runtime>=0.1.0

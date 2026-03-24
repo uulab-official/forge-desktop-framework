@@ -1,0 +1,2 @@
+# In development (from monorepo root):
+# pip install -e ../../packages/worker-runtime

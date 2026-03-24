@@ -1,2 +1,0 @@
-# Core dependencies for forge worker
-# Add domain-specific dependencies as needed

@@ -92,7 +92,7 @@ The `transcribe` action is a stub. To add real transcription:
 pip install openai-whisper
 ```
 
-Edit `python/worker/actions/transcribe.py`:
+Edit `worker/actions/transcribe.py`:
 
 ```python
 import whisper
@@ -128,7 +128,7 @@ Bundle the binary using the same `extraResources` pattern as ffmpeg.
 
 ## Adding New Video Processing Actions
 
-1. Create a new file in `python/worker/actions/`, e.g. `compress.py`
+1. Create a new file in `worker/actions/`, e.g. `compress.py`
 2. Use the `@register("compress")` decorator
 3. Import it in `actions/__init__.py`
 4. Call it from the renderer via `window.api.execute({ action: 'compress', payload: {...} })`
@@ -136,8 +136,8 @@ Bundle the binary using the same `extraResources` pattern as ffmpeg.
 Example:
 
 ```python
-# python/worker/actions/compress.py
-from core.dispatcher import register
+# worker/actions/compress.py
+from forge_worker import register
 
 @register("compress")
 def handle_compress(payload):
@@ -160,7 +160,7 @@ def handle_compress(payload):
 electron/main.ts          → Electron main process (IPC + dialog + worker-client)
 electron/preload.ts        → Bridges renderer ↔ main (contextBridge)
 src/App.tsx                → React UI with tabs
-python/worker/main.py      → Worker entry point (stdin/stdout JSON protocol)
-python/worker/actions/     → Action handlers (video_info, thumbnail, transcribe)
-python/worker/core/        → Protocol + dispatcher (copied from framework)
+worker/main.py      → Worker entry point (stdin/stdout JSON protocol)
+worker/actions/     → Action handlers (video_info, thumbnail, transcribe)
+worker/# (removed — now uses forge_worker package) + dispatcher (copied from framework)
 ```

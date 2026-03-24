@@ -1,5 +1,0 @@
-# No deps required for basic usage (video_info, thumbnail).
-# ffmpeg/ffprobe must be installed on the system.
-#
-# For transcription, add:
-# openai-whisper

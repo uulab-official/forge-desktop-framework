@@ -13,13 +13,16 @@ let mainWindow: BrowserWindow | null = null;
 
 const isDev = !app.isPackaged;
 const appRoot = isDev
-  ? path.resolve(__dirname, '../../..')
+  ? path.resolve(__dirname, '..')
   : app.getAppPath();
+const monorepoRoot = isDev
+  ? path.resolve(__dirname, '../../..')
+  : undefined;
 
 const resourceManager = createResourceManager({
   isDev,
   appRoot,
-  resourcesPath: isDev ? undefined : process.resourcesPath,
+  resourcesPath: isDev && monorepoRoot ? path.join(monorepoRoot, 'resources') : process.resourcesPath,
 });
 
 const workerClient = createWorkerClient({

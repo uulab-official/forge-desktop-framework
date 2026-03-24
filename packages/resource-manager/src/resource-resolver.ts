@@ -32,7 +32,7 @@ export function createResourceManager(opts: ResourceManagerOptions): ResourceMan
   return {
     getWorkerPath() {
       if (isDev) {
-        return join(appRoot, 'python', 'worker', 'main.py');
+        return join(appRoot, 'worker', 'main.py');
       }
       return join(resourcesBase, 'worker', `forge-worker${exe}`);
     },

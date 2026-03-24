@@ -32,7 +32,7 @@ examples/dashboard/
 │   ├── App.tsx             # Dashboard layout
 │   ├── main.tsx            # React entry
 │   └── globals.css         # Tailwind import
-├── python/worker/
+├── worker/
 │   ├── core/               # Protocol + dispatcher (from framework)
 │   ├── actions/
 │   │   ├── generate_data.py  # Random sales data generator

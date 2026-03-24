@@ -2,7 +2,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORKER_DIR="$SCRIPT_DIR/../app/python/worker"
+ROOT_DIR="$SCRIPT_DIR/.."
+WORKER_DIR="$ROOT_DIR/apps/forge-app/worker"
 
 echo "Setting up Python worker environment..."
 
@@ -15,6 +16,9 @@ fi
 
 echo "Activating virtual environment..."
 source .venv/bin/activate
+
+echo "Installing forge-worker-runtime (editable)..."
+pip install -e "$ROOT_DIR/packages/worker-runtime"
 
 echo "Installing dependencies..."
 pip install -r requirements.txt

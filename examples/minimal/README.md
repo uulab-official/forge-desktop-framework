@@ -27,7 +27,7 @@ Python Worker (stdin/stdout JSON)
 
 ## Adding a New Action
 
-1. Create `python/worker/actions/my_action.py`
+1. Create `worker/actions/my_action.py`
 2. Use the `@register("my_action")` decorator
-3. Import it in `python/worker/actions/__init__.py`
+3. Import it in `worker/actions/__init__.py`
 4. Call from renderer: `window.api.execute({ action: 'my_action', payload: {...} })`

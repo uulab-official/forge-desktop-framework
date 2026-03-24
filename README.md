@@ -76,6 +76,7 @@ pnpm dev
 
 | Package | Description |
 |---------|-------------|
+| `forge-worker-runtime` | Python worker runtime (pip package) |
 | `@forge/app` | Main Electron app |
 | `create-forge-app` | CLI scaffolding tool |
 
@@ -124,7 +125,7 @@ pnpm typecheck
 ## Building for Production
 
 ```bash
-# Setup Python environment
+# Setup Python environment and install worker runtime
 ./scripts/setup-python.sh
 
 # Build Python worker executable

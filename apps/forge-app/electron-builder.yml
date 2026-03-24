@@ -1,0 +1,42 @@
+appId: com.forge.app
+productName: Forge App
+directories:
+  output: release
+files:
+  - dist/**/*
+  - dist-electron/**/*
+extraResources:
+  - from: ../../resources/
+    to: resources/
+  - from: worker/dist/
+    to: resources/worker/
+
+# Default: GitHub Releases
+publish:
+  - provider: github
+    owner: ${env.GH_OWNER}
+    repo: ${env.GH_REPO}
+    private: true
+    token: ${env.GH_TOKEN}
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+  category: public.app-category.developer-tools
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  notarize:
+    teamId: ${env.APPLE_TEAM_ID}
+
+win:
+  target: nsis
+  signingHashAlgorithms:
+    - sha256
+
+linux:
+  target: AppImage

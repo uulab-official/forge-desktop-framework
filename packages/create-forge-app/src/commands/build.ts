@@ -40,7 +40,7 @@ export async function buildCommand(options?: { skipPackages?: boolean; skipWorke
 
   // Step 2: Build Python worker
   if (!options?.skipWorker) {
-    const workerDir = resolve(root, 'app/python/worker');
+    const workerDir = resolve(root, 'apps/forge-app/worker');
     if (existsSync(workerDir)) {
       const s = p.spinner();
       s.start('Building Python worker...');

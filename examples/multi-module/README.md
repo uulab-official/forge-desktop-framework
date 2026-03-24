@@ -56,7 +56,7 @@ The `App` component reads the registry and dynamically builds the sidebar and co
    import './modules/your-module';
    ```
 
-If your module needs a Python worker action, add the action file under `python/worker/actions/`, import it in `actions/__init__.py`, and list the action name in `workerActions`.
+If your module needs a Python worker action, add the action file under `worker/actions/`, import it in `actions/__init__.py`, and list the action name in `workerActions`.
 
 ### Modules and Python Workers
 

@@ -25,12 +25,13 @@ pnpm dev
 ## Project Structure
 
 ```
-packages/           # Framework core packages (@forge/*)
-app/                # Main Electron app (with embedded Python worker)
-examples/           # Example apps demonstrating framework usage
-python/worker/      # Python worker engine
-scripts/            # Build and dev scripts
-docs/               # Documentation
+packages/                    # Framework core packages (@forge/*)
+packages/worker-runtime/     # Python worker runtime (pip: forge-worker-runtime)
+apps/forge-app/              # Main Electron app
+apps/forge-app/worker/       # App's Python worker
+examples/                    # Example apps demonstrating framework usage
+scripts/                     # Build and dev scripts
+docs/                        # Documentation
 ```
 
 ## Making Changes
@@ -43,8 +44,9 @@ docs/               # Documentation
 
 ### Python Worker
 
-1. Edit files in `python/worker/`
-2. Test directly: `echo '{"action":"health_check","payload":{}}' | python3 python/worker/main.py`
+1. Core runtime is in `packages/worker-runtime/` — install with `pip install -e packages/worker-runtime`
+2. Edit action files in `apps/forge-app/worker/actions/` or `examples/<name>/worker/actions/`
+3. Test directly: `echo '{"action":"health_check","payload":{}}' | python3 apps/forge-app/worker/main.py`
 
 ### Examples
 
@@ -60,9 +62,9 @@ docs/               # Documentation
 
 ## Adding a New Python Action
 
-1. Create `python/worker/actions/<name>.py`
-2. Use `@register("action_name")` decorator
-3. Import in `python/worker/actions/__init__.py`
+1. Create `worker/actions/<name>.py` in your app or example
+2. Use `from forge_worker import register` and `@register("action_name")` decorator
+3. Import in `worker/actions/__init__.py`
 
 ## Pull Requests
 

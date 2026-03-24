@@ -1,0 +1,9 @@
+# In development (from monorepo root):
+# pip install -e ../../packages/worker-runtime
+# No external dependencies - uses stdlib only.
+# To add real ML capabilities, uncomment the packages below:
+
+# transformers>=4.40.0
+# torch>=2.2.0
+# scikit-learn>=1.4.0
+# numpy>=1.26.0

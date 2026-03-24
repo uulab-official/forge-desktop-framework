@@ -7,9 +7,14 @@ import type { WorkerRequest } from '@forge/ipc-contract';
 
 const logger = createLogger('main');
 const isDev = !app.isPackaged;
-const appRoot = isDev ? path.resolve(__dirname, '../../..') : app.getAppPath();
+const appRoot = isDev ? path.resolve(__dirname, '..') : app.getAppPath();
+const monorepoRoot = isDev ? path.resolve(__dirname, '../../..') : undefined;
 
-const resourceManager = createResourceManager({ isDev, appRoot });
+const resourceManager = createResourceManager({
+  isDev,
+  appRoot,
+  resourcesPath: isDev && monorepoRoot ? path.join(monorepoRoot, 'resources') : undefined,
+});
 const workerClient = createWorkerClient({
   workerPath: resourceManager.getWorkerPath(),
   pythonPath: resourceManager.getPythonPath(),

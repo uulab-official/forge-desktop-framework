@@ -12,10 +12,10 @@ Open source local-engine desktop app framework. Electron (UI) + Python Worker (e
 
 ## Project Structure
 - `packages/` — Framework core packages (@forge/*)
-- `app/` — Main Electron app (with embedded Python worker)
+- `packages/worker-runtime/` — Python worker runtime (pip package: forge-worker-runtime)
+- `apps/forge-app/` — Main Electron app
+- `apps/forge-app/worker/` — App's Python worker (uses forge_worker)
 - `examples/` — Example apps (minimal, file-processor, ai-tool, video-tools, dashboard, multi-module, chat, webrtc-demo, webgpu-compute)
-- `python/worker/` — Framework's core Python worker template (used by examples)
-- `app/python/worker/` — App's Python worker (lives inside the app)
 - `scripts/` — Build and dev scripts
 - `docs/` — Documentation
 
@@ -37,10 +37,12 @@ pnpm --filter @forge-example/<name> dev  # Run an example
 - Internal deps: `"workspace:*"` in package.json
 
 ## Python Worker Conventions
-- Actions use `@register("action_name")` decorator in `python/worker/actions/`
+- Core runtime is in `packages/worker-runtime/` (install via `pip install -e packages/worker-runtime`)
+- Actions use `@register("action_name")` decorator from `forge_worker` package
+- Action files live in `<app-or-example>/worker/actions/`
 - Protocol: stdout = JSON responses ONLY, stderr = logging
-- New action: create file in actions/, import in actions/__init__.py
-- Test: `echo '{"action":"name","payload":{}}' | python3 python/worker/main.py`
+- New action: create file in worker/actions/, import in worker/actions/__init__.py
+- Test: `echo '{"action":"name","payload":{}}' | python3 worker/main.py`
 
 ## IPC Flow
 Renderer -> ipcRenderer.invoke() -> Electron Main -> child_process.spawn -> Python Worker
@@ -55,7 +57,7 @@ Python Worker -> stdout JSON -> Electron Main -> webContents.send -> Renderer
 ## Adding a New Example
 1. Copy `examples/minimal/` as starting point
 2. Rename in package.json to `@forge-example/<name>`
-3. Add Python actions in python/worker/actions/
+3. Add Python actions in worker/actions/
 4. Add to `packages/create-forge-app/src/templates.ts`
 
 ## Code Style

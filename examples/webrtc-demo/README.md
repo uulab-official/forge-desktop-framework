@@ -55,7 +55,7 @@ webrtc-demo/
     hooks/
       useWebRTC.ts        Loopback peer connection + data channel
       useMediaDevices.ts  Device enumeration helper
-  python/worker/     Minimal Python worker (health check only)
+  worker/     Minimal Python worker (health check only)
 ```
 
 ## Python worker
