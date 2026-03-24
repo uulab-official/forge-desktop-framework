@@ -1,0 +1,152 @@
+# Getting Started
+
+Build your first Forge Desktop app in 10 minutes.
+
+## What You'll Build
+
+A desktop app where you type text, click a button, and Python processes it. The result appears in the UI instantly.
+
+## Prerequisites
+
+```bash
+node --version   # v20+
+pnpm --version   # v10+
+python3 --version # v3.12+
+```
+
+## Step 1: Clone and Install
+
+```bash
+git clone https://github.com/uulab-official/forge-desktop-framework.git
+cd forge-desktop-framework
+pnpm install
+pip3 install -e packages/worker-runtime
+```
+
+## Step 2: Run the App
+
+```bash
+./scripts/dev.sh
+```
+
+An Electron window opens with:
+- **Dashboard** — shows worker status (should say "Online")
+- **Worker Console** — lets you test Python actions
+- **Settings** — app configuration
+
+Click **Health Check**. You should see a green success response with Python version info. That's the full round-trip: React → Electron → Python → back.
+
+## Step 3: Create Your First Action
+
+Let's add a word counter.
+
+### Python side
+
+Create `apps/worker/actions/word_count.py`:
+
+```python
+from forge_worker import register
+
+@register("word_count")
+def handle(payload):
+    text = payload.get("text", "")
+    words = text.split()
+    return {
+        "words": len(words),
+        "characters": len(text),
+        "lines": text.count("\n") + 1,
+    }
+```
+
+Register it in `apps/worker/actions/__init__.py`:
+
+```python
+from . import health_check
+from . import echo
+from . import word_count  # add this
+```
+
+### Test without Electron
+
+```bash
+echo '{"action":"word_count","payload":{"text":"Hello world"}}' | python3 apps/worker/main.py
+```
+
+Output:
+```json
+{"ready": true}
+{"success": true, "data": {"words": 2, "characters": 11, "lines": 1}, "error": null}
+```
+
+### Call from the UI
+
+In any React component:
+
+```tsx
+const res = await window.electronAPI.worker.execute({
+  action: 'word_count',
+  payload: { text: 'Hello world from Forge!' },
+});
+// res.data = { words: 5, characters: 24, lines: 1 }
+```
+
+## Step 4: Understand the Flow
+
+```
+User clicks button
+  → React calls window.electronAPI.worker.execute()
+    → Electron main receives via ipcMain.handle()
+      → Spawns: python3 apps/worker/main.py
+        → Writes JSON to stdin
+        → Python reads, dispatches to @register'd handler
+        → Handler returns dict
+        → Python writes JSON to stdout
+      → Electron reads stdout, parses JSON
+    → Returns to renderer via IPC
+  → React updates UI with result
+```
+
+Key insight: **Python is not a long-running server.** Each request spawns a fresh process. This means:
+- No state between requests (unless you use files/DB)
+- No port conflicts
+- Crashes don't affect the app
+- Any Python library works (no import restrictions)
+
+## Step 5: Explore the Examples
+
+```bash
+# Simple text processing
+pnpm --filter @forge-example/minimal dev
+
+# File drag-and-drop with progress
+pnpm --filter @forge-example/file-processor dev
+
+# AI/ML pattern
+pnpm --filter @forge-example/ai-tool dev
+
+# Data dashboard with charts
+pnpm --filter @forge-example/dashboard dev
+```
+
+Each example is self-contained. Read its `README.md` and `worker/actions/` to see the pattern.
+
+## Step 6: Build for Distribution
+
+```bash
+# Setup Python build environment
+./scripts/setup-python.sh
+
+# Build everything (PyInstaller + Electron + packages)
+./scripts/build-app.sh
+```
+
+Output: `apps/app/release/` contains the packaged app (.dmg, .exe, or .AppImage).
+
+Users double-click to install. Python is bundled inside — no Python installation required.
+
+## Next Steps
+
+- **[Architecture Guide](architecture.md)** — understand the package design
+- **[IPC Patterns](ipc-patterns.md)** — streaming, progress, events
+- **[API Reference](api-reference.md)** — package APIs
+- **[Deployment Guide](deployment.md)** — CI/CD, auto-update, code signing

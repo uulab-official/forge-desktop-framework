@@ -6,7 +6,7 @@ Thank you for your interest in contributing!
 
 ```bash
 # Clone the repo
-git clone https://github.com/uulab/forge-desktop-framework.git
+git clone https://github.com/uulab-official/forge-desktop-framework.git
 cd forge-desktop-framework
 
 # Install dependencies

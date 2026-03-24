@@ -1,6 +1,6 @@
 # Forge Desktop Framework — Deployment Guide
 
-This guide covers building, releasing, and publishing Forge Desktop apps using the `forge-cli` and GitHub Actions.
+This guide covers building, releasing, and publishing Forge Desktop apps using the `create-forge-desktop` and GitHub Actions.
 
 ## Prerequisites
 
@@ -21,11 +21,11 @@ Install the CLI globally or use it from the monorepo:
 
 ```bash
 # From monorepo
-pnpm --filter forge-cli build
+pnpm --filter create-forge-desktop build
 npx forge --help
 
 # Or install globally
-npm install -g forge-cli
+npm install -g create-forge-desktop
 ```
 
 ### Available Commands
