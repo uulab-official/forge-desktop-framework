@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: [20]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build packages
+        run: pnpm build --filter='./packages/*'
+
+      - name: Type check
+        run: pnpm typecheck --filter='./packages/*'
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Test Python worker
+        run: |
+          echo '{"action":"health_check","payload":{}}' | python3 python/worker/main.py 2>/dev/null | python3 -c "
+          import json, sys
+          lines = sys.stdin.read().strip().split('\n')
+          for line in lines:
+              data = json.loads(line)
+              if 'success' in data:
+                  assert data['success'] == True, f'Health check failed: {data}'
+                  print('Health check passed:', data['data']['status'])
+          "

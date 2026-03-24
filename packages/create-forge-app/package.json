@@ -1,0 +1,36 @@
+{
+  "name": "create-forge-app",
+  "version": "0.1.0",
+  "description": "Create a new Forge Desktop app",
+  "type": "module",
+  "bin": {
+    "create-forge-app": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist .tsbuildinfo"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.9.0",
+    "picocolors": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.8.0"
+  },
+  "license": "MIT",
+  "keywords": [
+    "electron",
+    "python",
+    "desktop",
+    "framework",
+    "scaffold",
+    "create-app"
+  ]
+}

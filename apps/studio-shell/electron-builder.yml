@@ -1,0 +1,39 @@
+appId: com.forge.studio
+productName: Forge Studio
+directories:
+  output: release
+files:
+  - dist/**/*
+  - dist-electron/**/*
+extraResources:
+  - from: ../../resources/
+    to: resources/
+  - from: ../../python/worker/dist/
+    to: resources/worker/
+
+publish:
+  provider: github
+  owner: uulab
+  repo: forge-desktop-framework
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  category: public.app-category.developer-tools
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  notarize:
+    teamId: ${env.APPLE_TEAM_ID}
+
+win:
+  target: nsis
+  signingHashAlgorithms:
+    - sha256
+
+linux:
+  target: AppImage

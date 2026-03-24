@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-electron/
+release/
+*.tsbuildinfo
+
+# Turbo
+.turbo/
+
+# Python
+python/worker/.venv/
+python/worker/dist/
+python/worker/build/
+python/worker/__pycache__/
+python/worker/**/__pycache__/
+*.pyc
+*.pyo
+
+# Resources (binaries are not committed)
+resources/binaries/*
+!resources/binaries/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+
+# Temp
+temp/
+*.tmp
