@@ -42,4 +42,22 @@ export const TEMPLATES: Template[] = [
     description: 'Module/plugin pattern with multiple features',
     hint: 'Notes, calculator, converter — dynamic sidebar',
   },
+  {
+    id: 'chat',
+    label: 'Chat',
+    description: 'Real-time chat UI with smooth animations',
+    hint: 'Chat bubbles, typing indicator, Python-backed responses',
+  },
+  {
+    id: 'webrtc-demo',
+    label: 'WebRTC',
+    description: 'WebRTC peer connection with video and data channels',
+    hint: 'Camera/mic capture, loopback video, data channel messaging',
+  },
+  {
+    id: 'webgpu-compute',
+    label: 'WebGPU Compute',
+    description: 'GPU-accelerated computation with WebGPU',
+    hint: 'Matrix multiply shader, GPU vs CPU benchmark, heatmap',
+  },
 ];

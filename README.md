@@ -89,8 +89,18 @@ pnpm dev
 | `video-tools` | External binary integration (ffmpeg/ffprobe pattern) |
 | `dashboard` | Data dashboard with SVG charts and data analysis |
 | `multi-module` | Module/plugin pattern with dynamic sidebar |
+| `chat` | Real-time chat UI with smooth animations and Python-backed responses |
+| `webrtc-demo` | WebRTC peer connection with video, audio, and data channels |
+| `webgpu-compute` | GPU-accelerated computation with WebGPU compute shaders |
 
 Each example is self-contained and can be used as a template via `create-forge-app`.
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [IPC Patterns](docs/ipc-patterns.md) | Communication patterns (request/response, streaming, events) |
+| [Code Signing](docs/code-signing.md) | macOS notarization and Windows signing guide |
 
 ## Development
 
