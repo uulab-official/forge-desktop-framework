@@ -29,6 +29,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Format check
+        if: matrix.os == 'ubuntu-latest'
+        run: pnpm prettier --check "packages/*/src/**/*.{ts,tsx}" "apps/app/src/**/*.{ts,tsx}"
+
       - name: Build packages
         run: pnpm build --filter='./packages/*'
 

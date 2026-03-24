@@ -4,6 +4,26 @@
   "version": "0.1.0",
   "description": "Open source local-engine desktop app framework \u2014 Electron + Python Worker",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uulab-official/forge-desktop-framework.git"
+  },
+  "homepage": "https://github.com/uulab-official/forge-desktop-framework",
+  "bugs": {
+    "url": "https://github.com/uulab-official/forge-desktop-framework/issues"
+  },
+  "keywords": [
+    "electron",
+    "python",
+    "desktop",
+    "framework",
+    "pyinstaller",
+    "ipc",
+    "local-engine",
+    "react",
+    "tailwindcss",
+    "vite"
+  ],
   "engines": {
     "node": ">=20",
     "pnpm": ">=10"

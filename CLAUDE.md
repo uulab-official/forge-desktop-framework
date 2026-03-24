@@ -75,3 +75,16 @@ Python Worker -> stdout JSON -> Electron Main -> webContents.send -> Renderer
 1. `./scripts/release.sh [patch|minor|major]` — bumps all versions
 2. `git add -A && git commit && git tag v<version>`
 3. `git push && git push --tags` — triggers CI release
+
+Or use skills:
+- `/ship` — commit + patch bump + tag + push (all in one)
+- `/version-bump patch` — bump only, no push
+
+## Claude Code Skills
+- `/version-bump [patch|minor|major]` — bump all package versions
+- `/ship [message]` — commit + bump + tag + push
+- `/new-package <name>` — scaffold new @forge/ package
+- `/new-action <name>` — add Python worker action
+- `/new-example <name>` — scaffold new example from minimal
+- `/add-component <Name>` — add React component to ui-kit
+- `/dev [target]` — start dev mode
