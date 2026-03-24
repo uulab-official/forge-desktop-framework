@@ -2,147 +2,193 @@
 
 Open source local-engine desktop app framework.
 
-Build desktop applications powered by **Electron** (UI shell) + **Python Workers** (local engine), with a shared IPC protocol and modular architecture.
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────┐
-│  Renderer (React + Tailwind)                │
-│  ┌─────────┐ ┌──────────┐ ┌─────────────┐  │
-│  │  Pages   │ │ Widgets  │ │  Features   │  │
-│  └────┬─────┘ └────┬─────┘ └──────┬──────┘  │
-│       └─────────────┼──────────────┘         │
-│                     │ IPC (contextBridge)     │
-├─────────────────────┼───────────────────────┤
-│  Electron Main      │                        │
-│  ┌──────────────────┼──────────────────────┐ │
-│  │  Job Engine ← Worker Client             │ │
-│  │  Project Core   Settings   Resources    │ │
-│  └──────────────────┼──────────────────────┘ │
-├─────────────────────┼───────────────────────┤
-│  Python Worker      │ stdin/stdout JSON      │
-│  ┌──────────────────┼──────────────────────┐ │
-│  │  Dispatcher → Actions                   │ │
-│  └─────────────────────────────────────────┘ │
-└─────────────────────────────────────────────┘
-```
+Electron (UI) + Python Worker (engine) — one command to run both.
 
 ## Quick Start
 
 ```bash
-# Create a new app from a template
-npx create-forge-app my-app
-
-# Or clone and develop the framework itself
-git clone https://github.com/uulab/forge-desktop-framework.git
+# 1. Install
+git clone https://github.com/uulab-official/forge-desktop-framework.git
 cd forge-desktop-framework
 pnpm install
-pnpm dev
+
+# 2. Setup Python worker runtime
+pip3 install -e packages/worker-runtime
+
+# 3. Run (Electron + Python, one command)
+./scripts/dev.sh
+```
+
+This builds all packages, starts Vite dev server, launches Electron, and Python worker is spawned on-demand when the app calls an action.
+
+## How It Works
+
+```
+┌─ apps/app/ ──────────────────────────────────────┐
+│                                                    │
+│  React Renderer (Vite dev server)                  │
+│    ↓ ipcRenderer.invoke('worker:execute', req)     │
+│                                                    │
+│  Electron Main Process                             │
+│    ↓ child_process.spawn('python3', ['main.py'])   │
+│                                                    │
+├─ apps/worker/ ───────────────────────────────────┤
+│                                                    │
+│  Python Worker (stdin/stdout JSON)                 │
+│    → dispatcher → actions/health_check.py          │
+│    ← { "success": true, "data": {...} }            │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+**One command flow:**
+1. `./scripts/dev.sh` → `pnpm build` (TS packages) → `pnpm --filter @forge/app dev`
+2. Vite starts dev server + compiles Electron main with `vite-plugin-electron`
+3. Electron opens BrowserWindow, loads React from Vite
+4. User clicks "Health Check" → renderer invokes IPC → Electron spawns `python3 apps/worker/main.py`
+5. Python worker reads JSON from stdin, runs action, writes JSON to stdout
+6. Electron parses response, sends back to renderer
+
+Python is **not** a long-running server. It's spawned per-request and killed after responding. No ports, no sockets, no configuration.
+
+## Project Structure
+
+```
+forge-desktop-framework/
+│
+├── apps/
+│   ├── app/                     # Electron desktop app
+│   │   ├── electron/
+│   │   │   ├── main.ts          # App entry: creates window, spawns worker
+│   │   │   ├── preload.ts       # contextBridge → window.electronAPI
+│   │   │   ├── ipc-handlers.ts  # IPC route registration
+│   │   │   └── auto-updater.ts  # electron-updater integration
+│   │   ├── src/
+│   │   │   ├── App.tsx          # React root
+│   │   │   ├── pages/           # HomePage, SettingsPage
+│   │   │   └── shared/lib/ipc.ts # Typed IPC wrapper
+│   │   ├── electron-builder.yml # Build config (GitHub Releases)
+│   │   ├── electron-builder.s3.yml # Build config (S3/R2)
+│   │   └── package.json         # @forge/app
+│   │
+│   └── worker/                  # Python worker (sibling of app)
+│       ├── main.py              # Entry: imports actions, calls run_worker()
+│       ├── actions/
+│       │   ├── health_check.py  # @register("health_check")
+│       │   └── echo.py          # @register("echo")
+│       └── requirements.txt     # pip deps (forge-worker-runtime)
+│
+├── packages/
+│   ├── worker-runtime/          # Python pip package (forge-worker-runtime)
+│   │   └── forge_worker/
+│   │       ├── protocol.py      # JSON stdin/stdout read/write
+│   │       ├── dispatcher.py    # @register decorator + dispatch()
+│   │       └── runner.py        # run_worker() main loop
+│   │
+│   ├── ipc-contract/            # Shared TS types (WorkerRequest, JobStatus, etc.)
+│   ├── worker-client/           # Node.js: spawns Python, sends JSON via stdin
+│   ├── job-engine/              # Task queue (pending → running → success/failed)
+│   ├── ui-kit/                  # 18 React components (TitleBar, Modal, Toast, etc.)
+│   ├── plugin-system/           # Plugin registry + lifecycle
+│   ├── error-handler/           # Python error → user message mapper
+│   ├── updater/                 # electron-updater wrapper
+│   ├── resource-manager/        # Dev/prod path resolution
+│   ├── project-core/            # Project directory management
+│   ├── settings-core/           # Settings persistence
+│   ├── logger/                  # Structured logging
+│   └── create-forge-app/        # CLI: forge create/build/release/publish/dev
+│
+├── examples/                    # 9 example apps
+│   ├── minimal/                 # Text reverse (simplest possible)
+│   ├── file-processor/          # Drag-and-drop + job queue + progress
+│   ├── ai-tool/                 # Sentiment/summarize/classify (stdlib)
+│   ├── video-tools/             # ffmpeg integration pattern
+│   ├── dashboard/               # SVG charts + data analysis
+│   ├── multi-module/            # Plugin/module pattern
+│   ├── chat/                    # Chat UI with typing indicator
+│   ├── webrtc-demo/             # WebRTC video + data channel
+│   └── webgpu-compute/          # GPU matrix multiply vs CPU
+│
+├── resources/                   # Bundled assets (binaries, fonts, models, templates)
+├── scripts/                     # Shell scripts (dev, build, release, setup)
+├── docs/                        # Guides (IPC patterns, code signing, deployment)
+├── .github/workflows/           # CI + Release automation
+├── .claude/skills/              # 6 Claude Code skills
+└── CLAUDE.md                    # Claude Code project context
+```
+
+## Commands
+
+### Development
+
+```bash
+./scripts/dev.sh                          # Build packages + start Electron app
+pnpm --filter @forge/app dev              # Start app only (packages already built)
+pnpm --filter @forge-example/minimal dev  # Run an example
+pnpm build                                # Build all TS packages
+pnpm typecheck                            # Type check everything
+```
+
+### Python Worker
+
+```bash
+# Setup (first time)
+pip3 install -e packages/worker-runtime
+./scripts/setup-python.sh
+
+# Test directly
+echo '{"action":"health_check","payload":{}}' | python3 apps/worker/main.py
+
+# Add a new action
+# 1. Create apps/worker/actions/my_action.py
+# 2. Use: from forge_worker import register
+#    @register("my_action")
+#    def handle(payload): return {"result": "..."}
+# 3. Import in apps/worker/actions/__init__.py
+```
+
+### Build & Deploy
+
+```bash
+# Local build
+./scripts/build-worker.sh    # PyInstaller → apps/worker/dist/forge-worker
+./scripts/build-app.sh       # Full build (worker + packages + Electron)
+
+# Release
+./scripts/release.sh patch   # Bump version + git tag
+git push && git push --tags  # Triggers GitHub Actions → auto build + publish
+
+# Or via forge CLI
+forge build                  # Build everything
+forge release patch          # Version bump
+forge publish                # Publish to GitHub Releases
+forge publish --s3           # Publish to S3/R2
+```
+
+### Scaffold New App
+
+```bash
+npx create-forge-app my-app              # Interactive template picker
+npx create-forge-app my-app --template minimal
 ```
 
 ## Stack
 
-- **UI**: React 19 + TypeScript + Tailwind CSS v4
-- **App Shell**: Electron
-- **Engine**: Python (PyInstaller for distribution)
-- **Build**: Vite + Turborepo + pnpm
-- **IPC**: stdin/stdout JSON protocol
-
-## Packages
-
-### Core
-
-| Package | Description |
-|---------|-------------|
-| `@forge/ipc-contract` | Shared IPC types and channel constants |
-| `@forge/worker-client` | Python worker process manager |
-| `@forge/job-engine` | Task queue with status tracking |
-| `@forge/project-core` | Project directory management |
-| `@forge/resource-manager` | Resource path resolution (dev/prod) |
-| `@forge/settings-core` | Settings persistence |
-| `@forge/logger` | Structured logging |
-
-### UI & DX
-
-| Package | Description |
-|---------|-------------|
-| `@forge/ui-kit` | Common UI components (AppLayout, Sidebar, ProgressPanel, LogConsole, FileDropZone, etc.) |
-| `@forge/plugin-system` | Plugin registration and lifecycle management |
-| `@forge/error-handler` | Error mapping (Python → user-friendly) + React ErrorBoundary |
-| `@forge/updater` | Auto-update via electron-updater |
-
-### Apps & Tools
-
-| Package | Description |
-|---------|-------------|
-| `forge-worker-runtime` | Python worker runtime (pip package) |
-| `@forge/app` | Main Electron app |
-| `create-forge-app` | CLI scaffolding tool |
-
-## Examples
-
-| Example | Description |
-|---------|-------------|
-| `minimal` | Bare minimum app — one input, one Python action |
-| `file-processor` | Batch file processing with drag-and-drop and job queue |
-| `ai-tool` | Local AI/ML integration pattern (stdlib stubs) |
-| `video-tools` | External binary integration (ffmpeg/ffprobe pattern) |
-| `dashboard` | Data dashboard with SVG charts and data analysis |
-| `multi-module` | Module/plugin pattern with dynamic sidebar |
-| `chat` | Real-time chat UI with smooth animations and Python-backed responses |
-| `webrtc-demo` | WebRTC peer connection with video, audio, and data channels |
-| `webgpu-compute` | GPU-accelerated computation with WebGPU compute shaders |
-
-Each example is self-contained and can be used as a template via `create-forge-app`.
+| Layer | Technology |
+|-------|-----------|
+| UI | React 19 + TypeScript + Tailwind CSS v4 |
+| Desktop Shell | Electron (frameless, contextBridge) |
+| Engine | Python 3.12+ (PyInstaller for distribution) |
+| IPC | stdin/stdout JSON (no server, no ports) |
+| Build | Vite + Turborepo + pnpm |
+| Worker Runtime | `forge-worker-runtime` (pip package) |
+| Auto-Update | electron-updater (GitHub Releases or S3/R2) |
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [IPC Patterns](docs/ipc-patterns.md) | Communication patterns (request/response, streaming, events) |
-| [Code Signing](docs/code-signing.md) | macOS notarization and Windows signing guide |
-
-## Development
-
-```bash
-# Install dependencies
-pnpm install
-
-# Build all packages
-pnpm build
-
-# Start the app
-pnpm --filter @forge/app dev
-
-# Run an example
-pnpm --filter @forge-example/minimal dev
-
-# Type check
-pnpm typecheck
-```
-
-## Building for Production
-
-```bash
-# Setup Python environment and install worker runtime
-./scripts/setup-python.sh
-
-# Build Python worker executable
-./scripts/build-worker.sh
-
-# Build and package the app
-./scripts/build-app.sh
-```
-
-## Code Signing & Release
-
-See [docs/code-signing.md](docs/code-signing.md) for macOS notarization and Windows signing setup.
-
-```bash
-# Bump version and prepare release
-./scripts/release.sh patch  # or minor, major
-```
+- [IPC Patterns](docs/ipc-patterns.md) — Request/response, streaming, events
+- [Code Signing](docs/code-signing.md) — macOS notarization + Windows signing
+- [Deployment](docs/deployment.md) — GitHub Actions, S3/R2, auto-update
 
 ## Contributing
 
