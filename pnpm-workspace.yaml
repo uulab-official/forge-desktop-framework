@@ -2,3 +2,4 @@ packages:
   - "apps/*"
   - "packages/*"
   - "examples/*"
+  - "!packages/create-forge-app/templates/**"

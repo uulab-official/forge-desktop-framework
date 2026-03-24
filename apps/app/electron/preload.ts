@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS } from '@forge/ipc-contract';
-import type { WorkerRequest, JobDefinition, LogEntry, AppSettings } from '@forge/ipc-contract';
+import type { WorkerRequest, JobDefinition, AppSettings } from '@forge/ipc-contract';
+import type { LogEntry } from '@forge/logger';
 
 const electronAPI = {
   worker: {

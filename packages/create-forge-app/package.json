@@ -1,11 +1,11 @@
 {
-  "name": "forge-cli",
+  "name": "create-forge-desktop",
   "version": "0.1.0",
-  "description": "Forge Desktop Framework CLI — create, build, release, and publish desktop apps",
+  "description": "Create Forge Desktop apps — Electron + Python Worker framework",
   "type": "module",
   "bin": {
-    "forge": "./dist/index.js",
-    "create-forge-app": "./dist/create.js"
+    "create-forge-desktop": "dist/create.js",
+    "forge-desktop": "dist/index.js"
   },
   "files": [
     "dist",

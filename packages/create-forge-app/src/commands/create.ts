@@ -8,7 +8,7 @@ import { scaffold, detectPackageManager } from '../scaffold.js';
 export async function createCommand(projectName?: string, options?: { template?: string }) {
   let templateId = options?.template;
 
-  p.intro(pc.bgCyan(pc.black(' create-forge-app ')));
+  p.intro(pc.bgCyan(pc.black(' create-forge-desktop ')));
 
   // Project name
   if (!projectName) {
