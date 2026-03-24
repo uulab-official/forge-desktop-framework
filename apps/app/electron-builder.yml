@@ -8,7 +8,7 @@ files:
 extraResources:
   - from: ../../resources/
     to: resources/
-  - from: worker/dist/
+  - from: ../worker/dist/
     to: resources/worker/
 
 # Default: GitHub Releases

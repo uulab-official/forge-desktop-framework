@@ -3,7 +3,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$SCRIPT_DIR/.."
-WORKER_DIR="$ROOT_DIR/apps/forge-app/worker"
+WORKER_DIR="$ROOT_DIR/apps/worker"
 
 echo "Setting up Python worker environment..."
 

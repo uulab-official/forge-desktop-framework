@@ -49,7 +49,7 @@ jobs:
 
       - name: Test Python worker
         run: |
-          echo '{"action":"health_check","payload":{}}' | python3 apps/forge-app/worker/main.py 2>/dev/null | python3 -c "
+          echo '{"action":"health_check","payload":{}}' | python3 apps/worker/main.py 2>/dev/null | python3 -c "
           import json, sys
           lines = sys.stdin.read().strip().split('\n')
           for line in lines:

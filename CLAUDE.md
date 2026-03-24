@@ -13,8 +13,8 @@ Open source local-engine desktop app framework. Electron (UI) + Python Worker (e
 ## Project Structure
 - `packages/` — Framework core packages (@forge/*)
 - `packages/worker-runtime/` — Python worker runtime (pip package: forge-worker-runtime)
-- `apps/forge-app/` — Main Electron app
-- `apps/forge-app/worker/` — App's Python worker (uses forge_worker)
+- `apps/app/` — Main Electron app
+- `apps/worker/` — Python worker (uses forge_worker pip package)
 - `examples/` — Example apps (minimal, file-processor, ai-tool, video-tools, dashboard, multi-module, chat, webrtc-demo, webgpu-compute)
 - `scripts/` — Build and dev scripts
 - `docs/` — Documentation

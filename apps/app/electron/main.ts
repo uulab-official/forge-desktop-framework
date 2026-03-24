@@ -15,10 +15,13 @@ let mainWindow: BrowserWindow | null = null;
 
 const isDev = !app.isPackaged;
 const appRoot = isDev
-  ? path.resolve(__dirname, '..')      // apps/forge-app/ directory
+  ? path.resolve(__dirname, '..')      // apps/app/
   : app.getAppPath();
+const appsRoot = isDev
+  ? path.resolve(__dirname, '../..')    // apps/
+  : undefined;
 const monorepoRoot = isDev
-  ? path.resolve(__dirname, '../../..')   // monorepo root (for resources)
+  ? path.resolve(__dirname, '../../..')  // monorepo root
   : undefined;
 
 const resourceManager = createResourceManager({
@@ -31,8 +34,13 @@ const settingsManager = createSettingsManager(
   path.join(app.getPath('userData'), 'settings.json'),
 );
 
+// Worker lives at apps/worker/ in dev, resources/worker/ in prod
+const workerPath = isDev
+  ? path.join(appsRoot!, 'worker', 'main.py')
+  : resourceManager.getWorkerPath();
+
 const workerClient = createWorkerClient({
-  workerPath: resourceManager.getWorkerPath(),
+  workerPath,
   pythonPath: resourceManager.getPythonPath(),
   isDev,
 });

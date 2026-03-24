@@ -27,8 +27,8 @@ pnpm dev
 ```
 packages/                    # Framework core packages (@forge/*)
 packages/worker-runtime/     # Python worker runtime (pip: forge-worker-runtime)
-apps/forge-app/              # Main Electron app
-apps/forge-app/worker/       # App's Python worker
+apps/app/                    # Main Electron app
+apps/worker/                 # Python worker
 examples/                    # Example apps demonstrating framework usage
 scripts/                     # Build and dev scripts
 docs/                        # Documentation
@@ -45,8 +45,8 @@ docs/                        # Documentation
 ### Python Worker
 
 1. Core runtime is in `packages/worker-runtime/` — install with `pip install -e packages/worker-runtime`
-2. Edit action files in `apps/forge-app/worker/actions/` or `examples/<name>/worker/actions/`
-3. Test directly: `echo '{"action":"health_check","payload":{}}' | python3 apps/forge-app/worker/main.py`
+2. Edit action files in `apps/worker/actions/` or `examples/<name>/worker/actions/`
+3. Test directly: `echo '{"action":"health_check","payload":{}}' | python3 apps/worker/main.py`
 
 ### Examples
 

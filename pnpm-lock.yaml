@@ -21,7 +21,7 @@ importers:
         specifier: ^5.8.0
         version: 5.9.3
 
-  apps/forge-app:
+  apps/app:
     dependencies:
       '@forge/ipc-contract':
         specifier: workspace:*

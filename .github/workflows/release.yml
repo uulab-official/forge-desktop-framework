@@ -51,7 +51,7 @@ jobs:
       - name: Build Python worker
         run: |
           pip install -e packages/worker-runtime
-          cd apps/forge-app/worker
+          cd apps/worker
           pip install pyinstaller
           pyinstaller --onefile --name forge-worker main.py
 
@@ -81,7 +81,7 @@ jobs:
           S3_UPDATE_URL: ${{ secrets.S3_UPDATE_URL }}
         run: |
           # Build with S3 publish config
-          cd apps/forge-app
+          cd apps/app
           pnpm package -- -c electron-builder.s3.yml
 
           # Upload all release artifacts
