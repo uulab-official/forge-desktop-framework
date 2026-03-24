@@ -46,7 +46,7 @@ const SETTINGS: SettingItem[] = [
   },
 ];
 
-export function SettingsPage() {
+export function SettingsPage({ onOpenAbout }: { onOpenAbout?: () => void } = {}) {
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [saved, setSaved] = useState(false);
 
@@ -132,10 +132,18 @@ export function SettingsPage() {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
             <span className="text-white text-xs font-bold">F</span>
           </div>
-          <div>
+          <div className="flex-1">
             <p className="text-sm font-semibold">Forge Desktop Framework</p>
             <p className="text-xs text-zinc-400 dark:text-zinc-500">v0.1.0</p>
           </div>
+          {onOpenAbout && (
+            <button
+              onClick={onOpenAbout}
+              className="text-xs text-violet-600 dark:text-violet-400 hover:underline font-medium"
+            >
+              More info
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@
   "name": "forge-desktop-framework",
   "private": true,
   "version": "0.1.0",
-  "description": "Open source local-engine desktop app framework \u2014 Electron + Python Worker",
+  "description": "Open source local-engine desktop app framework — Electron + Python Worker",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -33,13 +33,15 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
     "clean": "turbo run clean"
   },
   "devDependencies": {
+    "@types/node": "^22.0.0",
+    "prettier": "^3.5.0",
     "turbo": "^2.4.0",
     "typescript": "^5.8.0",
-    "@types/node": "^22.0.0",
-    "prettier": "^3.5.0"
+    "vitest": "^4.1.1"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

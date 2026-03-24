@@ -7,6 +7,7 @@ import type { SettingsManager } from '@forge/settings-core';
 import type { ResourceManager } from '@forge/resource-manager';
 import { createProject, openProject } from '@forge/project-core';
 import { createLogger } from '@forge/logger';
+import { createErrorMapper } from '@forge/error-handler';
 
 interface HandlerDeps {
   workerClient: WorkerClient;
@@ -18,11 +19,22 @@ interface HandlerDeps {
 export function registerIpcHandlers(deps: HandlerDeps) {
   const { workerClient, jobEngine, settingsManager } = deps;
   const logger = createLogger('ipc');
+  const errorMapper = createErrorMapper();
 
   // Worker
   ipcMain.handle(IPC_CHANNELS.WORKER_EXECUTE, async (_event, request: WorkerRequest) => {
     logger.info('Worker execute', { action: request.action });
-    return workerClient.execute(request);
+    try {
+      return await workerClient.execute(request);
+    } catch (rawError) {
+      const friendly = errorMapper.map(String(rawError));
+      logger.error('Worker execute failed', { action: request.action, original: friendly.original });
+      throw new Error(
+        friendly.suggestion
+          ? `${friendly.message} ${friendly.suggestion}`
+          : friendly.message,
+      );
+    }
   });
 
   ipcMain.handle(IPC_CHANNELS.WORKER_CANCEL, async () => {

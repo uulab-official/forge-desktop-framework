@@ -11,7 +11,9 @@
     "package": "electron-builder"
   },
   "dependencies": {
+    "@forge/error-handler": "workspace:*",
     "@forge/ipc-contract": "workspace:*",
+    "@forge/plugin-system": "workspace:*",
     "@forge/worker-client": "workspace:*",
     "@forge/job-engine": "workspace:*",
     "@forge/project-core": "workspace:*",

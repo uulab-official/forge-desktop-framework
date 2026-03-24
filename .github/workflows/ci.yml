@@ -39,6 +39,15 @@ jobs:
       - name: Type check
         run: pnpm typecheck --filter='./packages/*'
 
+      - name: Test packages
+        run: pnpm test --filter='./packages/*'
+
+      - name: Verify templates in sync
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          bash scripts/sync-templates.sh
+          git diff --exit-code packages/create-forge-app/templates/ || (echo "Templates out of sync! Run scripts/sync-templates.sh" && exit 1)
+
   python:
     runs-on: ubuntu-latest
     steps:
@@ -62,3 +71,6 @@ jobs:
                   assert data['success'] == True, f'Health check failed: {data}'
                   print('Health check passed:', data['data']['status'])
           "
+
+      - name: Test all example workers
+        run: bash scripts/test-workers.sh

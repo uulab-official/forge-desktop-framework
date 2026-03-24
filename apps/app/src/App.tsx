@@ -1,16 +1,71 @@
-import { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, createContext, useContext } from 'react';
+import { ForgeErrorBoundary } from '@forge/error-handler';
+import { Modal, Badge, ToastContainer } from '@forge/ui-kit';
+import type { ToastProps, ToastType } from '@forge/ui-kit';
+import { pluginRegistry } from './plugins/registry';
+import './plugins/worker-plugin';
+import './plugins/settings-plugin';
 import { HomePage } from './pages/HomePage';
 import { SettingsPage } from './pages/SettingsPage';
 
-const NAV_ITEMS = [
-  { id: 'home', label: 'Home', icon: HomeIcon },
-  { id: 'worker', label: 'Worker', icon: CpuIcon },
-  { id: 'settings', label: 'Settings', icon: GearIcon },
-] as const;
+// ─── Toast context ─────────────────────────────────────────
+
+interface ToastContextValue {
+  addToast: (type: ToastType, message: string) => void;
+}
+
+const ToastContext = createContext<ToastContextValue>({
+  addToast: () => {},
+});
+
+export function useToast() {
+  return useContext(ToastContext);
+}
+
+let toastSeq = 0;
+
+// ─── Build nav items from plugin registry ──────────────────
+
+const ICON_MAP: Record<string, (props: { active: boolean }) => React.JSX.Element> = {
+  '/worker': CpuIcon,
+  '/settings': GearIcon,
+};
+
+function buildNavItems() {
+  const routes = pluginRegistry.getRoutes();
+  // Dashboard is always first (built-in, not from a plugin)
+  const items: { id: string; label: string; icon: (props: { active: boolean }) => React.JSX.Element }[] = [
+    { id: 'home', label: 'Home', icon: HomeIcon },
+  ];
+  for (const route of routes) {
+    items.push({
+      id: route.path.replace('/', ''),
+      label: route.label,
+      icon: ICON_MAP[route.path] ?? HomeIcon,
+    });
+  }
+  return items;
+}
 
 export function App() {
   const [activePage, setActivePage] = useState('home');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [toasts, setToasts] = useState<ToastProps[]>([]);
+
+  const navItems = buildNavItems();
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  const addToast = useCallback(
+    (type: ToastType, message: string) => {
+      const id = `toast-${++toastSeq}`;
+      setToasts((prev) => [...prev, { id, type, message, duration: 4000, onDismiss: dismissToast }]);
+    },
+    [dismissToast],
+  );
 
   useEffect(() => {
     // Detect system dark mode
@@ -26,7 +81,7 @@ export function App() {
   const renderPage = useCallback(() => {
     switch (activePage) {
       case 'settings':
-        return <SettingsPage />;
+        return <SettingsPage onOpenAbout={() => setAboutOpen(true)} />;
       case 'worker':
         return <HomePage />;
       default:
@@ -35,77 +90,130 @@ export function App() {
   }, [activePage]);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
-      {/* Custom titlebar */}
-      <div className="drag-region fixed top-0 left-0 right-0 h-8 z-50" />
+    <ToastContext.Provider value={{ addToast }}>
+      <div className="flex h-screen w-screen overflow-hidden bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
+        {/* Custom titlebar */}
+        <div className="drag-region fixed top-0 left-0 right-0 h-8 z-50" />
 
-      {/* Sidebar */}
-      <aside
-        className={`flex flex-col flex-shrink-0 border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/80 backdrop-blur-xl pt-8 transition-all duration-200 ${
-          sidebarCollapsed ? 'w-16' : 'w-56'
-        }`}
-      >
-        {/* Logo */}
-        <div className="px-4 py-3 flex items-center gap-2.5 no-drag">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs font-bold">F</span>
+        {/* Sidebar */}
+        <aside
+          className={`flex flex-col flex-shrink-0 border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/80 backdrop-blur-xl pt-8 transition-all duration-200 ${
+            sidebarCollapsed ? 'w-16' : 'w-56'
+          }`}
+        >
+          {/* Logo */}
+          <div className="px-4 py-3 flex items-center gap-2.5 no-drag">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-xs font-bold">F</span>
+            </div>
+            {!sidebarCollapsed && (
+              <span className="text-sm font-semibold tracking-tight animate-fade-in">
+                Forge
+              </span>
+            )}
           </div>
-          {!sidebarCollapsed && (
-            <span className="text-sm font-semibold tracking-tight animate-fade-in">
-              Forge
-            </span>
-          )}
-        </div>
 
-        {/* Nav */}
-        <nav className="flex-1 px-2 py-2 space-y-0.5 no-drag">
-          {NAV_ITEMS.map((item) => {
-            const active = activePage === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActivePage(item.id)}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-all ${
-                  active
-                    ? 'bg-zinc-200/80 dark:bg-zinc-800 text-zinc-900 dark:text-white'
-                    : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-700 dark:hover:text-zinc-300'
-                }`}
-              >
-                <item.icon active={active} />
-                {!sidebarCollapsed && (
-                  <span className="animate-fade-in">{item.label}</span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
+          {/* Nav — driven by plugin registry */}
+          <nav className="flex-1 px-2 py-2 space-y-0.5 no-drag">
+            {navItems.map((item) => {
+              const active = activePage === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActivePage(item.id)}
+                  className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-all ${
+                    active
+                      ? 'bg-zinc-200/80 dark:bg-zinc-800 text-zinc-900 dark:text-white'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-700 dark:hover:text-zinc-300'
+                  }`}
+                >
+                  <item.icon active={active} />
+                  {!sidebarCollapsed && (
+                    <span className="animate-fade-in">{item.label}</span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
 
-        {/* Bottom: collapse toggle */}
-        <div className="px-2 pb-3 no-drag">
-          <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="w-full flex items-center justify-center px-2.5 py-2 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-600 dark:hover:text-zinc-300 transition-all"
-          >
-            <svg
-              className={`w-4 h-4 transition-transform duration-200 ${sidebarCollapsed ? 'rotate-180' : ''}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
+          {/* Bottom: About + collapse toggle */}
+          <div className="px-2 pb-3 no-drag space-y-0.5">
+            <button
+              onClick={() => setAboutOpen(true)}
+              className="w-full flex items-center justify-center gap-2 px-2.5 py-2 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-600 dark:hover:text-zinc-300 transition-all"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
-            </svg>
-          </button>
-        </div>
-      </aside>
+              <InfoIcon />
+              {!sidebarCollapsed && (
+                <span className="text-xs font-medium animate-fade-in">About</span>
+              )}
+            </button>
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="w-full flex items-center justify-center px-2.5 py-2 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-600 dark:hover:text-zinc-300 transition-all"
+            >
+              <svg
+                className={`w-4 h-4 transition-transform duration-200 ${sidebarCollapsed ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
+              </svg>
+            </button>
+          </div>
+        </aside>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto pt-8">
-        <div className="animate-fade-in">
-          {renderPage()}
-        </div>
-      </main>
-    </div>
+        {/* Main content — wrapped in ForgeErrorBoundary */}
+        <main className="flex-1 overflow-y-auto pt-8">
+          <ForgeErrorBoundary>
+            <div className="animate-fade-in">
+              {renderPage()}
+            </div>
+          </ForgeErrorBoundary>
+        </main>
+
+        {/* About Modal (ui-kit) */}
+        <Modal open={aboutOpen} onClose={() => setAboutOpen(false)} title="About Forge" size="sm">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
+                <span className="text-white text-sm font-bold">F</span>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Forge Desktop Framework</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">v0.1.0</p>
+              </div>
+            </div>
+            <p className="text-sm leading-relaxed">
+              A modular Electron + Python framework for building desktop productivity apps
+              with a plugin-based architecture.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="info">Electron</Badge>
+              <Badge variant="success">React</Badge>
+              <Badge variant="warning">Python Worker</Badge>
+              <Badge variant="default">TypeScript</Badge>
+            </div>
+            <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-xs text-gray-400 dark:text-gray-500">
+                Registered plugins: {pluginRegistry.getAll().length}
+              </p>
+              <ul className="mt-1 space-y-0.5">
+                {pluginRegistry.getAll().map((p) => (
+                  <li key={p.id} className="text-xs text-gray-500 dark:text-gray-400">
+                    {p.name} <span className="text-gray-400 dark:text-gray-500">v{p.version}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Toast notifications (ui-kit) */}
+        <ToastContainer toasts={toasts} position="top-right" />
+      </div>
+    </ToastContext.Provider>
   );
 }
 
@@ -114,6 +222,7 @@ export function App() {
 function DashboardPage() {
   const [workerStatus, setWorkerStatus] = useState<'idle' | 'checking' | 'online' | 'offline'>('idle');
   const [workerInfo, setWorkerInfo] = useState<Record<string, unknown> | null>(null);
+  const { addToast } = useToast();
 
   const checkWorker = async () => {
     setWorkerStatus('checking');
@@ -123,11 +232,14 @@ function DashboardPage() {
       if (res.success) {
         setWorkerStatus('online');
         setWorkerInfo(res.data);
+        addToast('success', 'Worker is online and healthy');
       } else {
         setWorkerStatus('offline');
+        addToast('error', 'Worker health check failed');
       }
     } catch {
       setWorkerStatus('offline');
+      addToast('error', 'Could not reach the worker process');
     }
   };
 
@@ -183,11 +295,14 @@ function DashboardPage() {
             onClick={async () => {
               try {
                 const api = (window as any).electronAPI;
-                await api.worker.execute({
+                const res = await api.worker.execute({
                   action: 'echo',
                   payload: { message: 'Hello!', ts: Date.now() },
                 });
-              } catch { /* handled by worker page */ }
+                addToast('success', 'Echo action completed successfully');
+              } catch {
+                addToast('error', 'Echo action failed');
+              }
             }}
             color="emerald"
           />
@@ -226,16 +341,14 @@ function StatusCard({ label, value, status, detail }: {
   status: 'success' | 'error' | 'neutral';
   detail?: string;
 }) {
-  const dotColor = status === 'success'
-    ? 'bg-emerald-500'
-    : status === 'error'
-    ? 'bg-red-500'
-    : 'bg-zinc-400 dark:bg-zinc-600';
+  const badgeVariant = status === 'success' ? 'success' : status === 'error' ? 'error' : 'default';
 
   return (
     <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 space-y-2">
       <div className="flex items-center gap-2">
-        <div className={`w-2 h-2 rounded-full ${dotColor} ${status === 'success' ? 'animate-pulse-dot' : ''}`} />
+        <Badge variant={badgeVariant} size="sm">
+          {status === 'success' ? 'Online' : status === 'error' ? 'Error' : 'Idle'}
+        </Badge>
         <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
           {label}
         </span>
@@ -297,6 +410,14 @@ function GearIcon({ active }: { active: boolean }) {
     <svg className={`w-4 h-4 ${active ? 'text-zinc-900 dark:text-white' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   );
 }
