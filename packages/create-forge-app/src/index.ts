@@ -1,102 +1,65 @@
 #!/usr/bin/env node
 
-import * as p from '@clack/prompts';
-import pc from 'picocolors';
-import { resolve, basename } from 'node:path';
-import { existsSync } from 'node:fs';
-import { TEMPLATES } from './templates.js';
-import { scaffold, detectPackageManager } from './scaffold.js';
+import { Command } from 'commander';
+import { createCommand } from './commands/create.js';
+import { buildCommand } from './commands/build.js';
+import { releaseCommand } from './commands/release.js';
+import { publishCommand } from './commands/publish.js';
+import { devCommand } from './commands/dev.js';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-async function main() {
-  const args = process.argv.slice(2);
-  let projectName = args[0];
-  let templateId: string | undefined;
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
 
-  // Parse --template flag
-  const templateIdx = args.indexOf('--template');
-  if (templateIdx !== -1 && args[templateIdx + 1]) {
-    templateId = args[templateIdx + 1];
-    if (projectName === '--template') {
-      projectName = undefined as any;
-    }
-  }
+const program = new Command();
 
-  p.intro(pc.bgCyan(pc.black(' create-forge-app ')));
+program
+  .name('forge')
+  .description('Forge Desktop Framework CLI — create, build, release, and publish desktop apps')
+  .version(pkg.version);
 
-  // Project name
-  if (!projectName) {
-    const result = await p.text({
-      message: 'Project name:',
-      placeholder: 'my-forge-app',
-      validate(value) {
-        if (!value) return 'Project name is required';
-        if (!/^[a-z0-9-_]+$/i.test(value)) return 'Use only letters, numbers, hyphens, underscores';
-        return undefined;
-      },
-    });
+program
+  .command('create [name]')
+  .description('Scaffold a new Forge Desktop app')
+  .option('-t, --template <template>', 'Template to use')
+  .action(async (name: string | undefined, opts: { template?: string }) => {
+    await createCommand(name, opts);
+  });
 
-    if (p.isCancel(result)) {
-      p.cancel('Operation cancelled.');
-      process.exit(0);
-    }
-    projectName = result;
-  }
+program
+  .command('build')
+  .description('Build all packages, Python worker, and Electron app')
+  .option('--skip-packages', 'Skip building packages')
+  .option('--skip-worker', 'Skip building Python worker')
+  .option('--skip-app', 'Skip building Electron app')
+  .action(async (opts: { skipPackages?: boolean; skipWorker?: boolean; skipApp?: boolean }) => {
+    await buildCommand(opts);
+  });
 
-  const targetDir = resolve(process.cwd(), projectName);
+program
+  .command('release [type]')
+  .description('Version bump + git tag (patch, minor, or major)')
+  .action(async (type: string | undefined) => {
+    await releaseCommand(type);
+  });
 
-  if (existsSync(targetDir)) {
-    p.cancel(`Directory "${projectName}" already exists.`);
-    process.exit(1);
-  }
+program
+  .command('publish')
+  .description('Build and publish to GitHub Releases and/or S3/R2')
+  .option('--s3', 'Publish to S3/R2 bucket')
+  .option('--github', 'Publish to GitHub Releases (default)')
+  .option('--skip-build', 'Skip the build step')
+  .action(async (opts: { s3?: boolean; github?: boolean; skipBuild?: boolean }) => {
+    await publishCommand(opts);
+  });
 
-  // Template selection
-  if (!templateId) {
-    const result = await p.select({
-      message: 'Select a template:',
-      options: TEMPLATES.map((t) => ({
-        value: t.id,
-        label: t.label,
-        hint: t.hint,
-      })),
-    });
+program
+  .command('dev [target]')
+  .description('Start development mode (default: @forge/app)')
+  .action(async (target: string | undefined) => {
+    await devCommand(target);
+  });
 
-    if (p.isCancel(result)) {
-      p.cancel('Operation cancelled.');
-      process.exit(0);
-    }
-    templateId = result as string;
-  }
-
-  const template = TEMPLATES.find((t) => t.id === templateId);
-  if (!template) {
-    p.cancel(`Unknown template: ${templateId}`);
-    process.exit(1);
-  }
-
-  const s = p.spinner();
-  s.start(`Creating ${projectName} from ${template.label} template...`);
-
-  try {
-    await scaffold(projectName, templateId, targetDir);
-    s.stop(`Project created!`);
-  } catch (err) {
-    s.stop('Failed to create project');
-    p.cancel(err instanceof Error ? err.message : String(err));
-    process.exit(1);
-  }
-
-  const pm = detectPackageManager();
-
-  p.note(
-    [
-      `cd ${projectName}`,
-      `${pm} install`,
-      `${pm === 'npm' ? 'npm run' : pm} dev`,
-    ].join('\n'),
-    'Next steps',
-  );
-
-  p.outro(pc.green('Happy building!'));
-}
-
-main().catch(console.error);
+program.parse();

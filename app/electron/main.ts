@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, dialog } from 'electron';
 import path from 'node:path';
 import { createLogger, onLogEntry } from '@forge/logger';
 import { createResourceManager } from '@forge/resource-manager';
@@ -7,6 +7,7 @@ import { createWorkerClient } from '@forge/worker-client';
 import { createJobEngine } from '@forge/job-engine';
 import { IPC_CHANNELS } from '@forge/ipc-contract';
 import { registerIpcHandlers } from './ipc-handlers';
+import { initAutoUpdater } from './auto-updater';
 
 const logger = createLogger('main');
 
@@ -14,13 +15,16 @@ let mainWindow: BrowserWindow | null = null;
 
 const isDev = !app.isPackaged;
 const appRoot = isDev
-  ? path.resolve(__dirname, '../../..')
+  ? path.resolve(__dirname, '..')      // app/ directory
   : app.getAppPath();
+const monorepoRoot = isDev
+  ? path.resolve(__dirname, '../..')   // monorepo root (for resources)
+  : undefined;
 
 const resourceManager = createResourceManager({
   isDev,
   appRoot,
-  resourcesPath: isDev ? undefined : process.resourcesPath,
+  resourcesPath: isDev ? path.join(monorepoRoot!, 'resources') : process.resourcesPath,
 });
 
 const settingsManager = createSettingsManager(
@@ -88,6 +92,11 @@ app.whenReady().then(async () => {
   });
 
   createWindow();
+
+  // Initialize auto-updater (only in packaged builds)
+  if (app.isPackaged) {
+    initAutoUpdater(mainWindow!, logger);
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

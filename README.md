@@ -76,7 +76,7 @@ pnpm dev
 
 | Package | Description |
 |---------|-------------|
-| `@forge/studio-shell` | Reference Electron app |
+| `@forge/app` | Main Electron app |
 | `create-forge-app` | CLI scaffolding tool |
 
 ## Examples
@@ -111,8 +111,8 @@ pnpm install
 # Build all packages
 pnpm build
 
-# Start the reference app
-pnpm --filter @forge/studio-shell dev
+# Start the app
+pnpm --filter @forge/app dev
 
 # Run an example
 pnpm --filter @forge-example/minimal dev

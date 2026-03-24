@@ -5,51 +5,26 @@ on:
     tags:
       - 'v*'
 
+env:
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.12'
+
 jobs:
-  build-worker:
+  build-and-release:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
-          - os: macos-latest
-            artifact: forge-worker-macos
+          - os: macos-14
+            platform: mac
+            arch: arm64
+          - os: macos-13
+            platform: mac
+            arch: x64
           - os: windows-latest
-            artifact: forge-worker-windows
+            platform: win
           - os: ubuntu-latest
-            artifact: forge-worker-linux
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install PyInstaller
-        run: pip install pyinstaller
-
-      - name: Build worker
-        run: |
-          cd python/worker
-          pyinstaller --onefile --name forge-worker main.py
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact }}
-          path: python/worker/dist/
-
-  build-app:
-    needs: build-worker
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest
-            worker-artifact: forge-worker-macos
-          - os: windows-latest
-            worker-artifact: forge-worker-windows
-          - os: ubuntu-latest
-            worker-artifact: forge-worker-linux
+            platform: linux
 
     steps:
       - uses: actions/checkout@v4
@@ -60,21 +35,29 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
         run: pnpm install
 
       - name: Build packages
-        run: pnpm build
+        run: pnpm build --filter='./packages/*'
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: ${{ matrix.worker-artifact }}
-          path: python/worker/dist/
+      - name: Build Python worker
+        run: |
+          cd app/python/worker
+          pip install pyinstaller
+          pyinstaller --onefile --name forge-worker main.py
 
-      - name: Package app
+      - name: Build Electron app
+        run: pnpm --filter @forge/app build
+
+      - name: Package Electron app (GitHub Releases)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
@@ -84,4 +67,30 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
-        run: pnpm --filter @forge/studio-shell package -- --publish always
+        run: pnpm --filter @forge/app package -- --publish always
+
+      - name: Upload to S3/R2
+        if: ${{ vars.S3_ENABLED == 'true' }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_REGION || 'auto' }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
+          S3_UPDATE_URL: ${{ secrets.S3_UPDATE_URL }}
+        run: |
+          # Build with S3 publish config
+          cd app
+          pnpm package -- -c electron-builder.s3.yml
+
+          # Upload all release artifacts
+          aws s3 sync release/ s3://$S3_BUCKET/releases/${{ github.ref_name }}/ \
+            --endpoint-url $S3_ENDPOINT \
+            --exclude "*.blockmap" \
+            --exclude "builder-debug.yml"
+
+          # Copy latest*.yml for auto-update discovery
+          for f in release/latest*.yml; do
+            [ -f "$f" ] && aws s3 cp "$f" s3://$S3_BUCKET/releases/latest/ \
+              --endpoint-url $S3_ENDPOINT
+          done

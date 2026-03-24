@@ -21,32 +21,32 @@ importers:
         specifier: ^5.8.0
         version: 5.9.3
 
-  apps/studio-shell:
+  app:
     dependencies:
       '@forge/ipc-contract':
         specifier: workspace:*
-        version: link:../../packages/ipc-contract
+        version: link:../packages/ipc-contract
       '@forge/job-engine':
         specifier: workspace:*
-        version: link:../../packages/job-engine
+        version: link:../packages/job-engine
       '@forge/logger':
         specifier: workspace:*
-        version: link:../../packages/logger
+        version: link:../packages/logger
       '@forge/project-core':
         specifier: workspace:*
-        version: link:../../packages/project-core
+        version: link:../packages/project-core
       '@forge/resource-manager':
         specifier: workspace:*
-        version: link:../../packages/resource-manager
+        version: link:../packages/resource-manager
       '@forge/settings-core':
         specifier: workspace:*
-        version: link:../../packages/settings-core
+        version: link:../packages/settings-core
       '@forge/ui-kit':
         specifier: workspace:*
-        version: link:../../packages/ui-kit
+        version: link:../packages/ui-kit
       '@forge/worker-client':
         specifier: workspace:*
-        version: link:../../packages/worker-client
+        version: link:../packages/worker-client
       react:
         specifier: ^19.0.0
         version: 19.2.4
@@ -582,6 +582,9 @@ importers:
       '@clack/prompts':
         specifier: ^0.9.0
         version: 0.9.1
+      commander:
+        specifier: ^13.1.0
+        version: 13.1.0
       picocolors:
         specifier: ^1.1.0
         version: 1.1.1
@@ -1584,6 +1587,10 @@ packages:
   combined-stream@1.0.8:
     resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
     engines: {node: '>= 0.8'}
+
+  commander@13.1.0:
+    resolution: {integrity: sha512-/rFeCpNJQbhSZjGVwO9RFV3xPqbnERS8MmIQzCtD/zl6gpJuV/bMLuN92oG3F7d8oDEHHRrujSXNUr8fpjntKw==}
+    engines: {node: '>=18'}
 
   commander@5.1.0:
     resolution: {integrity: sha512-P0CysNDQ7rtVw4QIQtm+MRxV66vKFSvlsQvGYXZWR3qFU0jlMKHZZZgw8e+8DSah4UDKMqnknRDQz+xuQXQ/Zg==}
@@ -3659,6 +3666,8 @@ snapshots:
   combined-stream@1.0.8:
     dependencies:
       delayed-stream: 1.0.0
+
+  commander@13.1.0: {}
 
   commander@5.1.0: {}
 

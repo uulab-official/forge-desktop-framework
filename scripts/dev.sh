@@ -10,4 +10,4 @@ echo "Building packages..."
 pnpm build --filter='./packages/*'
 
 echo "Starting development server..."
-pnpm --filter @forge/studio-shell dev
+pnpm --filter @forge/app dev

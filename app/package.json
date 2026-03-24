@@ -1,5 +1,5 @@
 {
-  "name": "@forge/studio-shell",
+  "name": "@forge/app",
   "version": "0.1.0",
   "private": true,
   "main": "./dist-electron/main.js",
@@ -23,7 +23,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.0.0",
-    "zustand": "^5.0.0"
+    "zustand": "^5.0.0",
+    "electron-updater": "^6.3.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

@@ -35,7 +35,7 @@ fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
 "
 
 # Update all workspace packages
-for pkg_json in packages/*/package.json apps/*/package.json; do
+for pkg_json in packages/*/package.json app/package.json; do
   if [ -f "$pkg_json" ]; then
     node -e "
     const fs = require('fs');

@@ -26,7 +26,7 @@ pnpm dev
 
 ```
 packages/           # Framework core packages (@forge/*)
-apps/studio-shell/  # Reference Electron app
+app/                # Main Electron app (with embedded Python worker)
 examples/           # Example apps demonstrating framework usage
 python/worker/      # Python worker engine
 scripts/            # Build and dev scripts

@@ -12,9 +12,10 @@ Open source local-engine desktop app framework. Electron (UI) + Python Worker (e
 
 ## Project Structure
 - `packages/` — Framework core packages (@forge/*)
-- `apps/studio-shell/` — Reference Electron app
+- `app/` — Main Electron app (with embedded Python worker)
 - `examples/` — Example apps (minimal, file-processor, ai-tool, video-tools, dashboard, multi-module, chat, webrtc-demo, webgpu-compute)
-- `python/worker/` — Python worker engine
+- `python/worker/` — Framework's core Python worker template (used by examples)
+- `app/python/worker/` — App's Python worker (lives inside the app)
 - `scripts/` — Build and dev scripts
 - `docs/` — Documentation
 
@@ -24,6 +25,7 @@ pnpm install                    # Install all dependencies
 pnpm build                      # Build all packages (turborepo)
 pnpm typecheck                  # Type check all packages
 pnpm dev                        # Start development
+pnpm --filter @forge/app dev    # Start the app
 pnpm --filter @forge/<pkg> dev  # Dev single package
 pnpm --filter @forge-example/<name> dev  # Run an example
 ```
@@ -65,7 +67,7 @@ Python Worker -> stdout JSON -> Electron Main -> webContents.send -> Renderer
 ## Testing
 - Python worker: pipe JSON through stdin, check stdout
 - Packages: `pnpm typecheck` (no test runner yet)
-- Full app: `pnpm --filter @forge/studio-shell dev`
+- Full app: `pnpm --filter @forge/app dev`
 
 ## Release Process
 1. `./scripts/release.sh [patch|minor|major]` — bumps all versions

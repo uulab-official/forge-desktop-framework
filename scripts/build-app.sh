@@ -13,6 +13,6 @@ echo "=== Step 2: Build TypeScript packages ==="
 pnpm build
 
 echo "=== Step 3: Package Electron app ==="
-pnpm --filter @forge/studio-shell package
+pnpm --filter @forge/app package
 
 echo "=== Build complete ==="

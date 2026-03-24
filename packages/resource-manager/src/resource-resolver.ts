@@ -22,9 +22,8 @@ export function createResourceManager(opts: ResourceManagerOptions): ResourceMan
   const logger = createLogger('resources');
   const { isDev, appRoot } = opts;
 
-  const resourcesBase = isDev
-    ? join(appRoot, 'resources')
-    : opts.resourcesPath ?? join(appRoot, 'resources');
+  const resourcesBase = opts.resourcesPath
+    ?? (isDev ? join(appRoot, 'resources') : join(appRoot, 'resources'));
 
   const exe = getExeSuffix();
 

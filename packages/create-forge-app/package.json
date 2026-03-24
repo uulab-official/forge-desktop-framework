@@ -1,10 +1,11 @@
 {
-  "name": "create-forge-app",
+  "name": "forge-cli",
   "version": "0.1.0",
-  "description": "Create a new Forge Desktop app",
+  "description": "Forge Desktop Framework CLI — create, build, release, and publish desktop apps",
   "type": "module",
   "bin": {
-    "create-forge-app": "./dist/index.js"
+    "forge": "./dist/index.js",
+    "create-forge-app": "./dist/create.js"
   },
   "files": [
     "dist",
@@ -18,6 +19,7 @@
   },
   "dependencies": {
     "@clack/prompts": "^0.9.0",
+    "commander": "^13.1.0",
     "picocolors": "^1.1.0"
   },
   "devDependencies": {
@@ -31,6 +33,8 @@
     "desktop",
     "framework",
     "scaffold",
-    "create-app"
+    "create-app",
+    "cli",
+    "forge"
   ]
 }
