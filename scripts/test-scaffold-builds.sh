@@ -22,6 +22,7 @@ CLIPBOARD_APP="examples/__scaffold_test_clipboard__$$"
 EXTERNAL_LINKS_APP="examples/__scaffold_test_external_links__$$"
 SYSTEM_INFO_APP="examples/__scaffold_test_system_info__$$"
 PERMISSIONS_APP="examples/__scaffold_test_permissions__$$"
+NETWORK_STATUS_APP="examples/__scaffold_test_network_status__$$"
 LOCKFILE_BACKUP="$(mktemp)"
 
 cp pnpm-lock.yaml "$LOCKFILE_BACKUP"
@@ -32,7 +33,7 @@ cleanup() {
     for (const target of process.argv.slice(1)) {
       fs.rmSync(target, { recursive: true, force: true });
     }
-  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP" "$FILE_ASSOCIATION_APP" "$FILE_DIALOGS_APP" "$RECENT_FILES_APP" "$CRASH_RECOVERY_APP" "$POWER_MONITOR_APP" "$DOWNLOADS_APP" "$CLIPBOARD_APP" "$EXTERNAL_LINKS_APP" "$SYSTEM_INFO_APP" "$PERMISSIONS_APP"
+  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP" "$FILE_ASSOCIATION_APP" "$FILE_DIALOGS_APP" "$RECENT_FILES_APP" "$CRASH_RECOVERY_APP" "$POWER_MONITOR_APP" "$DOWNLOADS_APP" "$CLIPBOARD_APP" "$EXTERNAL_LINKS_APP" "$SYSTEM_INFO_APP" "$PERMISSIONS_APP" "$NETWORK_STATUS_APP"
   cp "$LOCKFILE_BACKUP" pnpm-lock.yaml
   rm -f "$LOCKFILE_BACKUP"
 }
@@ -238,5 +239,16 @@ echo "==> Verifying permissions smoke app"
 pnpm --dir "$PERMISSIONS_APP" release:check
 pnpm --dir "$PERMISSIONS_APP" typecheck
 pnpm --dir "$PERMISSIONS_APP" build
+
+echo "==> Scaffolding network-status smoke app"
+node packages/create-forge-app/dist/index.js create "$NETWORK_STATUS_APP" --template minimal --feature network-status --yes --package-manager pnpm >/dev/null
+
+echo "==> Installing network-status smoke app with workspace links"
+pnpm install --dir "$NETWORK_STATUS_APP" --link-workspace-packages >/dev/null
+
+echo "==> Verifying network-status smoke app"
+pnpm --dir "$NETWORK_STATUS_APP" release:check
+pnpm --dir "$NETWORK_STATUS_APP" typecheck
+pnpm --dir "$NETWORK_STATUS_APP" build
 
 echo "Scaffold build verification passed."

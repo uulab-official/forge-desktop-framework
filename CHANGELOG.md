@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.27 (2026-03-25)
+
+### Network-Status Feature Pack
+
+- Added a `network-status` scaffold feature pack for the `minimal` starter
+- Generated apps now expose starter online and offline diagnostics over preload IPC and surface refreshable connectivity history in `FeatureStudio`
+- Kept `network-status` optional so teams can add connectivity diagnostics deliberately without widening the default production preset
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated network-status smoke app before any version bump
+
 ## 0.1.26 (2026-03-25)
 
 ### Permissions Feature Pack

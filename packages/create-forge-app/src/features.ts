@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions' | 'network-status';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -146,6 +146,12 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     id: 'permissions',
     label: 'Permissions',
     description: 'Seed camera, microphone, and screen permission diagnostics with starter request controls',
+    minimalOnly: true,
+  },
+  {
+    id: 'network-status',
+    label: 'Network Status',
+    description: 'Seed online and offline runtime diagnostics with starter refresh and history controls',
     minimalOnly: true,
   },
 ];

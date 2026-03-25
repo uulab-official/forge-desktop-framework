@@ -723,6 +723,7 @@ function getMinimalElectronMainSource(
   const useExternalLinks = features.includes('external-links');
   const useSystemInfo = features.includes('system-info');
   const usePermissions = features.includes('permissions');
+  const useNetworkStatus = features.includes('network-status');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
@@ -730,7 +731,7 @@ function getMinimalElectronMainSource(
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
   const dialogFileName = `${toIdentifier(projectName)}-document.txt`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useFileDialogs || useDownloads || useExternalLinks ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useNetworkStatus ? ', net' : ''}${useFileDialogs || useDownloads || useExternalLinks ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
 import path from 'node:path';
 ${useSystemInfo ? "import os from 'node:os';\n" : ''}
 ${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
@@ -1011,6 +1012,64 @@ async function requestPermission(kind: RequestablePermissionKind) {
   }
 
   return getPermissionsState();
+}
+` : ''}${useNetworkStatus ? `
+type NetworkStatusState = {
+  supported: boolean;
+  online: boolean;
+  status: 'online' | 'offline';
+  checkCount: number;
+  lastCheckedAt: string | null;
+  history: Array<{
+    online: boolean;
+    status: 'online' | 'offline';
+    timestamp: string;
+  }>;
+};
+
+const networkStatusHistoryLimit = 8;
+const networkStatusState: NetworkStatusState = {
+  supported: typeof net.isOnline === 'function',
+  online: true,
+  status: 'online',
+  checkCount: 0,
+  lastCheckedAt: null,
+  history: [],
+};
+
+function snapshotNetworkStatus() {
+  const online = typeof net.isOnline === 'function' ? net.isOnline() : true;
+  const status: NetworkStatusState['status'] = online ? 'online' : 'offline';
+  const timestamp = new Date().toISOString();
+  networkStatusState.supported = typeof net.isOnline === 'function';
+  networkStatusState.online = online;
+  networkStatusState.status = status;
+  networkStatusState.lastCheckedAt = timestamp;
+  networkStatusState.checkCount += 1;
+  const history: NetworkStatusState['history'] = [
+    {
+      online,
+      status,
+      timestamp,
+    },
+    ...networkStatusState.history,
+  ].slice(0, networkStatusHistoryLimit);
+  networkStatusState.history = history;
+  return {
+    supported: networkStatusState.supported,
+    online: networkStatusState.online,
+    status: networkStatusState.status,
+    checkCount: networkStatusState.checkCount,
+    lastCheckedAt: networkStatusState.lastCheckedAt,
+    history: [...networkStatusState.history],
+  };
+}
+
+function clearNetworkStatusHistory() {
+  networkStatusState.checkCount = 0;
+  networkStatusState.lastCheckedAt = null;
+  networkStatusState.history = [];
+  return snapshotNetworkStatus();
 }
 ` : ''}${useTray ? `
 const trayIcon = nativeImage.createFromDataURL(
@@ -2028,6 +2087,14 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return requestPermission(kind);
   });
 
+` : ''}${useNetworkStatus ? `  ipcMain.handle(IPC_CHANNELS.NETWORK_STATUS_GET_STATE, async () => {
+    return snapshotNetworkStatus();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.NETWORK_STATUS_CLEAR_HISTORY, async () => {
+    return clearNetworkStatusHistory();
+  });
+
 ` : ''}${useNotifications ? `  ipcMain.handle(IPC_CHANNELS.NOTIFY_SHOW, async (_event, title: string, body: string) => {
     const safeTitle = title.trim() || ${JSON.stringify(productName)};
     const safeBody = body.trim() || 'Background work completed successfully.';
@@ -2388,6 +2455,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useExternalLinks = features.includes('external-links');
   const useSystemInfo = features.includes('system-info');
   const usePermissions = features.includes('permissions');
+  const useNetworkStatus = features.includes('network-status');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -2429,6 +2497,10 @@ ${useSettings ? `  settings: {
 ` : ''}${usePermissions ? `  permissions: {
     getState: () => ipcRenderer.invoke(IPC_CHANNELS.PERMISSIONS_GET_STATE),
     request: (kind: 'camera' | 'microphone') => ipcRenderer.invoke(IPC_CHANNELS.PERMISSIONS_REQUEST, kind),
+  },
+` : ''}${useNetworkStatus ? `  networkStatus: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.NETWORK_STATUS_GET_STATE),
+    clearHistory: () => ipcRenderer.invoke(IPC_CHANNELS.NETWORK_STATUS_CLEAR_HISTORY),
   },
 ` : ''}${useNotifications ? `  notifications: {
     show: (title: string, body: string) => ipcRenderer.invoke(IPC_CHANNELS.NOTIFY_SHOW, title, body),
@@ -2536,6 +2608,7 @@ function getFeatureStudioSource(
   const useExternalLinks = features.includes('external-links');
   const useSystemInfo = features.includes('system-info');
   const usePermissions = features.includes('permissions');
+  const useNetworkStatus = features.includes('network-status');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
@@ -2622,6 +2695,19 @@ type PermissionsState = {
     timestamp: string | null;
     error: string | null;
   };
+};
+
+type NetworkStatusState = {
+  supported: boolean;
+  online: boolean;
+  status: 'online' | 'offline';
+  checkCount: number;
+  lastCheckedAt: string | null;
+  history: Array<{
+    online: boolean;
+    status: 'online' | 'offline';
+    timestamp: string;
+  }>;
 };
 
 type WindowStateSummary = {
@@ -2779,6 +2865,10 @@ type ForgeDesktopAPI = {
     getState: () => Promise<PermissionsState>;
     request: (kind: 'camera' | 'microphone') => Promise<PermissionsState>;
   };
+  networkStatus?: {
+    getState: () => Promise<NetworkStatusState>;
+    clearHistory: () => Promise<NetworkStatusState>;
+  };
   notifications?: {
     show: (title: string, body: string) => Promise<{ supported: boolean; delivered: boolean }>;
   };
@@ -2866,6 +2956,7 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
   const [diagnosticsExport, setDiagnosticsExport] = useState<{ filePath: string; generatedAt: string } | null>(null);
 ` : ''}${useSystemInfo ? `  const [systemInfoState, setSystemInfoState] = useState<SystemInfoState | null>(null);
 ` : ''}${usePermissions ? `  const [permissionsState, setPermissionsState] = useState<PermissionsState | null>(null);
+` : ''}${useNetworkStatus ? `  const [networkStatusState, setNetworkStatusState] = useState<NetworkStatusState | null>(null);
 ` : ''}${useNotifications ? `  const [notificationDraft, setNotificationDraft] = useState({ title: 'Forge Ready', body: '${displayName} is ready for customer testing.' });
   const [notificationState, setNotificationState] = useState<'idle' | 'sent' | 'unsupported'>('idle');
 ` : ''}${useWindowing ? `  const [windowState, setWindowState] = useState<WindowStateSummary | null>(null);
@@ -2991,6 +3082,31 @@ ${useSettings ? `  useEffect(() => {
         }
       } catch {
         // Ignore starter permissions polling failures.
+      }
+    };
+
+    sync();
+    const timer = window.setInterval(sync, 5000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [api]);
+` : ''}${useNetworkStatus ? `
+  useEffect(() => {
+    if (!api?.networkStatus?.getState) {
+      return undefined;
+    }
+
+    let active = true;
+    const sync = async () => {
+      try {
+        const next = await api.networkStatus?.getState?.();
+        if (active && next) {
+          setNetworkStatusState(next);
+        }
+      } catch {
+        // Ignore starter network-status polling failures.
       }
     };
 
@@ -3450,6 +3566,52 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             </>
           ) : (
             <p className="mt-3 text-xs text-slate-500">Permission state is unavailable until the desktop bridge finishes booting.</p>
+          )}
+        </section>
+` : ''}${useNetworkStatus ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Network Status</h3>
+              <p className="mt-1 text-xs text-slate-400">Inspect online or offline state from the desktop shell so teams can harden retry, sync, and degraded-mode UX before wiring their own diagnostics surface.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => refreshNetworkStatus(api, setNetworkStatusState)}
+                className="rounded-full border border-cyan-500/40 px-3 py-1 text-xs font-medium text-cyan-300 hover:border-cyan-400 hover:text-cyan-100"
+              >
+                Refresh
+              </button>
+              <button
+                onClick={() => clearNetworkStatus(api, setNetworkStatusState)}
+                className="rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-200 hover:border-slate-500"
+              >
+                Clear history
+              </button>
+            </div>
+          </div>
+          {networkStatusState ? (
+            <>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <DiagnosticRow label="Supported" value={networkStatusState.supported ? 'yes' : 'fallback only'} />
+                <DiagnosticRow label="Status" value={networkStatusState.status} />
+                <DiagnosticRow label="Online" value={networkStatusState.online ? 'yes' : 'no'} />
+                <DiagnosticRow label="Check Count" value={String(networkStatusState.checkCount)} />
+                <DiagnosticRow label="Last Checked" value={networkStatusState.lastCheckedAt ?? 'not checked yet'} />
+                <DiagnosticRow label="Surface" value="electron net.isOnline starter probe" />
+              </div>
+              <div className="mt-3 space-y-2">
+                {networkStatusState.history.length ? networkStatusState.history.map((entry) => (
+                  <div key={entry.timestamp} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2">
+                    <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-300">{entry.status}</span>
+                    <span className="text-xs text-slate-500">{entry.timestamp}</span>
+                  </div>
+                )) : (
+                  <p className="text-xs text-slate-500">No network checks recorded yet. Refresh to seed a starter online or offline history.</p>
+                )}
+              </div>
+            </>
+          ) : (
+            <p className="mt-3 text-xs text-slate-500">Network status is unavailable until the desktop bridge finishes booting.</p>
           )}
         </section>
 ` : ''}${useNotifications ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
@@ -4507,7 +4669,36 @@ async function requestPermissionAccess(
     // Ignore starter permission request failures.
   }
 }
-` : ''}${useDiagnostics || useSystemInfo || usePermissions || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useDownloads || useClipboard || useExternalLinks ? `
+` : ''}${useNetworkStatus ? `
+
+async function refreshNetworkStatus(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: NetworkStatusState) => void,
+) {
+  try {
+    const next = await api?.networkStatus?.getState?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter network-status refresh failures.
+  }
+}
+
+async function clearNetworkStatus(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: NetworkStatusState) => void,
+) {
+  try {
+    const next = await api?.networkStatus?.clearHistory?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter network-status clear failures.
+  }
+}
+` : ''}${useDiagnostics || useSystemInfo || usePermissions || useNetworkStatus || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useDownloads || useClipboard || useExternalLinks ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

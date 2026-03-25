@@ -69,6 +69,8 @@ export const IPC_CHANNELS = {
   SYSTEM_INFO_GET_STATE: 'system-info:get-state',
   PERMISSIONS_GET_STATE: 'permissions:get-state',
   PERMISSIONS_REQUEST: 'permissions:request',
+  NETWORK_STATUS_GET_STATE: 'network-status:get-state',
+  NETWORK_STATUS_CLEAR_HISTORY: 'network-status:clear-history',
 
   // Updates
   UPDATE_CHECK: 'update:check',

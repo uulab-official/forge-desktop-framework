@@ -86,7 +86,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature clipboard \
   --feature external-links \
   --feature system-info \
-  --feature permissions
+  --feature permissions \
+  --feature network-status
 ```
 
 Preset creation for the production starter:
@@ -154,6 +155,7 @@ Feature packs currently target the `minimal` template and add:
 - `external-links` for starter `shell.openExternal` link launching with history and error tracking
 - `system-info` for starter runtime OS, memory, process, and path diagnostics with refresh controls
 - `permissions` for starter camera, microphone, and screen permission diagnostics with request controls
+- `network-status` for starter online/offline diagnostics with refresh and history controls
 
 Starter presets currently target the `minimal` template:
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`
