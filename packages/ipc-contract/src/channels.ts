@@ -29,6 +29,8 @@ export const IPC_CHANNELS = {
   WINDOW_STATE_GET: 'window:get-state',
   WINDOW_FOCUS: 'window:focus',
   WINDOW_RESET: 'window:reset',
+  TRAY_STATUS_GET: 'tray:get-status',
+  TRAY_TOGGLE_WINDOW: 'tray:toggle-window',
 
   // Updates
   UPDATE_CHECK: 'update:check',

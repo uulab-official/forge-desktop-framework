@@ -693,11 +693,12 @@ function getMinimalElectronMainSource(
   const useDiagnostics = features.includes('diagnostics');
   const useNotifications = features.includes('notifications');
   const useWindowing = features.includes('windowing');
+  const useTray = features.includes('tray');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray ? ', Menu, Tray, nativeImage' : ''} } from 'electron';
 import path from 'node:path';
 ${useDiagnostics || useWindowing ? `import { ${[useDiagnostics || useWindowing ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
@@ -706,6 +707,7 @@ import { IPC_CHANNELS, type WorkerRequest } from '@forge/ipc-contract';
 ${useSettings ? "import { createSettingsManager } from '@forge/settings-core';\n" : ''}${useJobs ? "import { createJobEngine } from '@forge/job-engine';\n" : ''}${useUpdater ? "import { createUpdater } from '@forge/updater';\n" : ''}
 const logger = createLogger('main');
 let mainWindow: BrowserWindow | null = null;
+${useTray ? 'let appTray: Tray | null = null;\n' : ''}
 
 const isDev = !app.isPackaged;
 const appRoot = isDev ? path.resolve(__dirname, '..') : app.getAppPath();
@@ -831,6 +833,60 @@ async function exportDiagnosticsBundle() {
   await writeFile(filePath, JSON.stringify(payload, null, 2), 'utf-8');
   return { filePath, generatedAt: payload.generatedAt };
 }
+` : ''}${useTray ? `
+const trayIcon = nativeImage.createFromDataURL(
+  'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect x=%222%22 y=%222%22 width=%2212%22 height=%2212%22 rx=%223%22 fill=%22black%22/%3E%3C/svg%3E',
+);
+trayIcon.setTemplateImage(true);
+
+function getTrayStatus() {
+  return {
+    enabled: Boolean(appTray),
+    windowVisible: mainWindow?.isVisible() ?? false,
+  };
+}
+
+function toggleMainWindowVisibility() {
+  if (!mainWindow) {
+    createWindow();
+    return getTrayStatus();
+  }
+
+  if (mainWindow.isVisible()) {
+    mainWindow.hide();
+  } else {
+    mainWindow.show();
+    mainWindow.focus();
+  }
+
+  return getTrayStatus();
+}
+
+function createTray() {
+  if (appTray) {
+    return;
+  }
+
+  appTray = new Tray(trayIcon);
+  appTray.setToolTip(${JSON.stringify(productName)});
+  appTray.setContextMenu(Menu.buildFromTemplate([
+    {
+      label: 'Show or Hide',
+      click: () => {
+        toggleMainWindowVisibility();
+      },
+    },
+    {
+      label: 'Quit',
+      click: () => {
+        app.quit();
+      },
+    },
+  ]));
+  appTray.on('click', () => {
+    toggleMainWindowVisibility();
+  });
+}
 ` : ''}
 function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.WORKER_EXECUTE, async (_event, request: WorkerRequest) => {
@@ -939,6 +995,14 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return getCurrentWindowState();
   });
 
+` : ''}${useTray ? `  ipcMain.handle(IPC_CHANNELS.TRAY_STATUS_GET, async () => {
+    return getTrayStatus();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.TRAY_TOGGLE_WINDOW, async () => {
+    return toggleMainWindowVisibility();
+  });
+
 ` : ''}  logger.info('IPC handlers registered');
 }
 
@@ -1020,7 +1084,7 @@ if (!hasSingleInstanceLock) {
   logger.info('App starting', { isDev, appRoot });
 ${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}  registerIpcHandlers();
   createWindow();
-${useUpdater ? `  if (app.isPackaged) {
+${useTray ? '  createTray();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
     setTimeout(() => {
       updater.checkForUpdates().catch(() => {
         logger.info('Initial update check skipped');
@@ -1039,7 +1103,7 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
-${useWindowing ? '  if (mainWindow && !mainWindow.isDestroyed()) {\n    void saveWindowState(mainWindow);\n  }\n' : ''}${useUpdater ? '  updater.dispose();\n' : ''}${useJobs ? '  jobEngine.dispose();\n' : '  workerClient.dispose();\n'}});
+${useWindowing ? '  if (mainWindow && !mainWindow.isDestroyed()) {\n    void saveWindowState(mainWindow);\n  }\n' : ''}${useTray ? '  appTray?.destroy();\n' : ''}${useUpdater ? '  updater.dispose();\n' : ''}${useJobs ? '  jobEngine.dispose();\n' : '  workerClient.dispose();\n'}});
 `;
 }
 
@@ -1050,6 +1114,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useDiagnostics = features.includes('diagnostics');
   const useNotifications = features.includes('notifications');
   const useWindowing = features.includes('windowing');
+  const useTray = features.includes('tray');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -1093,6 +1158,10 @@ ${useSettings ? `  settings: {
     focus: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_FOCUS),
     reset: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_RESET),
   },
+` : ''}${useTray ? `  tray: {
+    getStatus: () => ipcRenderer.invoke(IPC_CHANNELS.TRAY_STATUS_GET),
+    toggleWindow: () => ipcRenderer.invoke(IPC_CHANNELS.TRAY_TOGGLE_WINDOW),
+  },
 ` : ''}};
 
 contextBridge.exposeInMainWorld('api', api);
@@ -1113,6 +1182,7 @@ function getFeatureStudioSource(
   const useDiagnostics = features.includes('diagnostics');
   const useNotifications = features.includes('notifications');
   const useWindowing = features.includes('windowing');
+  const useTray = features.includes('tray');
   const displayName = resolveProductName(projectName, metadata);
 
   return `import { useEffect, useState } from 'react';
@@ -1142,6 +1212,11 @@ type WindowStateSummary = {
   y: number | null;
   maximized: boolean;
   focused: boolean;
+};
+
+type TrayStatus = {
+  enabled: boolean;
+  windowVisible: boolean;
 };
 
 type ForgeDesktopAPI = {
@@ -1177,6 +1252,10 @@ type ForgeDesktopAPI = {
     focus: () => Promise<WindowStateSummary>;
     reset: () => Promise<WindowStateSummary>;
   };
+  tray?: {
+    getStatus: () => Promise<TrayStatus>;
+    toggleWindow: () => Promise<TrayStatus>;
+  };
 };
 
 function getDesktopApi(): ForgeDesktopAPI | undefined {
@@ -1194,6 +1273,7 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
 ` : ''}${useNotifications ? `  const [notificationDraft, setNotificationDraft] = useState({ title: 'Forge Ready', body: '${displayName} is ready for customer testing.' });
   const [notificationState, setNotificationState] = useState<'idle' | 'sent' | 'unsupported'>('idle');
 ` : ''}${useWindowing ? `  const [windowState, setWindowState] = useState<WindowStateSummary | null>(null);
+` : ''}${useTray ? `  const [trayStatus, setTrayStatus] = useState<TrayStatus | null>(null);
 ` : ''}  const featureNames = ${JSON.stringify(features)};
 
 ${useSettings ? `  useEffect(() => {
@@ -1260,6 +1340,12 @@ ${useSettings ? `  useEffect(() => {
   useEffect(() => {
     api?.windowing?.getState?.().then((next) => {
       setWindowState(next);
+    }).catch(() => {});
+  }, [api]);
+` : ''}${useTray ? `
+  useEffect(() => {
+    api?.tray?.getStatus?.().then((next) => {
+      setTrayStatus(next);
     }).catch(() => {});
   }, [api]);
 ` : ''}  return (
@@ -1489,6 +1575,24 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             </button>
           </div>
         </section>
+` : ''}${useTray ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">System Tray</h3>
+              <p className="mt-1 text-xs text-slate-400">Keep the app one click away with a tray icon and starter show or hide controls.</p>
+            </div>
+            <button
+              onClick={() => toggleTrayWindow(api, setTrayStatus)}
+              className="rounded-full border border-cyan-500/40 px-3 py-1 text-xs font-medium text-cyan-300 hover:border-cyan-400 hover:text-cyan-100"
+            >
+              {trayStatus?.windowVisible ? 'Hide window' : 'Show window'}
+            </button>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <DiagnosticRow label="Tray Enabled" value={trayStatus?.enabled ? 'yes' : 'no'} />
+            <DiagnosticRow label="Window Visible" value={trayStatus?.windowVisible ? 'yes' : 'no'} />
+          </div>
+        </section>
 ` : ''}${usePlugins ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length === 1 ? 'md:col-span-2' : ''}">
           <h3 className="text-sm font-semibold text-white">Plugin Registry</h3>
           <p className="mt-1 text-xs text-slate-400">Sample plugin slots are ready for feature-oriented modules.</p>
@@ -1569,7 +1673,22 @@ async function runWindowAction(
     // Ignore starter windowing failures.
   }
 }
-` : ''}${useDiagnostics || useWindowing ? `
+` : ''}${useTray ? `
+
+async function toggleTrayWindow(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: TrayStatus) => void,
+) {
+  try {
+    const next = await api?.tray?.toggleWindow?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter tray failures.
+  }
+}
+` : ''}${useDiagnostics || useWindowing || useTray ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

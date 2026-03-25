@@ -60,7 +60,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature plugins \
   --feature diagnostics \
   --feature notifications \
-  --feature windowing
+  --feature windowing \
+  --feature tray
 ```
 
 Or preview the bundled production starter:

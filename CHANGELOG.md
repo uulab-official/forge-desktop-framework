@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.12 (2026-03-25)
+
+### Tray Feature Pack
+
+- Added a `tray` scaffold feature pack for the `minimal` starter
+- Generated apps now expose a starter system tray with show or hide and quit actions
+- Added tray controls to `FeatureStudio` so scaffolded apps can verify tray visibility and window toggling without extra setup
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated tray smoke app before any version bump
+
 ## 0.1.11 (2026-03-25)
 
 ### Windowing Feature Pack

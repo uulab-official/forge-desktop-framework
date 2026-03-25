@@ -7,6 +7,7 @@ cd "$ROOT_DIR"
 
 MINIMAL_APP="examples/__scaffold_test_minimal__$$"
 LAUNCH_READY_APP="examples/__scaffold_test_launch_ready__$$"
+TRAY_APP="examples/__scaffold_test_tray__$$"
 LOCKFILE_BACKUP="$(mktemp)"
 
 cp pnpm-lock.yaml "$LOCKFILE_BACKUP"
@@ -17,7 +18,7 @@ cleanup() {
     for (const target of process.argv.slice(1)) {
       fs.rmSync(target, { recursive: true, force: true });
     }
-  " "$MINIMAL_APP" "$LAUNCH_READY_APP"
+  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP"
   cp "$LOCKFILE_BACKUP" pnpm-lock.yaml
   rm -f "$LOCKFILE_BACKUP"
 }
@@ -58,5 +59,16 @@ echo "==> Verifying launch-ready smoke app"
 pnpm --dir "$LAUNCH_READY_APP" release:check
 pnpm --dir "$LAUNCH_READY_APP" typecheck
 pnpm --dir "$LAUNCH_READY_APP" build
+
+echo "==> Scaffolding tray smoke app"
+node packages/create-forge-app/dist/index.js create "$TRAY_APP" --template minimal --feature tray --yes --package-manager pnpm >/dev/null
+
+echo "==> Installing tray smoke app with workspace links"
+pnpm install --dir "$TRAY_APP" --link-workspace-packages >/dev/null
+
+echo "==> Verifying tray smoke app"
+pnpm --dir "$TRAY_APP" release:check
+pnpm --dir "$TRAY_APP" typecheck
+pnpm --dir "$TRAY_APP" build
 
 echo "Scaffold build verification passed."

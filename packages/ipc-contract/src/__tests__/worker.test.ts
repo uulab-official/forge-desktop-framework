@@ -29,6 +29,7 @@ describe('IPC_CHANNELS', () => {
     expect(IPC_CHANNELS.DIAGNOSTICS_SUMMARY).toBe('diagnostics:summary');
     expect(IPC_CHANNELS.NOTIFY_SHOW).toBe('notify:show');
     expect(IPC_CHANNELS.WINDOW_STATE_GET).toBe('window:get-state');
+    expect(IPC_CHANNELS.TRAY_STATUS_GET).toBe('tray:get-status');
     expect(IPC_CHANNELS.UPDATE_CHECK).toBe('update:check');
   });
 });

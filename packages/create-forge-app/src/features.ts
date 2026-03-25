@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -56,6 +56,12 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     id: 'windowing',
     label: 'Windowing',
     description: 'Persist window bounds, enforce single-instance focus, and expose starter window controls',
+    minimalOnly: true,
+  },
+  {
+    id: 'tray',
+    label: 'Tray',
+    description: 'Seed a system tray integration with show or hide controls and a starter context menu',
     minimalOnly: true,
   },
 ];
