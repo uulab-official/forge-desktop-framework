@@ -59,7 +59,7 @@ Scaffolded apps also include:
 The `minimal` starter also supports feature packs during scaffolding:
 
 ```bash
-forge create my-app --template minimal --feature settings --feature updater --feature diagnostics --feature notifications --feature windowing --feature tray --feature deep-link --feature menu-bar --feature auto-launch --feature global-shortcut --feature file-association --feature file-dialogs --feature recent-files --feature crash-recovery --feature power-monitor --feature downloads --feature clipboard --feature external-links --feature system-info --feature permissions --feature network-status --feature secure-storage
+forge create my-app --template minimal --feature settings --feature updater --feature diagnostics --feature notifications --feature windowing --feature tray --feature deep-link --feature menu-bar --feature auto-launch --feature global-shortcut --feature file-association --feature file-dialogs --feature recent-files --feature crash-recovery --feature power-monitor --feature idle-presence --feature downloads --feature clipboard --feature external-links --feature system-info --feature permissions --feature network-status --feature secure-storage
 ```
 
 For the fastest production baseline, use the preset:
@@ -77,6 +77,8 @@ Use `--feature recent-files` when your desktop product needs a persistent recent
 Use `--feature crash-recovery` when your desktop product needs starter incident tracking for renderer or child-process failures and wants relaunch controls baked into the generated shell.
 
 Use `--feature power-monitor` when your desktop product needs starter suspend, resume, lock, unlock, and power-source tracking for background work or device-lifecycle-sensitive flows.
+
+Use `--feature idle-presence` when your desktop product needs starter user activity, lock state, and focused or hidden window diagnostics for attention-aware flows.
 
 Use `--feature downloads` when your desktop product needs starter file download progress, history, and reveal-in-folder controls without wiring Electron session events by hand.
 

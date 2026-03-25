@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions' | 'network-status' | 'secure-storage';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'idle-presence' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions' | 'network-status' | 'secure-storage';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -116,6 +116,12 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     id: 'power-monitor',
     label: 'Power Monitor',
     description: 'Seed suspend, resume, lock, and power-source monitoring with starter runtime controls',
+    minimalOnly: true,
+  },
+  {
+    id: 'idle-presence',
+    label: 'Idle Presence',
+    description: 'Seed desktop attention and idle diagnostics with starter refresh and history controls',
     minimalOnly: true,
   },
   {

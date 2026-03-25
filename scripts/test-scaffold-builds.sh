@@ -17,6 +17,7 @@ FILE_DIALOGS_APP="examples/__scaffold_test_file_dialogs__$$"
 RECENT_FILES_APP="examples/__scaffold_test_recent_files__$$"
 CRASH_RECOVERY_APP="examples/__scaffold_test_crash_recovery__$$"
 POWER_MONITOR_APP="examples/__scaffold_test_power_monitor__$$"
+IDLE_PRESENCE_APP="examples/__scaffold_test_idle_presence__$$"
 DOWNLOADS_APP="examples/__scaffold_test_downloads__$$"
 CLIPBOARD_APP="examples/__scaffold_test_clipboard__$$"
 EXTERNAL_LINKS_APP="examples/__scaffold_test_external_links__$$"
@@ -34,7 +35,7 @@ cleanup() {
     for (const target of process.argv.slice(1)) {
       fs.rmSync(target, { recursive: true, force: true });
     }
-  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP" "$FILE_ASSOCIATION_APP" "$FILE_DIALOGS_APP" "$RECENT_FILES_APP" "$CRASH_RECOVERY_APP" "$POWER_MONITOR_APP" "$DOWNLOADS_APP" "$CLIPBOARD_APP" "$EXTERNAL_LINKS_APP" "$SYSTEM_INFO_APP" "$PERMISSIONS_APP" "$NETWORK_STATUS_APP" "$SECURE_STORAGE_APP"
+  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP" "$FILE_ASSOCIATION_APP" "$FILE_DIALOGS_APP" "$RECENT_FILES_APP" "$CRASH_RECOVERY_APP" "$POWER_MONITOR_APP" "$IDLE_PRESENCE_APP" "$DOWNLOADS_APP" "$CLIPBOARD_APP" "$EXTERNAL_LINKS_APP" "$SYSTEM_INFO_APP" "$PERMISSIONS_APP" "$NETWORK_STATUS_APP" "$SECURE_STORAGE_APP"
   cp "$LOCKFILE_BACKUP" pnpm-lock.yaml
   rm -f "$LOCKFILE_BACKUP"
 }
@@ -185,6 +186,17 @@ echo "==> Verifying power-monitor smoke app"
 pnpm --dir "$POWER_MONITOR_APP" release:check
 pnpm --dir "$POWER_MONITOR_APP" typecheck
 pnpm --dir "$POWER_MONITOR_APP" build
+
+echo "==> Scaffolding idle-presence smoke app"
+node packages/create-forge-app/dist/index.js create "$IDLE_PRESENCE_APP" --template minimal --feature idle-presence --yes --package-manager pnpm >/dev/null
+
+echo "==> Installing idle-presence smoke app with workspace links"
+pnpm install --dir "$IDLE_PRESENCE_APP" --link-workspace-packages >/dev/null
+
+echo "==> Verifying idle-presence smoke app"
+pnpm --dir "$IDLE_PRESENCE_APP" release:check
+pnpm --dir "$IDLE_PRESENCE_APP" typecheck
+pnpm --dir "$IDLE_PRESENCE_APP" build
 
 echo "==> Scaffolding downloads smoke app"
 node packages/create-forge-app/dist/index.js create "$DOWNLOADS_APP" --template minimal --feature downloads --yes --package-manager pnpm >/dev/null

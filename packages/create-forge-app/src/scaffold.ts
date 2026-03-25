@@ -718,6 +718,7 @@ function getMinimalElectronMainSource(
   const useRecentFiles = features.includes('recent-files');
   const useCrashRecovery = features.includes('crash-recovery');
   const usePowerMonitor = features.includes('power-monitor');
+  const useIdlePresence = features.includes('idle-presence');
   const useDownloads = features.includes('downloads');
   const useClipboard = features.includes('clipboard');
   const useExternalLinks = features.includes('external-links');
@@ -732,7 +733,7 @@ function getMinimalElectronMainSource(
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
   const dialogFileName = `${toIdentifier(projectName)}-document.txt`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useNetworkStatus ? ', net' : ''}${useSecureStorage ? ', safeStorage' : ''}${useFileDialogs || useDownloads || useExternalLinks ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor || useIdlePresence ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useNetworkStatus ? ', net' : ''}${useSecureStorage ? ', safeStorage' : ''}${useFileDialogs || useDownloads || useExternalLinks ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
 import path from 'node:path';
 ${useSystemInfo ? "import os from 'node:os';\n" : ''}
 ${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
@@ -1880,6 +1881,114 @@ function registerPowerMonitor() {
     recordPowerMonitorEvent('on-battery');
   });
 }
+` : ''}${useIdlePresence ? `
+type IdlePresenceState = {
+  supported: boolean;
+  idleState: 'active' | 'idle' | 'locked' | 'unknown';
+  idleTimeSeconds: number;
+  thresholdSeconds: number;
+  attention: 'focused' | 'visible' | 'hidden' | 'no-window';
+  lastSampledAt: string | null;
+  lastChangedAt: string | null;
+  sampleCount: number;
+  history: Array<{
+    idleState: 'active' | 'idle' | 'locked' | 'unknown';
+    idleTimeSeconds: number;
+    attention: 'focused' | 'visible' | 'hidden' | 'no-window';
+    timestamp: string;
+  }>;
+};
+
+const idlePresenceThresholdSeconds = 45;
+const idlePresenceHistoryLimit = 8;
+const idlePresenceState: IdlePresenceState = {
+  supported: true,
+  idleState: 'unknown',
+  idleTimeSeconds: 0,
+  thresholdSeconds: idlePresenceThresholdSeconds,
+  attention: 'no-window',
+  lastSampledAt: null,
+  lastChangedAt: null,
+  sampleCount: 0,
+  history: [],
+};
+
+function resolveIdlePresenceAttention(): IdlePresenceState['attention'] {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return 'no-window';
+  }
+
+  if (mainWindow.isFocused()) {
+    return 'focused';
+  }
+
+  if (mainWindow.isVisible()) {
+    return 'visible';
+  }
+
+  return 'hidden';
+}
+
+function resolveIdlePresenceSnapshot() {
+  try {
+    return {
+      idleState: powerMonitor.getSystemIdleState(idlePresenceThresholdSeconds),
+      idleTimeSeconds: powerMonitor.getSystemIdleTime(),
+    };
+  } catch {
+    return {
+      idleState: 'unknown' as const,
+      idleTimeSeconds: 0,
+    };
+  }
+}
+
+function snapshotIdlePresence() {
+  const snapshot = resolveIdlePresenceSnapshot();
+  const attention = resolveIdlePresenceAttention();
+  const timestamp = new Date().toISOString();
+  const stateChanged = idlePresenceState.idleState !== snapshot.idleState
+    || idlePresenceState.attention !== attention;
+
+  idlePresenceState.supported = true;
+  idlePresenceState.idleState = snapshot.idleState;
+  idlePresenceState.idleTimeSeconds = snapshot.idleTimeSeconds;
+  idlePresenceState.attention = attention;
+  idlePresenceState.lastSampledAt = timestamp;
+  idlePresenceState.sampleCount += 1;
+  if (stateChanged || !idlePresenceState.lastChangedAt) {
+    idlePresenceState.lastChangedAt = timestamp;
+  }
+  idlePresenceState.history = [
+    {
+      idleState: snapshot.idleState,
+      idleTimeSeconds: snapshot.idleTimeSeconds,
+      attention,
+      timestamp,
+    },
+    ...idlePresenceState.history,
+  ].slice(0, idlePresenceHistoryLimit);
+
+  return {
+    supported: idlePresenceState.supported,
+    idleState: idlePresenceState.idleState,
+    idleTimeSeconds: idlePresenceState.idleTimeSeconds,
+    thresholdSeconds: idlePresenceState.thresholdSeconds,
+    attention: idlePresenceState.attention,
+    lastSampledAt: idlePresenceState.lastSampledAt,
+    lastChangedAt: idlePresenceState.lastChangedAt,
+    sampleCount: idlePresenceState.sampleCount,
+    history: [...idlePresenceState.history],
+  };
+}
+
+function clearIdlePresenceHistory() {
+  idlePresenceState.lastSampledAt = null;
+  idlePresenceState.lastChangedAt = null;
+  idlePresenceState.sampleCount = 0;
+  idlePresenceState.history = [];
+  return snapshotIdlePresence();
+}
 ` : ''}${useDownloads ? `
 type DownloadState = 'idle' | 'progressing' | 'completed' | 'cancelled' | 'interrupted';
 
@@ -2393,6 +2502,14 @@ ${useFileAssociation ? `    const normalized = normalizeRecentFilePath(filePath)
     return clearPowerMonitorHistory();
   });
 
+` : ''}${useIdlePresence ? `  ipcMain.handle(IPC_CHANNELS.IDLE_PRESENCE_GET_STATE, async () => {
+    return snapshotIdlePresence();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.IDLE_PRESENCE_CLEAR_HISTORY, async () => {
+    return clearIdlePresenceHistory();
+  });
+
 ` : ''}${useDownloads ? `  ipcMain.handle(IPC_CHANNELS.DOWNLOADS_GET_STATE, async () => {
     return getDownloadsState();
   });
@@ -2587,6 +2704,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useRecentFiles = features.includes('recent-files');
   const useCrashRecovery = features.includes('crash-recovery');
   const usePowerMonitor = features.includes('power-monitor');
+  const useIdlePresence = features.includes('idle-presence');
   const useDownloads = features.includes('downloads');
   const useClipboard = features.includes('clipboard');
   const useExternalLinks = features.includes('external-links');
@@ -2700,6 +2818,10 @@ ${useSettings ? `  settings: {
     getState: () => ipcRenderer.invoke(IPC_CHANNELS.POWER_MONITOR_GET_STATE),
     clearHistory: () => ipcRenderer.invoke(IPC_CHANNELS.POWER_MONITOR_CLEAR_HISTORY),
   },
+` : ''}${useIdlePresence ? `  idlePresence: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.IDLE_PRESENCE_GET_STATE),
+    clearHistory: () => ipcRenderer.invoke(IPC_CHANNELS.IDLE_PRESENCE_CLEAR_HISTORY),
+  },
 ` : ''}${useDownloads ? `  downloads: {
     getState: () => ipcRenderer.invoke(IPC_CHANNELS.DOWNLOADS_GET_STATE),
     start: (url?: string) => ipcRenderer.invoke(IPC_CHANNELS.DOWNLOADS_START, url),
@@ -2747,6 +2869,7 @@ function getFeatureStudioSource(
   const useRecentFiles = features.includes('recent-files');
   const useCrashRecovery = features.includes('crash-recovery');
   const usePowerMonitor = features.includes('power-monitor');
+  const useIdlePresence = features.includes('idle-presence');
   const useDownloads = features.includes('downloads');
   const useClipboard = features.includes('clipboard');
   const useExternalLinks = features.includes('external-links');
@@ -2946,6 +3069,23 @@ type PowerMonitorState = {
   }>;
 };
 
+type IdlePresenceState = {
+  supported: boolean;
+  idleState: 'active' | 'idle' | 'locked' | 'unknown';
+  idleTimeSeconds: number;
+  thresholdSeconds: number;
+  attention: 'focused' | 'visible' | 'hidden' | 'no-window';
+  lastSampledAt: string | null;
+  lastChangedAt: string | null;
+  sampleCount: number;
+  history: Array<{
+    idleState: 'active' | 'idle' | 'locked' | 'unknown';
+    idleTimeSeconds: number;
+    attention: 'focused' | 'visible' | 'hidden' | 'no-window';
+    timestamp: string;
+  }>;
+};
+
 type DownloadsState = {
   sampleUrl: string;
   activeCount: number;
@@ -3083,6 +3223,10 @@ type ForgeDesktopAPI = {
     getState: () => Promise<PowerMonitorState>;
     clearHistory: () => Promise<PowerMonitorState>;
   };
+  idlePresence?: {
+    getState: () => Promise<IdlePresenceState>;
+    clearHistory: () => Promise<IdlePresenceState>;
+  };
   downloads?: {
     getState: () => Promise<DownloadsState>;
     start: (url?: string) => Promise<DownloadsState>;
@@ -3135,6 +3279,7 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
   const [recentFileDraft, setRecentFileDraft] = useState('${dialogSuggestedName}');
 ` : ''}${useCrashRecovery ? `  const [crashRecoveryState, setCrashRecoveryState] = useState<CrashRecoveryState | null>(null);
 ` : ''}${usePowerMonitor ? `  const [powerMonitorState, setPowerMonitorState] = useState<PowerMonitorState | null>(null);
+` : ''}${useIdlePresence ? `  const [idlePresenceState, setIdlePresenceState] = useState<IdlePresenceState | null>(null);
 ` : ''}${useDownloads ? `  const [downloadsState, setDownloadsState] = useState<DownloadsState | null>(null);
   const [downloadUrlDraft, setDownloadUrlDraft] = useState('https://raw.githubusercontent.com/electron/electron/main/README.md');
 ` : ''}${useClipboard ? `  const [clipboardState, setClipboardState] = useState<ClipboardState | null>(null);
@@ -3421,6 +3566,31 @@ ${useSettings ? `  useEffect(() => {
         }
       } catch {
         // Ignore starter power-monitor polling failures.
+      }
+    };
+
+    sync();
+    const timer = window.setInterval(sync, 4000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [api]);
+` : ''}${useIdlePresence ? `
+  useEffect(() => {
+    if (!api?.idlePresence?.getState) {
+      return undefined;
+    }
+
+    let active = true;
+    const sync = async () => {
+      try {
+        const next = await api?.idlePresence?.getState?.();
+        if (active && next) {
+          setIdlePresenceState(next);
+        }
+      } catch {
+        // Ignore starter idle-presence polling failures.
       }
     };
 
@@ -4265,6 +4435,51 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             )}
           </div>
         </section>
+` : ''}${useIdlePresence ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Idle Presence</h3>
+              <p className="mt-1 text-xs text-slate-400">Track whether the user is active, idle, locked, or away from the app window so teams can design presence-aware desktop flows without rebuilding shell diagnostics.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => refreshIdlePresence(api, setIdlePresenceState)}
+                className="rounded-full border border-cyan-500/40 px-3 py-1 text-xs font-medium text-cyan-300 hover:border-cyan-400 hover:text-cyan-100"
+              >
+                Refresh
+              </button>
+              <button
+                onClick={() => clearIdlePresence(api, setIdlePresenceState)}
+                className="rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-200 hover:border-slate-500"
+              >
+                Clear history
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <DiagnosticRow label="Idle State" value={idlePresenceState?.idleState ?? 'unknown'} />
+            <DiagnosticRow label="Idle Time" value={idlePresenceState ? \`\${idlePresenceState.idleTimeSeconds}s\` : '0s'} />
+            <DiagnosticRow label="Attention" value={idlePresenceState?.attention ?? 'no-window'} />
+            <DiagnosticRow label="Threshold" value={idlePresenceState ? \`\${idlePresenceState.thresholdSeconds}s\` : '45s'} />
+            <DiagnosticRow label="Last Sampled" value={idlePresenceState?.lastSampledAt ?? 'not sampled yet'} />
+            <DiagnosticRow label="Last Changed" value={idlePresenceState?.lastChangedAt ?? 'not available'} />
+            <DiagnosticRow label="Sample Count" value={String(idlePresenceState?.sampleCount ?? 0)} />
+            <DiagnosticRow label="Surface" value="electron powerMonitor getSystemIdleState + window focus visibility" />
+          </div>
+          <div className="mt-3 space-y-2">
+            {idlePresenceState?.history.length ? idlePresenceState.history.map((entry) => (
+              <div key={\`\${entry.timestamp}-\${entry.attention}\`} className="rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-300">{entry.idleState} / {entry.attention}</span>
+                  <span className="text-xs text-slate-500">{entry.timestamp}</span>
+                </div>
+                <p className="mt-2 text-xs text-slate-400">Idle time: <span className="text-white">{entry.idleTimeSeconds}s</span></p>
+              </div>
+            )) : (
+              <p className="text-xs text-slate-500">No idle-presence samples yet. Refresh or wait for the starter polling loop to record user activity state.</p>
+            )}
+          </div>
+        </section>
 ` : ''}${useDownloads ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -4751,6 +4966,35 @@ async function clearPowerMonitor(
     // Ignore starter power-monitor failures.
   }
 }
+` : ''}${useIdlePresence ? `
+
+async function refreshIdlePresence(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: IdlePresenceState) => void,
+) {
+  try {
+    const next = await api?.idlePresence?.getState?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter idle-presence refresh failures.
+  }
+}
+
+async function clearIdlePresence(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: IdlePresenceState) => void,
+) {
+  try {
+    const next = await api?.idlePresence?.clearHistory?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter idle-presence clear failures.
+  }
+}
 ` : ''}${useDownloads ? `
 
 async function startDownload(
@@ -5029,7 +5273,7 @@ async function clearSecureStorage(
     // Ignore starter secure-storage clear failures.
   }
 }
-` : ''}${useDiagnostics || useSystemInfo || usePermissions || useNetworkStatus || useSecureStorage || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useDownloads || useClipboard || useExternalLinks ? `
+` : ''}${useDiagnostics || useSystemInfo || usePermissions || useNetworkStatus || useSecureStorage || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useIdlePresence || useDownloads || useClipboard || useExternalLinks ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

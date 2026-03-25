@@ -55,6 +55,8 @@ export const IPC_CHANNELS = {
   CRASH_RECOVERY_RELAUNCH: 'crash-recovery:relaunch',
   POWER_MONITOR_GET_STATE: 'power-monitor:get-state',
   POWER_MONITOR_CLEAR_HISTORY: 'power-monitor:clear-history',
+  IDLE_PRESENCE_GET_STATE: 'idle-presence:get-state',
+  IDLE_PRESENCE_CLEAR_HISTORY: 'idle-presence:clear-history',
   DOWNLOADS_GET_STATE: 'downloads:get-state',
   DOWNLOADS_START: 'downloads:start',
   DOWNLOADS_CLEAR_HISTORY: 'downloads:clear-history',

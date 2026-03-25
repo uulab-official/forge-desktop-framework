@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.29 (2026-03-25)
+
+### Idle-Presence Feature Pack
+
+- Added an `idle-presence` scaffold feature pack for the `minimal` starter
+- Generated apps now expose starter user activity, lock state, and window attention diagnostics over preload IPC and surface refreshable idle presence history in `FeatureStudio`
+- Kept `idle-presence` optional so teams can add attention-aware desktop diagnostics deliberately without widening the default production preset
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated idle-presence smoke app before any version bump
+
 ## 0.1.28 (2026-03-25)
 
 ### Secure-Storage Feature Pack

@@ -98,6 +98,7 @@ node dist/index.js create my-forge-app --template minimal \
   --feature recent-files \
   --feature crash-recovery \
   --feature power-monitor \
+  --feature idle-presence \
   --feature downloads \
   --feature clipboard \
   --feature external-links \
@@ -153,6 +154,7 @@ Feature packs available on the `minimal` starter today:
 - `recent-files` for a persistent recent document registry with starter reopen and clear controls
 - `crash-recovery` for starter renderer and child-process incident tracking with relaunch and clear controls
 - `power-monitor` for suspend, resume, lock, unlock, and power-source monitoring with starter history and clear controls
+- `idle-presence` for starter user activity, lock state, and window attention diagnostics with refresh and history controls
 - `downloads` for starter download tracking with progress, history, and reveal-in-folder controls
 - `clipboard` for starter clipboard read, write, clear, and history controls
 - `external-links` for starter `shell.openExternal` link launching with history and error tracking
