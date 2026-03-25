@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -110,6 +110,12 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     id: 'crash-recovery',
     label: 'Crash Recovery',
     description: 'Seed crash and unresponsive incident tracking with starter relaunch and clear controls',
+    minimalOnly: true,
+  },
+  {
+    id: 'power-monitor',
+    label: 'Power Monitor',
+    description: 'Seed suspend, resume, lock, and power-source monitoring with starter runtime controls',
     minimalOnly: true,
   },
 ];

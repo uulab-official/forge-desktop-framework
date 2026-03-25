@@ -96,7 +96,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature file-association \
   --feature file-dialogs \
   --feature recent-files \
-  --feature crash-recovery
+  --feature crash-recovery \
+  --feature power-monitor
 ```
 
 Or use the bundled production starter preset:
@@ -144,6 +145,7 @@ Feature packs available on the `minimal` starter today:
 - `file-dialogs` for native open and save dialogs plus reveal-in-folder controls from the starter desktop shell
 - `recent-files` for a persistent recent document registry with starter reopen and clear controls
 - `crash-recovery` for starter renderer and child-process incident tracking with relaunch and clear controls
+- `power-monitor` for suspend, resume, lock, unlock, and power-source monitoring with starter history and clear controls
 
 Starter presets available today:
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`

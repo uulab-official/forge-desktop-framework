@@ -717,6 +717,7 @@ function getMinimalElectronMainSource(
   const useFileDialogs = features.includes('file-dialogs');
   const useRecentFiles = features.includes('recent-files');
   const useCrashRecovery = features.includes('crash-recovery');
+  const usePowerMonitor = features.includes('power-monitor');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
@@ -724,7 +725,7 @@ function getMinimalElectronMainSource(
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
   const dialogFileName = `${toIdentifier(projectName)}-document.txt`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${useFileDialogs ? ', dialog, shell, type OpenDialogOptions' : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor ? ', powerMonitor' : ''}${useFileDialogs ? ', dialog, shell, type OpenDialogOptions' : ''} } from 'electron';
 import path from 'node:path';
 ${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
@@ -1445,6 +1446,109 @@ function relaunchFromCrashRecovery() {
     relaunching: true,
   };
 }
+` : ''}${usePowerMonitor ? `
+type PowerMonitorEventName = 'suspend' | 'resume' | 'lock-screen' | 'unlock-screen' | 'on-ac' | 'on-battery';
+
+type PowerMonitorState = {
+  supported: boolean;
+  powerSource: 'ac' | 'battery' | 'unknown';
+  idleState: 'active' | 'idle' | 'locked' | 'unknown';
+  idleTimeSeconds: number;
+  lastEvent: PowerMonitorEventName | null;
+  lastEventAt: string | null;
+  eventCount: number;
+  history: Array<{ name: PowerMonitorEventName; timestamp: string }>;
+};
+
+const powerMonitorHistoryLimit = 6;
+const powerMonitorState: PowerMonitorState = {
+  supported: true,
+  powerSource: 'unknown',
+  idleState: 'unknown',
+  idleTimeSeconds: 0,
+  lastEvent: null,
+  lastEventAt: null,
+  eventCount: 0,
+  history: [],
+};
+
+function resolvePowerSource() {
+  try {
+    return powerMonitor.isOnBatteryPower() ? 'battery' : 'ac';
+  } catch {
+    return 'unknown';
+  }
+}
+
+function resolveIdleSnapshot() {
+  try {
+    return {
+      idleState: powerMonitor.getSystemIdleState(60),
+      idleTimeSeconds: powerMonitor.getSystemIdleTime(),
+    };
+  } catch {
+    return {
+      idleState: 'unknown' as const,
+      idleTimeSeconds: 0,
+    };
+  }
+}
+
+function getPowerMonitorState() {
+  const idleSnapshot = resolveIdleSnapshot();
+  powerMonitorState.powerSource = resolvePowerSource();
+  powerMonitorState.idleState = idleSnapshot.idleState;
+  powerMonitorState.idleTimeSeconds = idleSnapshot.idleTimeSeconds;
+
+  return {
+    supported: powerMonitorState.supported,
+    powerSource: powerMonitorState.powerSource,
+    idleState: powerMonitorState.idleState,
+    idleTimeSeconds: powerMonitorState.idleTimeSeconds,
+    lastEvent: powerMonitorState.lastEvent,
+    lastEventAt: powerMonitorState.lastEventAt,
+    eventCount: powerMonitorState.eventCount,
+    history: [...powerMonitorState.history],
+  };
+}
+
+function recordPowerMonitorEvent(name: PowerMonitorEventName) {
+  const timestamp = new Date().toISOString();
+  powerMonitorState.lastEvent = name;
+  powerMonitorState.lastEventAt = timestamp;
+  powerMonitorState.eventCount += 1;
+  powerMonitorState.history = [{ name, timestamp }, ...powerMonitorState.history].slice(0, powerMonitorHistoryLimit);
+  return getPowerMonitorState();
+}
+
+function clearPowerMonitorHistory() {
+  powerMonitorState.lastEvent = null;
+  powerMonitorState.lastEventAt = null;
+  powerMonitorState.eventCount = 0;
+  powerMonitorState.history = [];
+  return getPowerMonitorState();
+}
+
+function registerPowerMonitor() {
+  powerMonitor.on('suspend', () => {
+    recordPowerMonitorEvent('suspend');
+  });
+  powerMonitor.on('resume', () => {
+    recordPowerMonitorEvent('resume');
+  });
+  powerMonitor.on('lock-screen', () => {
+    recordPowerMonitorEvent('lock-screen');
+  });
+  powerMonitor.on('unlock-screen', () => {
+    recordPowerMonitorEvent('unlock-screen');
+  });
+  powerMonitor.on('on-ac', () => {
+    recordPowerMonitorEvent('on-ac');
+  });
+  powerMonitor.on('on-battery', () => {
+    recordPowerMonitorEvent('on-battery');
+  });
+}
 ` : ''}
 function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.WORKER_EXECUTE, async (_event, request: WorkerRequest) => {
@@ -1654,6 +1758,14 @@ ${useFileAssociation ? `    const normalized = normalizeRecentFilePath(filePath)
     return relaunchFromCrashRecovery();
   });
 
+` : ''}${usePowerMonitor ? `  ipcMain.handle(IPC_CHANNELS.POWER_MONITOR_GET_STATE, async () => {
+    return getPowerMonitorState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.POWER_MONITOR_CLEAR_HISTORY, async () => {
+    return clearPowerMonitorHistory();
+  });
+
 ` : ''}  logger.info('IPC handlers registered');
 }
 
@@ -1764,7 +1876,7 @@ ${useWindowing || useDeepLink ? `    if (mainWindow.isMinimized()) {
   logger.info('App starting', { isDev, appRoot });
 ${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}${useRecentFiles ? '  await loadRecentFiles();\n' : ''}${useCrashRecovery ? '  await loadCrashRecoveryState();\n' : ''}  registerIpcHandlers();
 ${useDeepLink ? "  captureDeepLink(findProtocolArg(process.argv));\n" : ''}${useFileAssociation ? "  captureAssociatedFile(findAssociatedFileArg(process.argv), 'startup-argv');\n" : ''}  createWindow();
-${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();\n' : ''}${useGlobalShortcut ? '  registerStarterShortcut();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
+${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();\n' : ''}${useGlobalShortcut ? '  registerStarterShortcut();\n' : ''}${usePowerMonitor ? '  registerPowerMonitor();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
     setTimeout(() => {
       updater.checkForUpdates().catch(() => {
         logger.info('Initial update check skipped');
@@ -1803,6 +1915,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useFileDialogs = features.includes('file-dialogs');
   const useRecentFiles = features.includes('recent-files');
   const useCrashRecovery = features.includes('crash-recovery');
+  const usePowerMonitor = features.includes('power-monitor');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -1888,6 +2001,10 @@ ${useSettings ? `  settings: {
     clear: () => ipcRenderer.invoke(IPC_CHANNELS.CRASH_RECOVERY_CLEAR),
     relaunch: () => ipcRenderer.invoke(IPC_CHANNELS.CRASH_RECOVERY_RELAUNCH),
   },
+` : ''}${usePowerMonitor ? `  powerMonitor: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.POWER_MONITOR_GET_STATE),
+    clearHistory: () => ipcRenderer.invoke(IPC_CHANNELS.POWER_MONITOR_CLEAR_HISTORY),
+  },
 ` : ''}};
 
 contextBridge.exposeInMainWorld('api', api);
@@ -1917,6 +2034,7 @@ function getFeatureStudioSource(
   const useFileDialogs = features.includes('file-dialogs');
   const useRecentFiles = features.includes('recent-files');
   const useCrashRecovery = features.includes('crash-recovery');
+  const usePowerMonitor = features.includes('power-monitor');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
@@ -2010,6 +2128,20 @@ type CrashRecoveryState = {
   } | null;
 };
 
+type PowerMonitorState = {
+  supported: boolean;
+  powerSource: 'ac' | 'battery' | 'unknown';
+  idleState: 'active' | 'idle' | 'locked' | 'unknown';
+  idleTimeSeconds: number;
+  lastEvent: 'suspend' | 'resume' | 'lock-screen' | 'unlock-screen' | 'on-ac' | 'on-battery' | null;
+  lastEventAt: string | null;
+  eventCount: number;
+  history: Array<{
+    name: 'suspend' | 'resume' | 'lock-screen' | 'unlock-screen' | 'on-ac' | 'on-battery';
+    timestamp: string;
+  }>;
+};
+
 type ForgeDesktopAPI = {
   settings?: {
     get: () => Promise<${useSettings ? 'AppSettings' : 'unknown'}>;
@@ -2085,6 +2217,10 @@ type ForgeDesktopAPI = {
     clear: () => Promise<CrashRecoveryState>;
     relaunch: () => Promise<CrashRecoveryState & { relaunching?: boolean }>;
   };
+  powerMonitor?: {
+    getState: () => Promise<PowerMonitorState>;
+    clearHistory: () => Promise<PowerMonitorState>;
+  };
 };
 
 function getDesktopApi(): ForgeDesktopAPI | undefined {
@@ -2113,6 +2249,7 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
 ` : ''}${useRecentFiles ? `  const [recentFilesState, setRecentFilesState] = useState<RecentFilesState | null>(null);
   const [recentFileDraft, setRecentFileDraft] = useState('${dialogSuggestedName}');
 ` : ''}${useCrashRecovery ? `  const [crashRecoveryState, setCrashRecoveryState] = useState<CrashRecoveryState | null>(null);
+` : ''}${usePowerMonitor ? `  const [powerMonitorState, setPowerMonitorState] = useState<PowerMonitorState | null>(null);
 ` : ''}${useDeepLink ? `  const [deepLinkState, setDeepLinkState] = useState<DeepLinkState | null>(null);
   const [deepLinkDraft, setDeepLinkDraft] = useState('${protocolScheme}://open?screen=home');
 ` : ''}  const featureNames = ${JSON.stringify(features)};
@@ -2270,6 +2407,31 @@ ${useSettings ? `  useEffect(() => {
 
     sync();
     const timer = window.setInterval(sync, 3000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [api]);
+` : ''}${usePowerMonitor ? `
+  useEffect(() => {
+    if (!api?.powerMonitor?.getState) {
+      return undefined;
+    }
+
+    let active = true;
+    const sync = async () => {
+      try {
+        const next = await api.powerMonitor?.getState?.();
+        if (active && next) {
+          setPowerMonitorState(next);
+        }
+      } catch {
+        // Ignore starter power-monitor polling failures.
+      }
+    };
+
+    sync();
+    const timer = window.setInterval(sync, 4000);
     return () => {
       active = false;
       window.clearInterval(timer);
@@ -2789,6 +2951,46 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             <p className="mt-2 break-all text-xs text-amber-200">{crashRecoveryState.lastIncident.details}</p>
           )}
         </section>
+` : ''}${usePowerMonitor ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Power Monitor</h3>
+              <p className="mt-1 text-xs text-slate-400">Track suspend, resume, lock, unlock, and power-source events so desktop products can harden long-running work around real device lifecycle changes.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => refreshPowerMonitor(api, setPowerMonitorState)}
+                className="rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-200 hover:border-slate-500"
+              >
+                Refresh
+              </button>
+              <button
+                onClick={() => clearPowerMonitor(api, setPowerMonitorState)}
+                className="rounded-full border border-sky-500/40 px-3 py-1 text-xs font-medium text-sky-300 hover:border-sky-400 hover:text-sky-100"
+              >
+                Clear history
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <DiagnosticRow label="Power Source" value={powerMonitorState?.powerSource ?? 'unknown'} />
+            <DiagnosticRow label="Idle State" value={powerMonitorState?.idleState ?? 'unknown'} />
+            <DiagnosticRow label="Idle Time" value={powerMonitorState ? \`\${powerMonitorState.idleTimeSeconds}s\` : '0s'} />
+            <DiagnosticRow label="Last Event" value={powerMonitorState?.lastEvent ?? 'no lifecycle events yet'} />
+            <DiagnosticRow label="Last Event At" value={powerMonitorState?.lastEventAt ?? 'not available'} />
+            <DiagnosticRow label="Tracked Events" value={String(powerMonitorState?.eventCount ?? 0)} />
+          </div>
+          <div className="mt-3 space-y-2">
+            {powerMonitorState?.history.length ? powerMonitorState.history.map((entry) => (
+              <div key={\`\${entry.name}-\${entry.timestamp}\`} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2">
+                <span className="text-xs font-medium uppercase tracking-[0.18em] text-slate-300">{entry.name}</span>
+                <span className="text-xs text-slate-500">{entry.timestamp}</span>
+              </div>
+            )) : (
+              <p className="text-xs text-slate-500">No power lifecycle events captured yet. Suspend or lock the device to exercise the starter hooks.</p>
+            )}
+          </div>
+        </section>
 ` : ''}${usePlugins ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length === 1 ? 'md:col-span-2' : ''}">
           <h3 className="text-sm font-semibold text-white">Plugin Registry</h3>
           <p className="mt-1 text-xs text-slate-400">Sample plugin slots are ready for feature-oriented modules.</p>
@@ -3062,7 +3264,36 @@ async function relaunchCrashRecovery(
     // Ignore starter crash-recovery failures.
   }
 }
-` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery ? `
+` : ''}${usePowerMonitor ? `
+
+async function refreshPowerMonitor(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: PowerMonitorState) => void,
+) {
+  try {
+    const next = await api?.powerMonitor?.getState?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter power-monitor refresh failures.
+  }
+}
+
+async function clearPowerMonitor(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: PowerMonitorState) => void,
+) {
+  try {
+    const next = await api?.powerMonitor?.clearHistory?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter power-monitor failures.
+  }
+}
+` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

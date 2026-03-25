@@ -69,7 +69,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature file-association \
   --feature file-dialogs \
   --feature recent-files \
-  --feature crash-recovery
+  --feature crash-recovery \
+  --feature power-monitor
 ```
 
 Or preview the bundled production starter:
@@ -93,6 +94,7 @@ The generated project includes:
 - optional starter packs like `file-dialogs` can also seed native open and save dialogs with reveal-in-folder controls
 - optional starter packs like `recent-files` can also seed a persistent recent document list that pairs naturally with file dialogs and file associations
 - optional starter packs like `crash-recovery` can also seed renderer and child-process incident capture with starter relaunch controls
+- optional starter packs like `power-monitor` can also seed suspend, resume, lock, unlock, and power-source tracking for long-running desktop workflows
 
 ## Step 3: Create Your First Action
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.21 (2026-03-25)
+
+### Power-Monitor Feature Pack
+
+- Added a `power-monitor` scaffold feature pack for the `minimal` starter
+- Generated apps now expose suspend, resume, lock-screen, unlock-screen, and power-source lifecycle tracking through preload IPC and `FeatureStudio`
+- Kept `power-monitor` optional so teams can add device lifecycle monitoring deliberately without expanding the default production preset
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated power-monitor smoke app before any version bump
+
 ## 0.1.20 (2026-03-25)
 
 ### Crash-Recovery Feature Pack

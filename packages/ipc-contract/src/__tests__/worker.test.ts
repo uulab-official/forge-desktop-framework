@@ -38,6 +38,7 @@ describe('IPC_CHANNELS', () => {
     expect(IPC_CHANNELS.FILE_DIALOGS_GET_STATE).toBe('file-dialogs:get-state');
     expect(IPC_CHANNELS.RECENT_FILES_GET_STATE).toBe('recent-files:get-state');
     expect(IPC_CHANNELS.CRASH_RECOVERY_GET_STATE).toBe('crash-recovery:get-state');
+    expect(IPC_CHANNELS.POWER_MONITOR_GET_STATE).toBe('power-monitor:get-state');
     expect(IPC_CHANNELS.UPDATE_CHECK).toBe('update:check');
   });
 });

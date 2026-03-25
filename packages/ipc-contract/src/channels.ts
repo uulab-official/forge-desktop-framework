@@ -53,6 +53,8 @@ export const IPC_CHANNELS = {
   CRASH_RECOVERY_GET_STATE: 'crash-recovery:get-state',
   CRASH_RECOVERY_CLEAR: 'crash-recovery:clear',
   CRASH_RECOVERY_RELAUNCH: 'crash-recovery:relaunch',
+  POWER_MONITOR_GET_STATE: 'power-monitor:get-state',
+  POWER_MONITOR_CLEAR_HISTORY: 'power-monitor:clear-history',
 
   // Updates
   UPDATE_CHECK: 'update:check',
