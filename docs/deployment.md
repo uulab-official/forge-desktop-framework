@@ -59,7 +59,7 @@ Scaffolded apps also include:
 The `minimal` starter also supports feature packs during scaffolding:
 
 ```bash
-forge create my-app --template minimal --feature settings --feature updater --feature diagnostics --feature notifications --feature windowing --feature tray --feature deep-link --feature menu-bar --feature auto-launch --feature global-shortcut --feature file-association --feature file-dialogs --feature recent-files --feature crash-recovery --feature power-monitor --feature downloads --feature clipboard --feature external-links --feature system-info
+forge create my-app --template minimal --feature settings --feature updater --feature diagnostics --feature notifications --feature windowing --feature tray --feature deep-link --feature menu-bar --feature auto-launch --feature global-shortcut --feature file-association --feature file-dialogs --feature recent-files --feature crash-recovery --feature power-monitor --feature downloads --feature clipboard --feature external-links --feature system-info --feature permissions
 ```
 
 For the fastest production baseline, use the preset:
@@ -85,6 +85,8 @@ Use `--feature clipboard` when your desktop product needs starter copy and paste
 Use `--feature external-links` when your desktop product needs starter external browser, mail client, or protocol launch flows with history and error tracking in the generated shell.
 
 Use `--feature system-info` when your desktop product needs live OS, memory, process, and path diagnostics in the generated shell for support, QA, or customer environment checks.
+
+Use `--feature permissions` when your desktop product needs starter camera, microphone, or screen privacy diagnostics and wants request controls exposed in the generated shell on supported platforms.
 
 You can also seed release metadata up front:
 

@@ -67,6 +67,8 @@ export const IPC_CHANNELS = {
   EXTERNAL_LINKS_OPEN: 'external-links:open',
   EXTERNAL_LINKS_CLEAR_HISTORY: 'external-links:clear-history',
   SYSTEM_INFO_GET_STATE: 'system-info:get-state',
+  PERMISSIONS_GET_STATE: 'permissions:get-state',
+  PERMISSIONS_REQUEST: 'permissions:request',
 
   // Updates
   UPDATE_CHECK: 'update:check',

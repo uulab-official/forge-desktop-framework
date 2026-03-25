@@ -101,7 +101,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature downloads \
   --feature clipboard \
   --feature external-links \
-  --feature system-info
+  --feature system-info \
+  --feature permissions
 ```
 
 Or use the bundled production starter preset:
@@ -154,6 +155,7 @@ Feature packs available on the `minimal` starter today:
 - `clipboard` for starter clipboard read, write, clear, and history controls
 - `external-links` for starter `shell.openExternal` link launching with history and error tracking
 - `system-info` for starter runtime OS, memory, process, and path diagnostics with refresh controls
+- `permissions` for starter camera, microphone, and screen permission diagnostics with request controls
 
 Starter presets available today:
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`

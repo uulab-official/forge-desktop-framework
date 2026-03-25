@@ -722,6 +722,7 @@ function getMinimalElectronMainSource(
   const useClipboard = features.includes('clipboard');
   const useExternalLinks = features.includes('external-links');
   const useSystemInfo = features.includes('system-info');
+  const usePermissions = features.includes('permissions');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
@@ -729,7 +730,7 @@ function getMinimalElectronMainSource(
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
   const dialogFileName = `${toIdentifier(projectName)}-document.txt`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${useFileDialogs || useDownloads || useExternalLinks ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useFileDialogs || useDownloads || useExternalLinks ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
 import path from 'node:path';
 ${useSystemInfo ? "import os from 'node:os';\n" : ''}
 ${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
@@ -912,6 +913,104 @@ async function getSystemInfoState() {
       logsPath: app.getPath('logs'),
     },
   };
+}
+` : ''}${usePermissions ? `
+type PermissionKind = 'camera' | 'microphone' | 'screen';
+type RequestablePermissionKind = 'camera' | 'microphone';
+
+type PermissionEntry = {
+  status: string;
+  supported: boolean;
+  canRequest: boolean;
+};
+
+type PermissionsState = {
+  platform: string;
+  camera: PermissionEntry;
+  microphone: PermissionEntry;
+  screen: PermissionEntry;
+  lastRequest: {
+    kind: RequestablePermissionKind | null;
+    granted: boolean | null;
+    timestamp: string | null;
+    error: string | null;
+  };
+};
+
+const permissionsState: PermissionsState = {
+  platform: process.platform,
+  camera: { status: 'unknown', supported: false, canRequest: false },
+  microphone: { status: 'unknown', supported: false, canRequest: false },
+  screen: { status: 'unknown', supported: false, canRequest: false },
+  lastRequest: {
+    kind: null,
+    granted: null,
+    timestamp: null,
+    error: null,
+  },
+};
+
+function resolvePermissionEntry(kind: PermissionKind): PermissionEntry {
+  try {
+    const status = systemPreferences.getMediaAccessStatus(kind);
+    return {
+      status,
+      supported: true,
+      canRequest: process.platform === 'darwin' && kind !== 'screen',
+    };
+  } catch {
+    return {
+      status: 'unsupported',
+      supported: false,
+      canRequest: false,
+    };
+  }
+}
+
+function getPermissionsState() {
+  permissionsState.camera = resolvePermissionEntry('camera');
+  permissionsState.microphone = resolvePermissionEntry('microphone');
+  permissionsState.screen = resolvePermissionEntry('screen');
+  return {
+    platform: permissionsState.platform,
+    camera: { ...permissionsState.camera },
+    microphone: { ...permissionsState.microphone },
+    screen: { ...permissionsState.screen },
+    lastRequest: { ...permissionsState.lastRequest },
+  };
+}
+
+async function requestPermission(kind: RequestablePermissionKind) {
+  const timestamp = new Date().toISOString();
+
+  if (process.platform !== 'darwin') {
+    permissionsState.lastRequest = {
+      kind,
+      granted: null,
+      timestamp,
+      error: 'Interactive permission requests are only supported in the starter on macOS.',
+    };
+    return getPermissionsState();
+  }
+
+  try {
+    const granted = await systemPreferences.askForMediaAccess(kind);
+    permissionsState.lastRequest = {
+      kind,
+      granted,
+      timestamp,
+      error: null,
+    };
+  } catch (error) {
+    permissionsState.lastRequest = {
+      kind,
+      granted: null,
+      timestamp,
+      error: error instanceof Error ? error.message : 'Unknown permission request failure',
+    };
+  }
+
+  return getPermissionsState();
 }
 ` : ''}${useTray ? `
 const trayIcon = nativeImage.createFromDataURL(
@@ -1921,6 +2020,14 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return getSystemInfoState();
   });
 
+` : ''}${usePermissions ? `  ipcMain.handle(IPC_CHANNELS.PERMISSIONS_GET_STATE, async () => {
+    return getPermissionsState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.PERMISSIONS_REQUEST, async (_event, kind: 'camera' | 'microphone') => {
+    return requestPermission(kind);
+  });
+
 ` : ''}${useNotifications ? `  ipcMain.handle(IPC_CHANNELS.NOTIFY_SHOW, async (_event, title: string, body: string) => {
     const safeTitle = title.trim() || ${JSON.stringify(productName)};
     const safeBody = body.trim() || 'Background work completed successfully.';
@@ -2280,6 +2387,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useClipboard = features.includes('clipboard');
   const useExternalLinks = features.includes('external-links');
   const useSystemInfo = features.includes('system-info');
+  const usePermissions = features.includes('permissions');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -2317,6 +2425,10 @@ ${useSettings ? `  settings: {
   },
 ` : ''}${useSystemInfo ? `  systemInfo: {
     getState: () => ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_INFO_GET_STATE),
+  },
+` : ''}${usePermissions ? `  permissions: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.PERMISSIONS_GET_STATE),
+    request: (kind: 'camera' | 'microphone') => ipcRenderer.invoke(IPC_CHANNELS.PERMISSIONS_REQUEST, kind),
   },
 ` : ''}${useNotifications ? `  notifications: {
     show: (title: string, body: string) => ipcRenderer.invoke(IPC_CHANNELS.NOTIFY_SHOW, title, body),
@@ -2423,6 +2535,7 @@ function getFeatureStudioSource(
   const useClipboard = features.includes('clipboard');
   const useExternalLinks = features.includes('external-links');
   const useSystemInfo = features.includes('system-info');
+  const usePermissions = features.includes('permissions');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
@@ -2483,6 +2596,31 @@ type SystemInfoState = {
     tempPath: string;
     downloadsPath: string;
     logsPath: string;
+  };
+};
+
+type PermissionsState = {
+  platform: string;
+  camera: {
+    status: string;
+    supported: boolean;
+    canRequest: boolean;
+  };
+  microphone: {
+    status: string;
+    supported: boolean;
+    canRequest: boolean;
+  };
+  screen: {
+    status: string;
+    supported: boolean;
+    canRequest: boolean;
+  };
+  lastRequest: {
+    kind: 'camera' | 'microphone' | null;
+    granted: boolean | null;
+    timestamp: string | null;
+    error: string | null;
   };
 };
 
@@ -2637,6 +2775,10 @@ type ForgeDesktopAPI = {
   systemInfo?: {
     getState: () => Promise<SystemInfoState>;
   };
+  permissions?: {
+    getState: () => Promise<PermissionsState>;
+    request: (kind: 'camera' | 'microphone') => Promise<PermissionsState>;
+  };
   notifications?: {
     show: (title: string, body: string) => Promise<{ supported: boolean; delivered: boolean }>;
   };
@@ -2723,6 +2865,7 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
 ` : ''}${useDiagnostics ? `  const [diagnostics, setDiagnostics] = useState<DiagnosticsSummary | null>(null);
   const [diagnosticsExport, setDiagnosticsExport] = useState<{ filePath: string; generatedAt: string } | null>(null);
 ` : ''}${useSystemInfo ? `  const [systemInfoState, setSystemInfoState] = useState<SystemInfoState | null>(null);
+` : ''}${usePermissions ? `  const [permissionsState, setPermissionsState] = useState<PermissionsState | null>(null);
 ` : ''}${useNotifications ? `  const [notificationDraft, setNotificationDraft] = useState({ title: 'Forge Ready', body: '${displayName} is ready for customer testing.' });
   const [notificationState, setNotificationState] = useState<'idle' | 'sent' | 'unsupported'>('idle');
 ` : ''}${useWindowing ? `  const [windowState, setWindowState] = useState<WindowStateSummary | null>(null);
@@ -2823,6 +2966,31 @@ ${useSettings ? `  useEffect(() => {
         }
       } catch {
         // Ignore starter system-info polling failures.
+      }
+    };
+
+    sync();
+    const timer = window.setInterval(sync, 5000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [api]);
+` : ''}${usePermissions ? `
+  useEffect(() => {
+    if (!api?.permissions?.getState) {
+      return undefined;
+    }
+
+    let active = true;
+    const sync = async () => {
+      try {
+        const next = await api.permissions?.getState?.();
+        if (active && next) {
+          setPermissionsState(next);
+        }
+      } catch {
+        // Ignore starter permissions polling failures.
       }
     };
 
@@ -3235,6 +3403,53 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             </>
           ) : (
             <p className="mt-3 text-xs text-slate-500">System info is unavailable until the desktop bridge finishes booting.</p>
+          )}
+        </section>
+` : ''}${usePermissions ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Permissions</h3>
+              <p className="mt-1 text-xs text-slate-400">Inspect desktop privacy status for camera, microphone, and screen recording so starter apps can surface environment blockers before capture or call flows begin.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => refreshPermissions(api, setPermissionsState)}
+                className="rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-200 hover:border-slate-500"
+              >
+                Refresh
+              </button>
+              <button
+                onClick={() => requestPermissionAccess(api, 'camera', setPermissionsState)}
+                className="rounded-full border border-cyan-500/40 px-3 py-1 text-xs font-medium text-cyan-300 hover:border-cyan-400 hover:text-cyan-100"
+              >
+                Request camera
+              </button>
+              <button
+                onClick={() => requestPermissionAccess(api, 'microphone', setPermissionsState)}
+                className="rounded-full border border-emerald-500/40 px-3 py-1 text-xs font-medium text-emerald-300 hover:border-emerald-400 hover:text-emerald-100"
+              >
+                Request mic
+              </button>
+            </div>
+          </div>
+          {permissionsState ? (
+            <>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <DiagnosticRow label="Platform" value={permissionsState.platform} />
+                <DiagnosticRow label="Camera" value={formatPermissionEntry(permissionsState.camera)} />
+                <DiagnosticRow label="Microphone" value={formatPermissionEntry(permissionsState.microphone)} />
+                <DiagnosticRow label="Screen Recording" value={formatPermissionEntry(permissionsState.screen)} />
+                <DiagnosticRow label="Last Request" value={permissionsState.lastRequest.kind ?? 'no prompt requested yet'} />
+                <DiagnosticRow label="Last Result" value={permissionsState.lastRequest.granted === null ? 'not available' : permissionsState.lastRequest.granted ? 'granted' : 'denied'} />
+                <DiagnosticRow label="Last Request At" value={permissionsState.lastRequest.timestamp ?? 'not available'} />
+                <DiagnosticRow label="Starter Scope" value="camera + microphone prompts on macOS, read-only elsewhere" />
+              </div>
+              {permissionsState.lastRequest.error && (
+                <p className="mt-2 text-xs text-amber-200">{permissionsState.lastRequest.error}</p>
+              )}
+            </>
+          ) : (
+            <p className="mt-3 text-xs text-slate-500">Permission state is unavailable until the desktop bridge finishes booting.</p>
           )}
         </section>
 ` : ''}${useNotifications ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
@@ -4250,7 +4465,49 @@ async function refreshSystemInfo(
     // Ignore starter system-info refresh failures.
   }
 }
-` : ''}${useDiagnostics || useSystemInfo || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useDownloads || useClipboard || useExternalLinks ? `
+` : ''}${usePermissions ? `
+
+function formatPermissionEntry(entry: PermissionsState['camera'] | undefined) {
+  if (!entry) {
+    return 'unknown';
+  }
+
+  if (!entry.supported) {
+    return 'unsupported';
+  }
+
+  return \`\${entry.status} / \${entry.canRequest ? 'requestable' : 'read-only'}\`;
+}
+
+async function refreshPermissions(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: PermissionsState) => void,
+) {
+  try {
+    const next = await api?.permissions?.getState?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter permissions refresh failures.
+  }
+}
+
+async function requestPermissionAccess(
+  api: ForgeDesktopAPI | undefined,
+  kind: 'camera' | 'microphone',
+  setState: (next: PermissionsState) => void,
+) {
+  try {
+    const next = await api?.permissions?.request?.(kind);
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter permission request failures.
+  }
+}
+` : ''}${useDiagnostics || useSystemInfo || usePermissions || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useDownloads || useClipboard || useExternalLinks ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

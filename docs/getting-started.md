@@ -74,7 +74,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature downloads \
   --feature clipboard \
   --feature external-links \
-  --feature system-info
+  --feature system-info \
+  --feature permissions
 ```
 
 Or preview the bundled production starter:
@@ -103,6 +104,7 @@ The generated project includes:
 - optional starter packs like `clipboard` can also seed copy and paste flows with starter read, write, clear, and history controls
 - optional starter packs like `external-links` can also seed external browser or mail client launch flows with starter history and error tracking
 - optional starter packs like `system-info` can also seed live runtime OS, memory, process, and path diagnostics with refresh controls
+- optional starter packs like `permissions` can also seed camera, microphone, and screen permission diagnostics with starter request controls
 
 ## Step 3: Create Your First Action
 

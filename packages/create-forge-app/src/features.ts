@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'downloads' | 'clipboard' | 'external-links' | 'system-info';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -140,6 +140,12 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     id: 'system-info',
     label: 'System Info',
     description: 'Seed runtime OS, memory, process, and path diagnostics with starter refresh controls',
+    minimalOnly: true,
+  },
+  {
+    id: 'permissions',
+    label: 'Permissions',
+    description: 'Seed camera, microphone, and screen permission diagnostics with starter request controls',
     minimalOnly: true,
   },
 ];

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.26 (2026-03-25)
+
+### Permissions Feature Pack
+
+- Added a `permissions` scaffold feature pack for the `minimal` starter
+- Generated apps now expose camera, microphone, and screen permission diagnostics over preload IPC and surface requestable starter controls in `FeatureStudio`
+- Kept `permissions` optional so teams can add privacy diagnostics deliberately without widening the default production preset
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated permissions smoke app before any version bump
+
 ## 0.1.25 (2026-03-25)
 
 ### System-Info Feature Pack
