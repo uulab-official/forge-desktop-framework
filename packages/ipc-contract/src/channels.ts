@@ -57,6 +57,8 @@ export const IPC_CHANNELS = {
   POWER_MONITOR_CLEAR_HISTORY: 'power-monitor:clear-history',
   IDLE_PRESENCE_GET_STATE: 'idle-presence:get-state',
   IDLE_PRESENCE_CLEAR_HISTORY: 'idle-presence:clear-history',
+  SESSION_STATE_GET: 'session-state:get-state',
+  SESSION_STATE_CLEAR_HISTORY: 'session-state:clear-history',
   DOWNLOADS_GET_STATE: 'downloads:get-state',
   DOWNLOADS_START: 'downloads:start',
   DOWNLOADS_CLEAR_HISTORY: 'downloads:clear-history',

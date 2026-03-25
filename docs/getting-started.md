@@ -72,6 +72,7 @@ node dist/index.js create my-forge-app --template minimal \
   --feature crash-recovery \
   --feature power-monitor \
   --feature idle-presence \
+  --feature session-state \
   --feature downloads \
   --feature clipboard \
   --feature external-links \
@@ -104,6 +105,7 @@ The generated project includes:
 - optional starter packs like `crash-recovery` can also seed renderer and child-process incident capture with starter relaunch controls
 - optional starter packs like `power-monitor` can also seed suspend, resume, lock, unlock, and power-source tracking for long-running desktop workflows
 - optional starter packs like `idle-presence` can also seed user activity, lock state, and current window attention diagnostics with starter refresh and history controls
+- optional starter packs like `session-state` can also seed app lifecycle, foreground/background, focus, and visibility diagnostics with starter refresh and history controls
 - optional starter packs like `downloads` can also seed file download tracking with progress and reveal-in-folder controls
 - optional starter packs like `clipboard` can also seed copy and paste flows with starter read, write, clear, and history controls
 - optional starter packs like `external-links` can also seed external browser or mail client launch flows with starter history and error tracking

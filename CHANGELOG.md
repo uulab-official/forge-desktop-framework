@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.30 (2026-03-26)
+
+### Session-State Feature Pack
+
+- Added a `session-state` scaffold feature pack for the `minimal` starter
+- Generated apps now expose starter app lifecycle, focus, visibility, and foreground-background event history over preload IPC and surface refreshable session diagnostics in `FeatureStudio`
+- Kept `session-state` optional so teams can add shell lifecycle diagnostics deliberately without widening the default production preset
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated session-state smoke app before any version bump
+
 ## 0.1.29 (2026-03-25)
 
 ### Idle-Presence Feature Pack

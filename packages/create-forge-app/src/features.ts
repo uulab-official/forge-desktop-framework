@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'idle-presence' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions' | 'network-status' | 'secure-storage';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'idle-presence' | 'session-state' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions' | 'network-status' | 'secure-storage';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -122,6 +122,12 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     id: 'idle-presence',
     label: 'Idle Presence',
     description: 'Seed desktop attention and idle diagnostics with starter refresh and history controls',
+    minimalOnly: true,
+  },
+  {
+    id: 'session-state',
+    label: 'Session State',
+    description: 'Seed app lifecycle, focus, visibility, and foreground-background diagnostics with starter history controls',
     minimalOnly: true,
   },
   {

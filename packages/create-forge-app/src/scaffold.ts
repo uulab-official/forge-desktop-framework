@@ -719,6 +719,7 @@ function getMinimalElectronMainSource(
   const useCrashRecovery = features.includes('crash-recovery');
   const usePowerMonitor = features.includes('power-monitor');
   const useIdlePresence = features.includes('idle-presence');
+  const useSessionState = features.includes('session-state');
   const useDownloads = features.includes('downloads');
   const useClipboard = features.includes('clipboard');
   const useExternalLinks = features.includes('external-links');
@@ -1989,6 +1990,175 @@ function clearIdlePresenceHistory() {
   idlePresenceState.history = [];
   return snapshotIdlePresence();
 }
+` : ''}${useSessionState ? `
+type SessionEventName =
+  | 'ready'
+  | 'activate'
+  | 'browser-window-focus'
+  | 'browser-window-blur'
+  | 'show'
+  | 'hide'
+  | 'before-quit'
+  | 'window-all-closed';
+
+type SessionLifecycle = 'ready' | 'active' | 'background' | 'hidden' | 'quitting';
+type SessionAttention = 'focused' | 'visible' | 'hidden' | 'no-window';
+
+type SessionStateSnapshot = {
+  startedAt: string;
+  lifecycle: SessionLifecycle;
+  attention: SessionAttention;
+  windowCount: number;
+  visibleWindowCount: number;
+  focusedWindowCount: number;
+  lastEvent: SessionEventName | null;
+  lastEventAt: string | null;
+  eventCount: number;
+  history: Array<{
+    name: SessionEventName;
+    timestamp: string;
+    detail: string | null;
+  }>;
+};
+
+const sessionStateHistoryLimit = 10;
+const sessionStartedAt = new Date().toISOString();
+let sessionStateRegistered = false;
+let sessionStateQuitting = false;
+const sessionStateSnapshot: SessionStateSnapshot = {
+  startedAt: sessionStartedAt,
+  lifecycle: 'ready',
+  attention: 'no-window',
+  windowCount: 0,
+  visibleWindowCount: 0,
+  focusedWindowCount: 0,
+  lastEvent: null,
+  lastEventAt: null,
+  eventCount: 0,
+  history: [],
+};
+
+function resolveSessionAttention(): SessionAttention {
+  const windows = BrowserWindow.getAllWindows().filter((window) => !window.isDestroyed());
+  if (windows.length === 0) {
+    return 'no-window';
+  }
+
+  if (windows.some((window) => window.isFocused())) {
+    return 'focused';
+  }
+
+  if (windows.some((window) => window.isVisible())) {
+    return 'visible';
+  }
+
+  return 'hidden';
+}
+
+function resolveSessionLifecycle(
+  attention: SessionAttention,
+  windowCount: number,
+  visibleWindowCount: number,
+): SessionLifecycle {
+  if (sessionStateQuitting) {
+    return 'quitting';
+  }
+
+  if (attention === 'focused') {
+    return 'active';
+  }
+
+  if (visibleWindowCount > 0) {
+    return 'background';
+  }
+
+  if (windowCount > 0) {
+    return 'hidden';
+  }
+
+  return 'ready';
+}
+
+function getSessionStateSnapshot() {
+  const windows = BrowserWindow.getAllWindows().filter((window) => !window.isDestroyed());
+  const visibleWindowCount = windows.filter((window) => window.isVisible()).length;
+  const focusedWindowCount = windows.filter((window) => window.isFocused()).length;
+  const attention = resolveSessionAttention();
+
+  sessionStateSnapshot.attention = attention;
+  sessionStateSnapshot.windowCount = windows.length;
+  sessionStateSnapshot.visibleWindowCount = visibleWindowCount;
+  sessionStateSnapshot.focusedWindowCount = focusedWindowCount;
+  sessionStateSnapshot.lifecycle = resolveSessionLifecycle(attention, windows.length, visibleWindowCount);
+
+  return {
+    startedAt: sessionStateSnapshot.startedAt,
+    lifecycle: sessionStateSnapshot.lifecycle,
+    attention: sessionStateSnapshot.attention,
+    windowCount: sessionStateSnapshot.windowCount,
+    visibleWindowCount: sessionStateSnapshot.visibleWindowCount,
+    focusedWindowCount: sessionStateSnapshot.focusedWindowCount,
+    lastEvent: sessionStateSnapshot.lastEvent,
+    lastEventAt: sessionStateSnapshot.lastEventAt,
+    eventCount: sessionStateSnapshot.eventCount,
+    history: [...sessionStateSnapshot.history],
+  };
+}
+
+function recordSessionEvent(name: SessionEventName, detail: string | null = null) {
+  const timestamp = new Date().toISOString();
+  sessionStateSnapshot.lastEvent = name;
+  sessionStateSnapshot.lastEventAt = timestamp;
+  sessionStateSnapshot.eventCount += 1;
+  sessionStateSnapshot.history = [
+    { name, timestamp, detail },
+    ...sessionStateSnapshot.history,
+  ].slice(0, sessionStateHistoryLimit);
+  return getSessionStateSnapshot();
+}
+
+function clearSessionStateHistory() {
+  sessionStateSnapshot.lastEvent = null;
+  sessionStateSnapshot.lastEventAt = null;
+  sessionStateSnapshot.eventCount = 0;
+  sessionStateSnapshot.history = [];
+  return getSessionStateSnapshot();
+}
+
+function trackSessionWindow(window: BrowserWindow) {
+  const detail = \`window:\${window.id}\`;
+  window.on('show', () => {
+    recordSessionEvent('show', detail);
+  });
+  window.on('hide', () => {
+    recordSessionEvent('hide', detail);
+  });
+}
+
+function registerSessionState() {
+  if (sessionStateRegistered) {
+    return;
+  }
+
+  sessionStateRegistered = true;
+  app.on('activate', () => {
+    recordSessionEvent('activate');
+  });
+  app.on('browser-window-focus', (_event, window) => {
+    recordSessionEvent('browser-window-focus', \`window:\${window.id}\`);
+  });
+  app.on('browser-window-blur', (_event, window) => {
+    recordSessionEvent('browser-window-blur', \`window:\${window.id}\`);
+  });
+  app.on('before-quit', () => {
+    sessionStateQuitting = true;
+    recordSessionEvent('before-quit');
+  });
+  app.on('window-all-closed', () => {
+    recordSessionEvent('window-all-closed');
+  });
+  recordSessionEvent('ready');
+}
 ` : ''}${useDownloads ? `
 type DownloadState = 'idle' | 'progressing' | 'completed' | 'cancelled' | 'interrupted';
 
@@ -2510,6 +2680,14 @@ ${useFileAssociation ? `    const normalized = normalizeRecentFilePath(filePath)
     return clearIdlePresenceHistory();
   });
 
+` : ''}${useSessionState ? `  ipcMain.handle(IPC_CHANNELS.SESSION_STATE_GET, async () => {
+    return getSessionStateSnapshot();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.SESSION_STATE_CLEAR_HISTORY, async () => {
+    return clearSessionStateHistory();
+  });
+
 ` : ''}${useDownloads ? `  ipcMain.handle(IPC_CHANNELS.DOWNLOADS_GET_STATE, async () => {
     return getDownloadsState();
   });
@@ -2583,7 +2761,7 @@ ${useJobs ? `  jobEngine.onJobUpdate((job) => {
     mainWindow?.show();
   });
 
-  mainWindow.on('closed', () => {
+${useSessionState ? '  trackSessionWindow(mainWindow);\n\n' : ''}  mainWindow.on('closed', () => {
     mainWindow = null;
   });
 
@@ -2664,7 +2842,7 @@ ${useWindowing || useDeepLink ? `    if (mainWindow.isMinimized()) {
   logger.info('App starting', { isDev, appRoot });
 ${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}${useRecentFiles ? '  await loadRecentFiles();\n' : ''}${useCrashRecovery ? '  await loadCrashRecoveryState();\n' : ''}${useSecureStorage ? '  await loadSecureStorageRecord();\n' : ''}  registerIpcHandlers();
 ${useDeepLink ? "  captureDeepLink(findProtocolArg(process.argv));\n" : ''}${useFileAssociation ? "  captureAssociatedFile(findAssociatedFileArg(process.argv), 'startup-argv');\n" : ''}  createWindow();
-${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();\n' : ''}${useGlobalShortcut ? '  registerStarterShortcut();\n' : ''}${usePowerMonitor ? '  registerPowerMonitor();\n' : ''}${useDownloads ? '  registerDownloadTracking();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
+${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();\n' : ''}${useGlobalShortcut ? '  registerStarterShortcut();\n' : ''}${usePowerMonitor ? '  registerPowerMonitor();\n' : ''}${useSessionState ? '  registerSessionState();\n' : ''}${useDownloads ? '  registerDownloadTracking();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
     setTimeout(() => {
       updater.checkForUpdates().catch(() => {
         logger.info('Initial update check skipped');
@@ -2705,6 +2883,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useCrashRecovery = features.includes('crash-recovery');
   const usePowerMonitor = features.includes('power-monitor');
   const useIdlePresence = features.includes('idle-presence');
+  const useSessionState = features.includes('session-state');
   const useDownloads = features.includes('downloads');
   const useClipboard = features.includes('clipboard');
   const useExternalLinks = features.includes('external-links');
@@ -2822,6 +3001,10 @@ ${useSettings ? `  settings: {
     getState: () => ipcRenderer.invoke(IPC_CHANNELS.IDLE_PRESENCE_GET_STATE),
     clearHistory: () => ipcRenderer.invoke(IPC_CHANNELS.IDLE_PRESENCE_CLEAR_HISTORY),
   },
+` : ''}${useSessionState ? `  sessionState: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.SESSION_STATE_GET),
+    clearHistory: () => ipcRenderer.invoke(IPC_CHANNELS.SESSION_STATE_CLEAR_HISTORY),
+  },
 ` : ''}${useDownloads ? `  downloads: {
     getState: () => ipcRenderer.invoke(IPC_CHANNELS.DOWNLOADS_GET_STATE),
     start: (url?: string) => ipcRenderer.invoke(IPC_CHANNELS.DOWNLOADS_START, url),
@@ -2870,6 +3053,7 @@ function getFeatureStudioSource(
   const useCrashRecovery = features.includes('crash-recovery');
   const usePowerMonitor = features.includes('power-monitor');
   const useIdlePresence = features.includes('idle-presence');
+  const useSessionState = features.includes('session-state');
   const useDownloads = features.includes('downloads');
   const useClipboard = features.includes('clipboard');
   const useExternalLinks = features.includes('external-links');
@@ -3086,6 +3270,23 @@ type IdlePresenceState = {
   }>;
 };
 
+type SessionStateSnapshot = {
+  startedAt: string;
+  lifecycle: 'ready' | 'active' | 'background' | 'hidden' | 'quitting';
+  attention: 'focused' | 'visible' | 'hidden' | 'no-window';
+  windowCount: number;
+  visibleWindowCount: number;
+  focusedWindowCount: number;
+  lastEvent: 'ready' | 'activate' | 'browser-window-focus' | 'browser-window-blur' | 'show' | 'hide' | 'before-quit' | 'window-all-closed' | null;
+  lastEventAt: string | null;
+  eventCount: number;
+  history: Array<{
+    name: 'ready' | 'activate' | 'browser-window-focus' | 'browser-window-blur' | 'show' | 'hide' | 'before-quit' | 'window-all-closed';
+    timestamp: string;
+    detail: string | null;
+  }>;
+};
+
 type DownloadsState = {
   sampleUrl: string;
   activeCount: number;
@@ -3227,6 +3428,10 @@ type ForgeDesktopAPI = {
     getState: () => Promise<IdlePresenceState>;
     clearHistory: () => Promise<IdlePresenceState>;
   };
+  sessionState?: {
+    getState: () => Promise<SessionStateSnapshot>;
+    clearHistory: () => Promise<SessionStateSnapshot>;
+  };
   downloads?: {
     getState: () => Promise<DownloadsState>;
     start: (url?: string) => Promise<DownloadsState>;
@@ -3280,6 +3485,7 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
 ` : ''}${useCrashRecovery ? `  const [crashRecoveryState, setCrashRecoveryState] = useState<CrashRecoveryState | null>(null);
 ` : ''}${usePowerMonitor ? `  const [powerMonitorState, setPowerMonitorState] = useState<PowerMonitorState | null>(null);
 ` : ''}${useIdlePresence ? `  const [idlePresenceState, setIdlePresenceState] = useState<IdlePresenceState | null>(null);
+` : ''}${useSessionState ? `  const [sessionStateSnapshot, setSessionStateSnapshot] = useState<SessionStateSnapshot | null>(null);
 ` : ''}${useDownloads ? `  const [downloadsState, setDownloadsState] = useState<DownloadsState | null>(null);
   const [downloadUrlDraft, setDownloadUrlDraft] = useState('https://raw.githubusercontent.com/electron/electron/main/README.md');
 ` : ''}${useClipboard ? `  const [clipboardState, setClipboardState] = useState<ClipboardState | null>(null);
@@ -3591,6 +3797,31 @@ ${useSettings ? `  useEffect(() => {
         }
       } catch {
         // Ignore starter idle-presence polling failures.
+      }
+    };
+
+    sync();
+    const timer = window.setInterval(sync, 4000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [api]);
+` : ''}${useSessionState ? `
+  useEffect(() => {
+    if (!api?.sessionState?.getState) {
+      return undefined;
+    }
+
+    let active = true;
+    const sync = async () => {
+      try {
+        const next = await api?.sessionState?.getState?.();
+        if (active && next) {
+          setSessionStateSnapshot(next);
+        }
+      } catch {
+        // Ignore starter session-state polling failures.
       }
     };
 
@@ -4480,6 +4711,56 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             )}
           </div>
         </section>
+` : ''}${useSessionState ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Session State</h3>
+              <p className="mt-1 text-xs text-slate-400">Track whether the desktop app is active, backgrounded, hidden, or quitting while capturing window focus and visibility events in a starter lifecycle log.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => refreshSessionState(api, setSessionStateSnapshot)}
+                className="rounded-full border border-cyan-500/40 px-3 py-1 text-xs font-medium text-cyan-300 hover:border-cyan-400 hover:text-cyan-100"
+              >
+                Refresh
+              </button>
+              <button
+                onClick={() => clearSessionState(api, setSessionStateSnapshot)}
+                className="rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-200 hover:border-slate-500"
+              >
+                Clear history
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <DiagnosticRow label="Lifecycle" value={sessionStateSnapshot?.lifecycle ?? 'ready'} />
+            <DiagnosticRow label="Attention" value={sessionStateSnapshot?.attention ?? 'no-window'} />
+            <DiagnosticRow label="Windows" value={String(sessionStateSnapshot?.windowCount ?? 0)} />
+            <DiagnosticRow label="Visible Windows" value={String(sessionStateSnapshot?.visibleWindowCount ?? 0)} />
+            <DiagnosticRow label="Focused Windows" value={String(sessionStateSnapshot?.focusedWindowCount ?? 0)} />
+            <DiagnosticRow label="Last Event" value={sessionStateSnapshot?.lastEvent ?? 'none yet'} />
+            <DiagnosticRow label="Last Event At" value={sessionStateSnapshot?.lastEventAt ?? 'not available'} />
+            <DiagnosticRow label="Event Count" value={String(sessionStateSnapshot?.eventCount ?? 0)} />
+          </div>
+          <div className="mt-3 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-xs text-slate-400">
+            Session started at <span className="text-white">{sessionStateSnapshot?.startedAt ?? 'not available'}</span>
+          </div>
+          <div className="mt-3 space-y-2">
+            {sessionStateSnapshot?.history.length ? sessionStateSnapshot.history.map((entry) => (
+              <div key={\`\${entry.name}-\${entry.timestamp}\`} className="rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-300">{entry.name}</span>
+                  <span className="text-xs text-slate-500">{entry.timestamp}</span>
+                </div>
+                {entry.detail && (
+                  <p className="mt-2 break-all text-xs text-slate-400">{entry.detail}</p>
+                )}
+              </div>
+            )) : (
+              <p className="text-xs text-slate-500">No session-state events yet. Focus, hide, or reactivate the app window to exercise the starter lifecycle log.</p>
+            )}
+          </div>
+        </section>
 ` : ''}${useDownloads ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -4995,6 +5276,35 @@ async function clearIdlePresence(
     // Ignore starter idle-presence clear failures.
   }
 }
+` : ''}${useSessionState ? `
+
+async function refreshSessionState(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: SessionStateSnapshot) => void,
+) {
+  try {
+    const next = await api?.sessionState?.getState?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter session-state refresh failures.
+  }
+}
+
+async function clearSessionState(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: SessionStateSnapshot) => void,
+) {
+  try {
+    const next = await api?.sessionState?.clearHistory?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter session-state clear failures.
+  }
+}
 ` : ''}${useDownloads ? `
 
 async function startDownload(
@@ -5273,7 +5583,7 @@ async function clearSecureStorage(
     // Ignore starter secure-storage clear failures.
   }
 }
-` : ''}${useDiagnostics || useSystemInfo || usePermissions || useNetworkStatus || useSecureStorage || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useIdlePresence || useDownloads || useClipboard || useExternalLinks ? `
+` : ''}${useDiagnostics || useSystemInfo || usePermissions || useNetworkStatus || useSecureStorage || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useIdlePresence || useSessionState || useDownloads || useClipboard || useExternalLinks ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

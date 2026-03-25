@@ -40,6 +40,7 @@ describe('IPC_CHANNELS', () => {
     expect(IPC_CHANNELS.CRASH_RECOVERY_GET_STATE).toBe('crash-recovery:get-state');
     expect(IPC_CHANNELS.POWER_MONITOR_GET_STATE).toBe('power-monitor:get-state');
     expect(IPC_CHANNELS.IDLE_PRESENCE_GET_STATE).toBe('idle-presence:get-state');
+    expect(IPC_CHANNELS.SESSION_STATE_GET).toBe('session-state:get-state');
     expect(IPC_CHANNELS.DOWNLOADS_GET_STATE).toBe('downloads:get-state');
     expect(IPC_CHANNELS.CLIPBOARD_GET_STATE).toBe('clipboard:get-state');
     expect(IPC_CHANNELS.EXTERNAL_LINKS_GET_STATE).toBe('external-links:get-state');
