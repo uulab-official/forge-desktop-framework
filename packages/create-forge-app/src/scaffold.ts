@@ -692,13 +692,14 @@ function getMinimalElectronMainSource(
   const useUpdater = features.includes('updater');
   const useDiagnostics = features.includes('diagnostics');
   const useNotifications = features.includes('notifications');
+  const useWindowing = features.includes('windowing');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
 
   return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''} } from 'electron';
 import path from 'node:path';
-${useDiagnostics ? "import { mkdir, writeFile } from 'node:fs/promises';\n" : ''}import { createResourceManager } from '@forge/resource-manager';
+${useDiagnostics || useWindowing ? `import { ${[useDiagnostics || useWindowing ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
 import { createLogger } from '@forge/logger';
 import { IPC_CHANNELS, type WorkerRequest } from '@forge/ipc-contract';
@@ -723,7 +724,77 @@ const workerClient = createWorkerClient({
 });
 
 const enabledFeatures = ${JSON.stringify(features)};
-${useSettings ? "const settingsManager = createSettingsManager(path.join(app.getPath('userData'), 'settings.json'));\n" : ''}${useJobs ? 'const jobEngine = createJobEngine(workerClient);\n' : ''}${useUpdater ? "const updater = createUpdater({ autoDownload: false, autoInstallOnAppQuit: true });\n" : ''}${useDiagnostics ? `
+${useSettings ? "const settingsManager = createSettingsManager(path.join(app.getPath('userData'), 'settings.json'));\n" : ''}${useJobs ? 'const jobEngine = createJobEngine(workerClient);\n' : ''}${useUpdater ? "const updater = createUpdater({ autoDownload: false, autoInstallOnAppQuit: true });\n" : ''}${useWindowing ? `
+const windowStatePath = path.join(app.getPath('userData'), 'window-state.json');
+type WindowState = {
+  width: number;
+  height: number;
+  x: number | null;
+  y: number | null;
+  maximized: boolean;
+};
+
+const defaultWindowState: WindowState = {
+  width: 900,
+  height: 680,
+  x: null,
+  y: null,
+  maximized: false,
+};
+let windowState: WindowState = { ...defaultWindowState };
+
+async function loadWindowState() {
+  try {
+    const raw = await readFile(windowStatePath, 'utf-8');
+    const parsed = JSON.parse(raw) as Partial<WindowState>;
+    windowState = {
+      width: typeof parsed.width === 'number' ? parsed.width : defaultWindowState.width,
+      height: typeof parsed.height === 'number' ? parsed.height : defaultWindowState.height,
+      x: typeof parsed.x === 'number' ? parsed.x : null,
+      y: typeof parsed.y === 'number' ? parsed.y : null,
+      maximized: parsed.maximized === true,
+    };
+  } catch {
+    windowState = { ...defaultWindowState };
+  }
+}
+
+async function saveWindowState(win: BrowserWindow) {
+  const bounds = win.getBounds();
+  windowState = {
+    width: bounds.width,
+    height: bounds.height,
+    x: bounds.x,
+    y: bounds.y,
+    maximized: win.isMaximized(),
+  };
+  await writeFile(windowStatePath, JSON.stringify(windowState, null, 2), 'utf-8');
+}
+
+async function resetWindowState() {
+  windowState = { ...defaultWindowState };
+  await writeFile(windowStatePath, JSON.stringify(windowState, null, 2), 'utf-8');
+}
+
+function getCurrentWindowState() {
+  const bounds = mainWindow?.getBounds() ?? {
+    width: windowState.width,
+    height: windowState.height,
+    x: windowState.x ?? undefined,
+    y: windowState.y ?? undefined,
+  };
+
+  return {
+    width: bounds.width,
+    height: bounds.height,
+    x: typeof bounds.x === 'number' ? bounds.x : null,
+    y: typeof bounds.y === 'number' ? bounds.y : null,
+    maximized: mainWindow?.isMaximized() ?? windowState.maximized,
+    focused: mainWindow?.isFocused() ?? false,
+  };
+}
+
+` : ''}${useDiagnostics ? `
 async function getDiagnosticsSummary() {
   return {
     productName: ${JSON.stringify(productName)},
@@ -834,13 +905,50 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return { supported: true, delivered: true };
   });
 
+` : ''}${useWindowing ? `  ipcMain.handle(IPC_CHANNELS.WINDOW_STATE_GET, async () => {
+    return getCurrentWindowState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.WINDOW_FOCUS, async () => {
+    if (!mainWindow) {
+      createWindow();
+      return getCurrentWindowState();
+    }
+
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+
+    mainWindow.show();
+    mainWindow.focus();
+    return getCurrentWindowState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.WINDOW_RESET, async () => {
+    await resetWindowState();
+
+    if (mainWindow) {
+      mainWindow.unmaximize();
+      mainWindow.setBounds({
+        width: defaultWindowState.width,
+        height: defaultWindowState.height,
+      });
+      mainWindow.center();
+    }
+
+    return getCurrentWindowState();
+  });
+
 ` : ''}  logger.info('IPC handlers registered');
 }
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 900,
-    height: 680,
+    width: ${useWindowing ? 'windowState.width' : '900'},
+    height: ${useWindowing ? 'windowState.height' : '680'},
+${useWindowing ? `    ...(typeof windowState.x === 'number' && typeof windowState.y === 'number'
+      ? { x: windowState.x, y: windowState.y }
+      : {}),` : ''}
     minWidth: 760,
     minHeight: 560,
     webPreferences: {
@@ -864,16 +972,53 @@ ${useJobs ? `  jobEngine.onJobUpdate((job) => {
     mainWindow = null;
   });
 
+${useWindowing ? `  const persistWindowState = () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      void saveWindowState(mainWindow);
+    }
+  };
+
+  mainWindow.on('resize', persistWindowState);
+  mainWindow.on('move', persistWindowState);
+  mainWindow.on('maximize', persistWindowState);
+  mainWindow.on('unmaximize', persistWindowState);
+` : ''}
+
   if (isDev && process.env['VITE_DEV_SERVER_URL']) {
     mainWindow.loadURL(process.env['VITE_DEV_SERVER_URL']);
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
+
+${useWindowing ? `  if (windowState.maximized) {
+    mainWindow.maximize();
+  }
+` : ''}
 }
 
-app.whenReady().then(async () => {
+${useWindowing ? `const hasSingleInstanceLock = app.requestSingleInstanceLock();
+
+if (!hasSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (!mainWindow) {
+      createWindow();
+      return;
+    }
+
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+
+    mainWindow.show();
+    mainWindow.focus();
+  });
+}
+
+` : ''}app.whenReady().then(async () => {
   logger.info('App starting', { isDev, appRoot });
-${useSettings ? '  await settingsManager.load();\n' : ''}  registerIpcHandlers();
+${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}  registerIpcHandlers();
   createWindow();
 ${useUpdater ? `  if (app.isPackaged) {
     setTimeout(() => {
@@ -894,7 +1039,7 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
-${useUpdater ? '  updater.dispose();\n' : ''}${useJobs ? '  jobEngine.dispose();\n' : '  workerClient.dispose();\n'}});
+${useWindowing ? '  if (mainWindow && !mainWindow.isDestroyed()) {\n    void saveWindowState(mainWindow);\n  }\n' : ''}${useUpdater ? '  updater.dispose();\n' : ''}${useJobs ? '  jobEngine.dispose();\n' : '  workerClient.dispose();\n'}});
 `;
 }
 
@@ -904,6 +1049,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useUpdater = features.includes('updater');
   const useDiagnostics = features.includes('diagnostics');
   const useNotifications = features.includes('notifications');
+  const useWindowing = features.includes('windowing');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -942,6 +1088,11 @@ ${useSettings ? `  settings: {
 ` : ''}${useNotifications ? `  notifications: {
     show: (title: string, body: string) => ipcRenderer.invoke(IPC_CHANNELS.NOTIFY_SHOW, title, body),
   },
+` : ''}${useWindowing ? `  windowing: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_STATE_GET),
+    focus: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_FOCUS),
+    reset: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_RESET),
+  },
 ` : ''}};
 
 contextBridge.exposeInMainWorld('api', api);
@@ -961,6 +1112,7 @@ function getFeatureStudioSource(
   const usePlugins = features.includes('plugins');
   const useDiagnostics = features.includes('diagnostics');
   const useNotifications = features.includes('notifications');
+  const useWindowing = features.includes('windowing');
   const displayName = resolveProductName(projectName, metadata);
 
   return `import { useEffect, useState } from 'react';
@@ -981,6 +1133,15 @@ type DiagnosticsSummary = {
   chromeVersion: string;
   electronVersion: string;
   enabledFeatures: string[];
+};
+
+type WindowStateSummary = {
+  width: number;
+  height: number;
+  x: number | null;
+  y: number | null;
+  maximized: boolean;
+  focused: boolean;
 };
 
 type ForgeDesktopAPI = {
@@ -1011,6 +1172,11 @@ type ForgeDesktopAPI = {
   notifications?: {
     show: (title: string, body: string) => Promise<{ supported: boolean; delivered: boolean }>;
   };
+  windowing?: {
+    getState: () => Promise<WindowStateSummary>;
+    focus: () => Promise<WindowStateSummary>;
+    reset: () => Promise<WindowStateSummary>;
+  };
 };
 
 function getDesktopApi(): ForgeDesktopAPI | undefined {
@@ -1027,6 +1193,7 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
   const [diagnosticsExport, setDiagnosticsExport] = useState<{ filePath: string; generatedAt: string } | null>(null);
 ` : ''}${useNotifications ? `  const [notificationDraft, setNotificationDraft] = useState({ title: 'Forge Ready', body: '${displayName} is ready for customer testing.' });
   const [notificationState, setNotificationState] = useState<'idle' | 'sent' | 'unsupported'>('idle');
+` : ''}${useWindowing ? `  const [windowState, setWindowState] = useState<WindowStateSummary | null>(null);
 ` : ''}  const featureNames = ${JSON.stringify(features)};
 
 ${useSettings ? `  useEffect(() => {
@@ -1087,6 +1254,12 @@ ${useSettings ? `  useEffect(() => {
   useEffect(() => {
     api?.diagnostics?.getSummary?.().then((next) => {
       setDiagnostics(next);
+    }).catch(() => {});
+  }, [api]);
+` : ''}${useWindowing ? `
+  useEffect(() => {
+    api?.windowing?.getState?.().then((next) => {
+      setWindowState(next);
     }).catch(() => {});
   }, [api]);
 ` : ''}  return (
@@ -1284,6 +1457,38 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             </p>
           </div>
         </section>
+` : ''}${useWindowing ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Windowing</h3>
+              <p className="mt-1 text-xs text-slate-400">Restore window bounds between launches and keep duplicate launches focused on the active window.</p>
+            </div>
+            <button
+              onClick={() => runWindowAction(api, 'focus', setWindowState)}
+              className="rounded-full border border-indigo-500/40 px-3 py-1 text-xs font-medium text-indigo-300 hover:border-indigo-400 hover:text-indigo-100"
+            >
+              Focus app
+            </button>
+          </div>
+          {windowState ? (
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <DiagnosticRow label="Size" value={\`\${windowState.width} × \${windowState.height}\`} />
+              <DiagnosticRow label="Position" value={windowState.x === null || windowState.y === null ? 'centered' : \`\${windowState.x}, \${windowState.y}\`} />
+              <DiagnosticRow label="Maximized" value={windowState.maximized ? 'yes' : 'no'} />
+              <DiagnosticRow label="Focused" value={windowState.focused ? 'yes' : 'no'} />
+            </div>
+          ) : (
+            <p className="mt-3 text-xs text-slate-500">Window state becomes available after the desktop bridge initializes.</p>
+          )}
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={() => runWindowAction(api, 'reset', setWindowState)}
+              className="rounded-full border border-slate-700 px-3 py-1 text-[11px] font-medium text-slate-200 hover:border-slate-500"
+            >
+              Reset bounds
+            </button>
+          </div>
+        </section>
 ` : ''}${usePlugins ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length === 1 ? 'md:col-span-2' : ''}">
           <h3 className="text-sm font-semibold text-white">Plugin Registry</h3>
           <p className="mt-1 text-xs text-slate-400">Sample plugin slots are ready for feature-oriented modules.</p>
@@ -1345,7 +1550,26 @@ async function sendNotification(
     setState('unsupported');
   }
 }
-` : ''}${useDiagnostics ? `
+` : ''}${useWindowing ? `
+
+async function runWindowAction(
+  api: ForgeDesktopAPI | undefined,
+  action: 'focus' | 'reset',
+  setState: (next: WindowStateSummary) => void,
+) {
+  try {
+    const next = action === 'focus'
+      ? await api?.windowing?.focus?.()
+      : await api?.windowing?.reset?.();
+
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter windowing failures.
+  }
+}
+` : ''}${useDiagnostics || useWindowing ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

@@ -59,7 +59,7 @@ Scaffolded apps also include:
 The `minimal` starter also supports feature packs during scaffolding:
 
 ```bash
-forge create my-app --template minimal --feature settings --feature updater --feature diagnostics --feature notifications
+forge create my-app --template minimal --feature settings --feature updater --feature diagnostics --feature notifications --feature windowing
 ```
 
 For the fastest production baseline, use the preset:

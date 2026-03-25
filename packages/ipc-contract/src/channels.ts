@@ -26,6 +26,9 @@ export const IPC_CHANNELS = {
   DIAGNOSTICS_SUMMARY: 'diagnostics:summary',
   DIAGNOSTICS_EXPORT: 'diagnostics:export',
   NOTIFY_SHOW: 'notify:show',
+  WINDOW_STATE_GET: 'window:get-state',
+  WINDOW_FOCUS: 'window:focus',
+  WINDOW_RESET: 'window:reset',
 
   // Updates
   UPDATE_CHECK: 'update:check',

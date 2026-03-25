@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.11 (2026-03-25)
+
+### Windowing Feature Pack
+
+- Added a `windowing` scaffold feature pack for the `minimal` starter
+- Generated apps now persist window bounds, restore the previous window size, and enforce single-instance focus in the desktop shell
+- Added starter window controls in `FeatureStudio` so scaffolded apps can inspect and reset saved window state
+
+### Launch-Ready Preset
+
+- Expanded `forge create --preset launch-ready` to include `windowing`
+- Updated the CLI docs to reflect the fuller desktop-ready starter bundle
+
 ## 0.1.10 (2026-03-25)
 
 ### Notifications Feature Pack

@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -52,14 +52,20 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     description: 'Enable native desktop notifications with a starter control surface in the runtime shell',
     minimalOnly: true,
   },
+  {
+    id: 'windowing',
+    label: 'Windowing',
+    description: 'Persist window bounds, enforce single-instance focus, and expose starter window controls',
+    minimalOnly: true,
+  },
 ];
 
 export const PRESET_DEFINITIONS: PresetDefinition[] = [
   {
     id: 'launch-ready',
     label: 'Launch Ready',
-    description: 'Bundle settings, updater, jobs, plugins, diagnostics, and notifications for a production starter',
-    features: ['settings', 'updater', 'jobs', 'plugins', 'diagnostics', 'notifications'],
+    description: 'Bundle settings, updater, jobs, plugins, diagnostics, notifications, and windowing for a production starter',
+    features: ['settings', 'updater', 'jobs', 'plugins', 'diagnostics', 'notifications', 'windowing'],
   },
 ];
 
