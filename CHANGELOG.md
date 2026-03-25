@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.14 (2026-03-25)
+
+### Menu-Bar Feature Pack
+
+- Added a `menu-bar` scaffold feature pack for the `minimal` starter
+- Generated apps now install a starter application menu with standard File, View, Window, and Help sections plus rebuild state exposed through preload IPC
+- Expanded the `launch-ready` preset to include `menu-bar` so production starters ship with a menu baseline by default
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated menu-bar smoke app before any version bump
+
 ## 0.1.13 (2026-03-25)
 
 ### Deep-Link Feature Pack

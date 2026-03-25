@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -70,14 +70,20 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     description: 'Seed a protocol handler surface with starter capture and simulation controls',
     minimalOnly: true,
   },
+  {
+    id: 'menu-bar',
+    label: 'Menu Bar',
+    description: 'Seed an application menu with standard desktop commands and starter rebuild controls',
+    minimalOnly: true,
+  },
 ];
 
 export const PRESET_DEFINITIONS: PresetDefinition[] = [
   {
     id: 'launch-ready',
     label: 'Launch Ready',
-    description: 'Bundle settings, updater, jobs, plugins, diagnostics, notifications, and windowing for a production starter',
-    features: ['settings', 'updater', 'jobs', 'plugins', 'diagnostics', 'notifications', 'windowing'],
+    description: 'Bundle settings, updater, jobs, plugins, diagnostics, notifications, windowing, and menu-bar for a production starter',
+    features: ['settings', 'updater', 'jobs', 'plugins', 'diagnostics', 'notifications', 'windowing', 'menu-bar'],
   },
 ];
 

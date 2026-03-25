@@ -31,6 +31,7 @@ describe('IPC_CHANNELS', () => {
     expect(IPC_CHANNELS.WINDOW_STATE_GET).toBe('window:get-state');
     expect(IPC_CHANNELS.TRAY_STATUS_GET).toBe('tray:get-status');
     expect(IPC_CHANNELS.DEEP_LINK_GET_LAST).toBe('deep-link:get-last');
+    expect(IPC_CHANNELS.MENU_STATE_GET).toBe('menu:get-state');
     expect(IPC_CHANNELS.UPDATE_CHECK).toBe('update:check');
   });
 });

@@ -33,6 +33,8 @@ export const IPC_CHANNELS = {
   TRAY_TOGGLE_WINDOW: 'tray:toggle-window',
   DEEP_LINK_GET_LAST: 'deep-link:get-last',
   DEEP_LINK_OPEN: 'deep-link:open',
+  MENU_STATE_GET: 'menu:get-state',
+  MENU_REBUILD: 'menu:rebuild',
 
   // Updates
   UPDATE_CHECK: 'update:check',

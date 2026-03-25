@@ -695,12 +695,13 @@ function getMinimalElectronMainSource(
   const useWindowing = features.includes('windowing');
   const useTray = features.includes('tray');
   const useDeepLink = features.includes('deep-link');
+  const useMenuBar = features.includes('menu-bar');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
   const protocolScheme = `${toIdentifier(projectName)}`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray ? ', Menu, Tray, nativeImage' : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''} } from 'electron';
 import path from 'node:path';
 ${useDiagnostics || useWindowing ? `import { ${[useDiagnostics || useWindowing ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
@@ -710,6 +711,7 @@ ${useSettings ? "import { createSettingsManager } from '@forge/settings-core';\n
 const logger = createLogger('main');
 let mainWindow: BrowserWindow | null = null;
 ${useTray ? 'let appTray: Tray | null = null;\n' : ''}
+${useMenuBar ? 'let menuInstalled = false;\n' : ''}
 
 const isDev = !app.isPackaged;
 const appRoot = isDev ? path.resolve(__dirname, '..') : app.getAppPath();
@@ -915,6 +917,98 @@ function getDeepLinkState() {
 function findProtocolArg(args: string[]) {
   return args.find((value) => value.startsWith(${JSON.stringify(`${protocolScheme}://`)})) ?? null;
 }
+` : ''}${useMenuBar ? `
+function buildApplicationMenu() {
+  const macMenu: MenuItemConstructorOptions[] = process.platform === 'darwin'
+    ? [{
+        label: ${JSON.stringify(productName)},
+        submenu: [
+          { role: 'about' as const },
+          { type: 'separator' as const },
+          { role: 'services' as const },
+          { type: 'separator' as const },
+          { role: 'hide' as const },
+          { role: 'hideOthers' as const },
+          { role: 'unhide' as const },
+          { type: 'separator' as const },
+          { role: 'quit' as const },
+        ] satisfies MenuItemConstructorOptions[],
+      }]
+    : [];
+
+  const fileMenu: MenuItemConstructorOptions = {
+    label: 'File',
+    submenu: [
+      {
+        label: 'Show Main Window',
+        click: () => {
+          if (!mainWindow) {
+            createWindow();
+            return;
+          }
+
+          if (mainWindow.isMinimized()) {
+            mainWindow.restore();
+          }
+
+          mainWindow.show();
+          mainWindow.focus();
+        },
+      },
+      { type: 'separator' as const },
+      ...(process.platform === 'darwin' ? [{ role: 'close' as const }] : [{ role: 'quit' as const }]),
+    ] satisfies MenuItemConstructorOptions[],
+  };
+
+  const viewMenu: MenuItemConstructorOptions = {
+    label: 'View',
+    submenu: [
+      { role: 'reload' as const },
+      { role: 'forceReload' as const },
+      { role: 'togglefullscreen' as const },
+      ...(isDev ? [{ role: 'toggleDevTools' as const }] : []),
+    ] satisfies MenuItemConstructorOptions[],
+  };
+
+  const windowMenu: MenuItemConstructorOptions = {
+    label: 'Window',
+    submenu: [
+      { role: 'minimize' as const },
+      { role: 'zoom' as const },
+      ...(process.platform === 'darwin' ? [{ type: 'separator' as const }, { role: 'front' as const }] : []),
+    ] satisfies MenuItemConstructorOptions[],
+  };
+
+  const helpMenu: MenuItemConstructorOptions = {
+    label: 'Help',
+    submenu: [
+      {
+        label: 'About ${productName}',
+        click: () => {
+          if (mainWindow) {
+            mainWindow.show();
+            mainWindow.focus();
+          }
+        },
+      },
+    ] satisfies MenuItemConstructorOptions[],
+  };
+
+  return Menu.buildFromTemplate([...macMenu, fileMenu, viewMenu, windowMenu, helpMenu]);
+}
+
+function installApplicationMenu() {
+  const menu = buildApplicationMenu();
+  Menu.setApplicationMenu(menu);
+  menuInstalled = true;
+}
+
+function getMenuState() {
+  return {
+    enabled: menuInstalled,
+    itemLabels: Menu.getApplicationMenu()?.items.map((item) => item.label || '').filter((value) => value.length > 0) ?? [],
+  };
+}
 ` : ''}
 function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.WORKER_EXECUTE, async (_event, request: WorkerRequest) => {
@@ -1039,6 +1133,15 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return captureDeepLink(url);
   });
 
+` : ''}${useMenuBar ? `  ipcMain.handle(IPC_CHANNELS.MENU_STATE_GET, async () => {
+    return getMenuState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.MENU_REBUILD, async () => {
+    installApplicationMenu();
+    return getMenuState();
+  });
+
 ` : ''}  logger.info('IPC handlers registered');
 }
 
@@ -1125,7 +1228,7 @@ ${useWindowing || useDeepLink ? `    if (mainWindow.isMinimized()) {
   logger.info('App starting', { isDev, appRoot });
 ${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}  registerIpcHandlers();
 ${useDeepLink ? "  captureDeepLink(findProtocolArg(process.argv));\n" : ''}  createWindow();
-${useTray ? '  createTray();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
+${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
     setTimeout(() => {
       updater.checkForUpdates().catch(() => {
         logger.info('Initial update check skipped');
@@ -1157,6 +1260,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useWindowing = features.includes('windowing');
   const useTray = features.includes('tray');
   const useDeepLink = features.includes('deep-link');
+  const useMenuBar = features.includes('menu-bar');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -1208,6 +1312,10 @@ ${useSettings ? `  settings: {
     getLast: () => ipcRenderer.invoke(IPC_CHANNELS.DEEP_LINK_GET_LAST),
     open: (url: string) => ipcRenderer.invoke(IPC_CHANNELS.DEEP_LINK_OPEN, url),
   },
+` : ''}${useMenuBar ? `  menuBar: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.MENU_STATE_GET),
+    rebuild: () => ipcRenderer.invoke(IPC_CHANNELS.MENU_REBUILD),
+  },
 ` : ''}};
 
 contextBridge.exposeInMainWorld('api', api);
@@ -1230,6 +1338,7 @@ function getFeatureStudioSource(
   const useWindowing = features.includes('windowing');
   const useTray = features.includes('tray');
   const useDeepLink = features.includes('deep-link');
+  const useMenuBar = features.includes('menu-bar');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
 
@@ -1270,6 +1379,11 @@ type TrayStatus = {
 type DeepLinkState = {
   scheme: string;
   lastUrl: string | null;
+};
+
+type MenuBarState = {
+  enabled: boolean;
+  itemLabels: string[];
 };
 
 type ForgeDesktopAPI = {
@@ -1313,6 +1427,10 @@ type ForgeDesktopAPI = {
     getLast: () => Promise<DeepLinkState>;
     open: (url: string) => Promise<DeepLinkState>;
   };
+  menuBar?: {
+    getState: () => Promise<MenuBarState>;
+    rebuild: () => Promise<MenuBarState>;
+  };
 };
 
 function getDesktopApi(): ForgeDesktopAPI | undefined {
@@ -1331,6 +1449,7 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
   const [notificationState, setNotificationState] = useState<'idle' | 'sent' | 'unsupported'>('idle');
 ` : ''}${useWindowing ? `  const [windowState, setWindowState] = useState<WindowStateSummary | null>(null);
 ` : ''}${useTray ? `  const [trayStatus, setTrayStatus] = useState<TrayStatus | null>(null);
+` : ''}${useMenuBar ? `  const [menuBarState, setMenuBarState] = useState<MenuBarState | null>(null);
 ` : ''}${useDeepLink ? `  const [deepLinkState, setDeepLinkState] = useState<DeepLinkState | null>(null);
   const [deepLinkDraft, setDeepLinkDraft] = useState('${protocolScheme}://open?screen=home');
 ` : ''}  const featureNames = ${JSON.stringify(features)};
@@ -1405,6 +1524,12 @@ ${useSettings ? `  useEffect(() => {
   useEffect(() => {
     api?.tray?.getStatus?.().then((next) => {
       setTrayStatus(next);
+    }).catch(() => {});
+  }, [api]);
+` : ''}${useMenuBar ? `
+  useEffect(() => {
+    api?.menuBar?.getState?.().then((next) => {
+      setMenuBarState(next);
     }).catch(() => {});
   }, [api]);
 ` : ''}${useDeepLink ? `
@@ -1687,6 +1812,24 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             </div>
           </div>
         </section>
+` : ''}${useMenuBar ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Menu Bar</h3>
+              <p className="mt-1 text-xs text-slate-400">Ship a starter application menu with the standard desktop commands users expect.</p>
+            </div>
+            <button
+              onClick={() => rebuildMenuBar(api, setMenuBarState)}
+              className="rounded-full border border-orange-500/40 px-3 py-1 text-xs font-medium text-orange-300 hover:border-orange-400 hover:text-orange-100"
+            >
+              Rebuild menu
+            </button>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <DiagnosticRow label="Menu Enabled" value={menuBarState?.enabled ? 'yes' : 'no'} />
+            <DiagnosticRow label="Top Level Items" value={menuBarState?.itemLabels.join(', ') || 'none'} />
+          </div>
+        </section>
 ` : ''}${usePlugins ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length === 1 ? 'md:col-span-2' : ''}">
           <h3 className="text-sm font-semibold text-white">Plugin Registry</h3>
           <p className="mt-1 text-xs text-slate-400">Sample plugin slots are ready for feature-oriented modules.</p>
@@ -1798,7 +1941,22 @@ async function openDeepLink(
     // Ignore starter deep-link failures.
   }
 }
-` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink ? `
+` : ''}${useMenuBar ? `
+
+async function rebuildMenuBar(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: MenuBarState) => void,
+) {
+  try {
+    const next = await api?.menuBar?.rebuild?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter menu-bar failures.
+  }
+}
+` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (
