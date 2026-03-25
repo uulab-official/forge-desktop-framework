@@ -718,6 +718,7 @@ function getMinimalElectronMainSource(
   const useRecentFiles = features.includes('recent-files');
   const useCrashRecovery = features.includes('crash-recovery');
   const usePowerMonitor = features.includes('power-monitor');
+  const useDownloads = features.includes('downloads');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
@@ -725,7 +726,7 @@ function getMinimalElectronMainSource(
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
   const dialogFileName = `${toIdentifier(projectName)}-document.txt`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor ? ', powerMonitor' : ''}${useFileDialogs ? ', dialog, shell, type OpenDialogOptions' : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useFileDialogs || useDownloads ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
 import path from 'node:path';
 ${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
@@ -1549,6 +1550,120 @@ function registerPowerMonitor() {
     recordPowerMonitorEvent('on-battery');
   });
 }
+` : ''}${useDownloads ? `
+type DownloadState = 'idle' | 'progressing' | 'completed' | 'cancelled' | 'interrupted';
+
+type DownloadEntry = {
+  id: string;
+  url: string;
+  fileName: string;
+  savePath: string | null;
+  state: DownloadState;
+  receivedBytes: number;
+  totalBytes: number;
+  startedAt: string;
+  finishedAt: string | null;
+};
+
+type DownloadsState = {
+  sampleUrl: string;
+  activeCount: number;
+  lastDownloadPath: string | null;
+  items: DownloadEntry[];
+};
+
+const starterDownloadUrl = 'https://raw.githubusercontent.com/electron/electron/main/README.md';
+const downloadsHistoryLimit = 6;
+const downloadsState: DownloadsState = {
+  sampleUrl: starterDownloadUrl,
+  activeCount: 0,
+  lastDownloadPath: null,
+  items: [],
+};
+
+function getDownloadsState() {
+  downloadsState.activeCount = downloadsState.items.filter((entry) => entry.state === 'progressing').length;
+  return {
+    sampleUrl: downloadsState.sampleUrl,
+    activeCount: downloadsState.activeCount,
+    lastDownloadPath: downloadsState.lastDownloadPath,
+    items: downloadsState.items.map((entry) => ({ ...entry })),
+  };
+}
+
+function upsertDownloadEntry(entry: DownloadEntry) {
+  downloadsState.items = [
+    entry,
+    ...downloadsState.items.filter((item) => item.id !== entry.id),
+  ].slice(0, downloadsHistoryLimit);
+  if (entry.savePath) {
+    downloadsState.lastDownloadPath = entry.savePath;
+  }
+  return getDownloadsState();
+}
+
+function clearDownloadHistory() {
+  downloadsState.items = [];
+  downloadsState.activeCount = 0;
+  downloadsState.lastDownloadPath = null;
+  return getDownloadsState();
+}
+
+function revealDownloadedItem(targetPath: string | null | undefined) {
+  const resolvedPath = targetPath ?? downloadsState.lastDownloadPath;
+  if (!resolvedPath) {
+    return getDownloadsState();
+  }
+
+  shell.showItemInFolder(resolvedPath);
+  return getDownloadsState();
+}
+
+function registerDownloadTracking() {
+  session.defaultSession.on('will-download', (_event, item) => {
+    const downloadId = \`\${Date.now()}-\${Math.random().toString(36).slice(2, 8)}\`;
+    const startedAt = new Date().toISOString();
+    const buildEntry = (state: DownloadState, finishedAt: string | null = null): DownloadEntry => ({
+      id: downloadId,
+      url: item.getURL(),
+      fileName: item.getFilename(),
+      savePath: item.getSavePath() || null,
+      state,
+      receivedBytes: item.getReceivedBytes(),
+      totalBytes: item.getTotalBytes(),
+      startedAt,
+      finishedAt,
+    });
+
+    upsertDownloadEntry(buildEntry('progressing'));
+
+    item.on('updated', (_updatedEvent, state) => {
+      const nextState = state === 'interrupted' ? 'interrupted' : 'progressing';
+      upsertDownloadEntry(buildEntry(nextState));
+    });
+
+    item.on('done', (_doneEvent, state) => {
+      const nextState = state === 'completed'
+        ? 'completed'
+        : state === 'cancelled'
+          ? 'cancelled'
+          : 'interrupted';
+      upsertDownloadEntry(buildEntry(nextState, new Date().toISOString()));
+    });
+  });
+}
+
+function startStarterDownload(url: string | null | undefined) {
+  const targetUrl = url?.trim() || downloadsState.sampleUrl;
+  downloadsState.sampleUrl = targetUrl;
+
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    createWindow();
+  }
+
+  mainWindow?.webContents.downloadURL(targetUrl);
+  return getDownloadsState();
+}
 ` : ''}
 function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.WORKER_EXECUTE, async (_event, request: WorkerRequest) => {
@@ -1766,6 +1881,22 @@ ${useFileAssociation ? `    const normalized = normalizeRecentFilePath(filePath)
     return clearPowerMonitorHistory();
   });
 
+` : ''}${useDownloads ? `  ipcMain.handle(IPC_CHANNELS.DOWNLOADS_GET_STATE, async () => {
+    return getDownloadsState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.DOWNLOADS_START, async (_event, url?: string) => {
+    return startStarterDownload(url);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.DOWNLOADS_CLEAR_HISTORY, async () => {
+    return clearDownloadHistory();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.DOWNLOADS_REVEAL, async (_event, targetPath?: string) => {
+    return revealDownloadedItem(targetPath);
+  });
+
 ` : ''}  logger.info('IPC handlers registered');
 }
 
@@ -1876,7 +2007,7 @@ ${useWindowing || useDeepLink ? `    if (mainWindow.isMinimized()) {
   logger.info('App starting', { isDev, appRoot });
 ${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}${useRecentFiles ? '  await loadRecentFiles();\n' : ''}${useCrashRecovery ? '  await loadCrashRecoveryState();\n' : ''}  registerIpcHandlers();
 ${useDeepLink ? "  captureDeepLink(findProtocolArg(process.argv));\n" : ''}${useFileAssociation ? "  captureAssociatedFile(findAssociatedFileArg(process.argv), 'startup-argv');\n" : ''}  createWindow();
-${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();\n' : ''}${useGlobalShortcut ? '  registerStarterShortcut();\n' : ''}${usePowerMonitor ? '  registerPowerMonitor();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
+${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();\n' : ''}${useGlobalShortcut ? '  registerStarterShortcut();\n' : ''}${usePowerMonitor ? '  registerPowerMonitor();\n' : ''}${useDownloads ? '  registerDownloadTracking();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
     setTimeout(() => {
       updater.checkForUpdates().catch(() => {
         logger.info('Initial update check skipped');
@@ -1916,6 +2047,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useRecentFiles = features.includes('recent-files');
   const useCrashRecovery = features.includes('crash-recovery');
   const usePowerMonitor = features.includes('power-monitor');
+  const useDownloads = features.includes('downloads');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -2005,6 +2137,12 @@ ${useSettings ? `  settings: {
     getState: () => ipcRenderer.invoke(IPC_CHANNELS.POWER_MONITOR_GET_STATE),
     clearHistory: () => ipcRenderer.invoke(IPC_CHANNELS.POWER_MONITOR_CLEAR_HISTORY),
   },
+` : ''}${useDownloads ? `  downloads: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.DOWNLOADS_GET_STATE),
+    start: (url?: string) => ipcRenderer.invoke(IPC_CHANNELS.DOWNLOADS_START, url),
+    clearHistory: () => ipcRenderer.invoke(IPC_CHANNELS.DOWNLOADS_CLEAR_HISTORY),
+    reveal: (targetPath?: string) => ipcRenderer.invoke(IPC_CHANNELS.DOWNLOADS_REVEAL, targetPath),
+  },
 ` : ''}};
 
 contextBridge.exposeInMainWorld('api', api);
@@ -2035,6 +2173,7 @@ function getFeatureStudioSource(
   const useRecentFiles = features.includes('recent-files');
   const useCrashRecovery = features.includes('crash-recovery');
   const usePowerMonitor = features.includes('power-monitor');
+  const useDownloads = features.includes('downloads');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
@@ -2142,6 +2281,23 @@ type PowerMonitorState = {
   }>;
 };
 
+type DownloadsState = {
+  sampleUrl: string;
+  activeCount: number;
+  lastDownloadPath: string | null;
+  items: Array<{
+    id: string;
+    url: string;
+    fileName: string;
+    savePath: string | null;
+    state: 'idle' | 'progressing' | 'completed' | 'cancelled' | 'interrupted';
+    receivedBytes: number;
+    totalBytes: number;
+    startedAt: string;
+    finishedAt: string | null;
+  }>;
+};
+
 type ForgeDesktopAPI = {
   settings?: {
     get: () => Promise<${useSettings ? 'AppSettings' : 'unknown'}>;
@@ -2221,6 +2377,12 @@ type ForgeDesktopAPI = {
     getState: () => Promise<PowerMonitorState>;
     clearHistory: () => Promise<PowerMonitorState>;
   };
+  downloads?: {
+    getState: () => Promise<DownloadsState>;
+    start: (url?: string) => Promise<DownloadsState>;
+    clearHistory: () => Promise<DownloadsState>;
+    reveal: (targetPath?: string) => Promise<DownloadsState>;
+  };
 };
 
 function getDesktopApi(): ForgeDesktopAPI | undefined {
@@ -2250,6 +2412,8 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
   const [recentFileDraft, setRecentFileDraft] = useState('${dialogSuggestedName}');
 ` : ''}${useCrashRecovery ? `  const [crashRecoveryState, setCrashRecoveryState] = useState<CrashRecoveryState | null>(null);
 ` : ''}${usePowerMonitor ? `  const [powerMonitorState, setPowerMonitorState] = useState<PowerMonitorState | null>(null);
+` : ''}${useDownloads ? `  const [downloadsState, setDownloadsState] = useState<DownloadsState | null>(null);
+  const [downloadUrlDraft, setDownloadUrlDraft] = useState('https://raw.githubusercontent.com/electron/electron/main/README.md');
 ` : ''}${useDeepLink ? `  const [deepLinkState, setDeepLinkState] = useState<DeepLinkState | null>(null);
   const [deepLinkDraft, setDeepLinkDraft] = useState('${protocolScheme}://open?screen=home');
 ` : ''}  const featureNames = ${JSON.stringify(features)};
@@ -2432,6 +2596,32 @@ ${useSettings ? `  useEffect(() => {
 
     sync();
     const timer = window.setInterval(sync, 4000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [api]);
+` : ''}${useDownloads ? `
+  useEffect(() => {
+    if (!api?.downloads?.getState) {
+      return undefined;
+    }
+
+    let active = true;
+    const sync = async () => {
+      try {
+        const next = await api.downloads?.getState?.();
+        if (active && next) {
+          setDownloadsState(next);
+          setDownloadUrlDraft(next.sampleUrl);
+        }
+      } catch {
+        // Ignore starter downloads polling failures.
+      }
+    };
+
+    sync();
+    const timer = window.setInterval(sync, 3000);
     return () => {
       active = false;
       window.clearInterval(timer);
@@ -2991,6 +3181,72 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             )}
           </div>
         </section>
+` : ''}${useDownloads ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Downloads</h3>
+              <p className="mt-1 text-xs text-slate-400">Track file downloads with starter progress history and reveal-in-folder controls for desktop apps that ship assets or exported results.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => startDownload(api, downloadUrlDraft, setDownloadsState)}
+                className="rounded-full border border-emerald-500/40 px-3 py-1 text-xs font-medium text-emerald-300 hover:border-emerald-400 hover:text-emerald-100"
+              >
+                Start download
+              </button>
+              <button
+                onClick={() => clearDownloads(api, setDownloadsState)}
+                className="rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-200 hover:border-slate-500"
+              >
+                Clear history
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 space-y-3">
+            <label className="block text-xs text-slate-400">
+              Download URL
+              <input
+                type="text"
+                value={downloadUrlDraft}
+                onChange={(event) => setDownloadUrlDraft(event.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+            </label>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <DiagnosticRow label="Active Downloads" value={String(downloadsState?.activeCount ?? 0)} />
+              <DiagnosticRow label="Last Download Path" value={downloadsState?.lastDownloadPath ?? 'no completed downloads yet'} />
+              <DiagnosticRow label="Tracked Items" value={String(downloadsState?.items.length ?? 0)} />
+              <DiagnosticRow label="Sample URL" value={downloadsState?.sampleUrl ?? downloadUrlDraft} />
+            </div>
+            <div className="space-y-2">
+              {downloadsState?.items.length ? downloadsState.items.map((entry) => (
+                <div key={entry.id} className="rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-sm font-medium text-white">{entry.fileName}</span>
+                    <span className="text-[11px] uppercase tracking-[0.18em] text-slate-400">{entry.state}</span>
+                  </div>
+                  <p className="mt-1 break-all text-xs text-slate-500">{entry.url}</p>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    <DiagnosticRow label="Progress" value={entry.totalBytes > 0 ? \`\${entry.receivedBytes}/\${entry.totalBytes}\` : String(entry.receivedBytes)} />
+                    <DiagnosticRow label="Saved Path" value={entry.savePath ?? 'pending'} />
+                    <DiagnosticRow label="Started At" value={entry.startedAt} />
+                    <DiagnosticRow label="Finished At" value={entry.finishedAt ?? 'in progress'} />
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      onClick={() => revealDownloadedFile(api, entry.savePath ?? undefined, setDownloadsState)}
+                      className="rounded-full border border-amber-500/40 px-3 py-1 text-[11px] font-medium text-amber-300 hover:border-amber-400 hover:text-amber-100"
+                    >
+                      Reveal
+                    </button>
+                  </div>
+                </div>
+              )) : (
+                <p className="text-xs text-slate-500">No downloads tracked yet. Start a download to test Electron session tracking and reveal the result from Finder or Explorer.</p>
+              )}
+            </div>
+          </div>
+        </section>
 ` : ''}${usePlugins ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length === 1 ? 'md:col-span-2' : ''}">
           <h3 className="text-sm font-semibold text-white">Plugin Registry</h3>
           <p className="mt-1 text-xs text-slate-400">Sample plugin slots are ready for feature-oriented modules.</p>
@@ -3293,7 +3549,52 @@ async function clearPowerMonitor(
     // Ignore starter power-monitor failures.
   }
 }
-` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor ? `
+` : ''}${useDownloads ? `
+
+async function startDownload(
+  api: ForgeDesktopAPI | undefined,
+  url: string,
+  setState: (next: DownloadsState) => void,
+) {
+  try {
+    const next = await api?.downloads?.start?.(url);
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter download failures.
+  }
+}
+
+async function clearDownloads(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: DownloadsState) => void,
+) {
+  try {
+    const next = await api?.downloads?.clearHistory?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter download history failures.
+  }
+}
+
+async function revealDownloadedFile(
+  api: ForgeDesktopAPI | undefined,
+  targetPath: string | undefined,
+  setState: (next: DownloadsState) => void,
+) {
+  try {
+    const next = await api?.downloads?.reveal?.(targetPath);
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter reveal failures.
+  }
+}
+` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useDownloads ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.22 (2026-03-25)
+
+### Downloads Feature Pack
+
+- Added a `downloads` scaffold feature pack for the `minimal` starter
+- Generated apps now track download progress through Electron session events, expose starter start, reveal, and clear-history controls over preload IPC, and surface download history in `FeatureStudio`
+- Kept `downloads` optional so teams can adopt file transfer behavior deliberately without widening the default production preset
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated downloads smoke app before any version bump
+
 ## 0.1.21 (2026-03-25)
 
 ### Power-Monitor Feature Pack

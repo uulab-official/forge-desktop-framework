@@ -106,25 +106,25 @@ importers:
         specifier: ^0.14.0
         version: 0.14.6
 
-  examples/__scaffold_test_power_monitor_manual__73653:
+  examples/__scaffold_test_downloads_manual__86063:
     dependencies:
       '@forge/error-handler':
-        specifier: ^0.1.20
+        specifier: ^0.1.21
         version: link:../../packages/error-handler
       '@forge/ipc-contract':
-        specifier: ^0.1.20
+        specifier: ^0.1.21
         version: link:../../packages/ipc-contract
       '@forge/logger':
-        specifier: ^0.1.20
+        specifier: ^0.1.21
         version: link:../../packages/logger
       '@forge/resource-manager':
-        specifier: ^0.1.20
+        specifier: ^0.1.21
         version: link:../../packages/resource-manager
       '@forge/ui-kit':
-        specifier: ^0.1.20
+        specifier: ^0.1.21
         version: link:../../packages/ui-kit
       '@forge/worker-client':
-        specifier: ^0.1.20
+        specifier: ^0.1.21
         version: link:../../packages/worker-client
       react:
         specifier: ^19.0.0
