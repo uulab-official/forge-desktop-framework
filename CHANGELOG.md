@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.19 (2026-03-25)
+
+### Recent-Files Feature Pack
+
+- Added a `recent-files` scaffold feature pack for the `minimal` starter
+- Generated apps now persist a recent document list under the desktop user data directory, expose starter reopen and clear controls through preload IPC, and surface the list in `FeatureStudio`
+- Wired `recent-files` into `file-association` and `file-dialogs` so file opens and saves automatically populate the recent document registry when those packs are enabled together
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated recent-files smoke app before any version bump
+
 ## 0.1.18 (2026-03-25)
 
 ### File-Dialogs Feature Pack

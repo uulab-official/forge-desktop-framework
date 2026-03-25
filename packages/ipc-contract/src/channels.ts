@@ -46,6 +46,10 @@ export const IPC_CHANNELS = {
   FILE_DIALOGS_OPEN: 'file-dialogs:open',
   FILE_DIALOGS_SAVE: 'file-dialogs:save',
   FILE_DIALOGS_REVEAL: 'file-dialogs:reveal',
+  RECENT_FILES_GET_STATE: 'recent-files:get-state',
+  RECENT_FILES_ADD: 'recent-files:add',
+  RECENT_FILES_OPEN: 'recent-files:open',
+  RECENT_FILES_CLEAR: 'recent-files:clear',
 
   // Updates
   UPDATE_CHECK: 'update:check',

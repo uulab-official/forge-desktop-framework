@@ -715,6 +715,7 @@ function getMinimalElectronMainSource(
   const useGlobalShortcut = features.includes('global-shortcut');
   const useFileAssociation = features.includes('file-association');
   const useFileDialogs = features.includes('file-dialogs');
+  const useRecentFiles = features.includes('recent-files');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
@@ -724,7 +725,7 @@ function getMinimalElectronMainSource(
 
   return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${useFileDialogs ? ', dialog, shell, type OpenDialogOptions' : ''} } from 'electron';
 import path from 'node:path';
-${useDiagnostics || useWindowing ? `import { ${[useDiagnostics || useWindowing ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
+${useDiagnostics || useWindowing || useRecentFiles ? `import { ${[useDiagnostics || useWindowing || useRecentFiles ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
 import { createLogger } from '@forge/logger';
 import { IPC_CHANNELS, type WorkerRequest } from '@forge/ipc-contract';
@@ -1161,6 +1162,7 @@ function captureAssociatedFile(value: string | null | undefined, source: string)
 
   lastAssociatedFilePath = normalized;
   lastAssociatedFileSource = source;
+${useRecentFiles ? `  void rememberRecentFile(normalized);` : ''}
   return getFileAssociationState();
 }
 
@@ -1226,6 +1228,7 @@ async function openStarterFileDialog(defaultPath: string | null | undefined) {
   if (!result.canceled && result.filePaths[0]) {
     fileDialogState.lastOpenPath = result.filePaths[0];
     fileDialogState.lastAction = 'open';
+${useRecentFiles ? `    await rememberRecentFile(result.filePaths[0]);` : ''}
   }
 
   return getFileDialogState();
@@ -1243,6 +1246,7 @@ async function saveStarterFileDialog(defaultPath: string | null | undefined) {
   if (!result.canceled && result.filePath) {
     fileDialogState.lastSavePath = result.filePath;
     fileDialogState.lastAction = 'save';
+${useRecentFiles ? `    await rememberRecentFile(result.filePath);` : ''}
   }
 
   return getFileDialogState();
@@ -1260,7 +1264,87 @@ function revealStarterPath(targetPath: string | null | undefined) {
   shell.showItemInFolder(normalized);
   fileDialogState.lastRevealPath = normalized;
   fileDialogState.lastAction = 'reveal';
+${useRecentFiles ? `  void rememberRecentFile(normalized);` : ''}
   return getFileDialogState();
+}
+` : ''}${useRecentFiles ? `
+type RecentFilesState = {
+  limit: number;
+  items: string[];
+  lastOpenedPath: string | null;
+};
+
+const recentFilesPath = path.join(app.getPath('userData'), 'recent-files.json');
+const recentFilesState: RecentFilesState = {
+  limit: 8,
+  items: [],
+  lastOpenedPath: null,
+};
+
+function normalizeRecentFilePath(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  if (value.startsWith('file://')) {
+    try {
+      return decodeURIComponent(new URL(value).pathname);
+    } catch {
+      return value;
+    }
+  }
+
+  return value;
+}
+
+async function loadRecentFiles() {
+  try {
+    const raw = await readFile(recentFilesPath, 'utf-8');
+    const parsed = JSON.parse(raw) as Partial<RecentFilesState>;
+    recentFilesState.items = Array.isArray(parsed.items)
+      ? parsed.items.filter((value): value is string => typeof value === 'string').slice(0, recentFilesState.limit)
+      : [];
+    recentFilesState.lastOpenedPath = typeof parsed.lastOpenedPath === 'string' ? parsed.lastOpenedPath : null;
+  } catch {
+    recentFilesState.items = [];
+    recentFilesState.lastOpenedPath = null;
+  }
+}
+
+async function saveRecentFiles() {
+  await writeFile(recentFilesPath, JSON.stringify(recentFilesState, null, 2), 'utf-8');
+}
+
+function getRecentFilesState() {
+  return {
+    limit: recentFilesState.limit,
+    items: [...recentFilesState.items],
+    lastOpenedPath: recentFilesState.lastOpenedPath,
+  };
+}
+
+async function rememberRecentFile(value: string | null | undefined) {
+  const normalized = normalizeRecentFilePath(value);
+  if (!normalized) {
+    return getRecentFilesState();
+  }
+
+  recentFilesState.items = [
+    normalized,
+    ...recentFilesState.items.filter((item) => item !== normalized),
+  ].slice(0, recentFilesState.limit);
+  recentFilesState.lastOpenedPath = normalized;
+  app.addRecentDocument(normalized);
+  await saveRecentFiles();
+  return getRecentFilesState();
+}
+
+async function clearRecentFiles() {
+  recentFilesState.items = [];
+  recentFilesState.lastOpenedPath = null;
+  app.clearRecentDocuments();
+  await saveRecentFiles();
+  return getRecentFilesState();
 }
 ` : ''}
 function registerIpcHandlers() {
@@ -1439,6 +1523,26 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return revealStarterPath(targetPath);
   });
 
+` : ''}${useRecentFiles ? `  ipcMain.handle(IPC_CHANNELS.RECENT_FILES_GET_STATE, async () => {
+    return getRecentFilesState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.RECENT_FILES_ADD, async (_event, filePath: string) => {
+    return rememberRecentFile(filePath);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.RECENT_FILES_OPEN, async (_event, filePath: string) => {
+${useFileAssociation ? `    const normalized = normalizeRecentFilePath(filePath);
+    if (normalized && matchesAssociatedFile(normalized)) {
+      captureAssociatedFile(normalized, 'recent-files');
+    }
+` : ''}    return rememberRecentFile(filePath);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.RECENT_FILES_CLEAR, async () => {
+    return clearRecentFiles();
+  });
+
 ` : ''}  logger.info('IPC handlers registered');
 }
 
@@ -1528,7 +1632,7 @@ ${useWindowing || useDeepLink ? `    if (mainWindow.isMinimized()) {
 
 ` : ''}app.whenReady().then(async () => {
   logger.info('App starting', { isDev, appRoot });
-${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}  registerIpcHandlers();
+${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}${useRecentFiles ? '  await loadRecentFiles();\n' : ''}  registerIpcHandlers();
 ${useDeepLink ? "  captureDeepLink(findProtocolArg(process.argv));\n" : ''}${useFileAssociation ? "  captureAssociatedFile(findAssociatedFileArg(process.argv), 'startup-argv');\n" : ''}  createWindow();
 ${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();\n' : ''}${useGlobalShortcut ? '  registerStarterShortcut();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
     setTimeout(() => {
@@ -1567,6 +1671,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useGlobalShortcut = features.includes('global-shortcut');
   const useFileAssociation = features.includes('file-association');
   const useFileDialogs = features.includes('file-dialogs');
+  const useRecentFiles = features.includes('recent-files');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -1641,6 +1746,12 @@ ${useSettings ? `  settings: {
     save: (defaultPath?: string) => ipcRenderer.invoke(IPC_CHANNELS.FILE_DIALOGS_SAVE, defaultPath),
     reveal: (targetPath?: string) => ipcRenderer.invoke(IPC_CHANNELS.FILE_DIALOGS_REVEAL, targetPath),
   },
+` : ''}${useRecentFiles ? `  recentFiles: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.RECENT_FILES_GET_STATE),
+    add: (filePath: string) => ipcRenderer.invoke(IPC_CHANNELS.RECENT_FILES_ADD, filePath),
+    open: (filePath: string) => ipcRenderer.invoke(IPC_CHANNELS.RECENT_FILES_OPEN, filePath),
+    clear: () => ipcRenderer.invoke(IPC_CHANNELS.RECENT_FILES_CLEAR),
+  },
 ` : ''}};
 
 contextBridge.exposeInMainWorld('api', api);
@@ -1668,6 +1779,7 @@ function getFeatureStudioSource(
   const useGlobalShortcut = features.includes('global-shortcut');
   const useFileAssociation = features.includes('file-association');
   const useFileDialogs = features.includes('file-dialogs');
+  const useRecentFiles = features.includes('recent-files');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
@@ -1745,6 +1857,12 @@ type FileDialogState = {
   lastAction: 'open' | 'save' | 'reveal' | null;
 };
 
+type RecentFilesState = {
+  limit: number;
+  items: string[];
+  lastOpenedPath: string | null;
+};
+
 type ForgeDesktopAPI = {
   settings?: {
     get: () => Promise<${useSettings ? 'AppSettings' : 'unknown'}>;
@@ -1809,6 +1927,12 @@ type ForgeDesktopAPI = {
     save: (defaultPath?: string) => Promise<FileDialogState>;
     reveal: (targetPath?: string) => Promise<FileDialogState>;
   };
+  recentFiles?: {
+    getState: () => Promise<RecentFilesState>;
+    add: (filePath: string) => Promise<RecentFilesState>;
+    open: (filePath: string) => Promise<RecentFilesState>;
+    clear: () => Promise<RecentFilesState>;
+  };
 };
 
 function getDesktopApi(): ForgeDesktopAPI | undefined {
@@ -1834,6 +1958,8 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
   const [fileAssociationDraft, setFileAssociationDraft] = useState('sample.${fileAssociationExtension}');
 ` : ''}${useFileDialogs ? `  const [fileDialogState, setFileDialogState] = useState<FileDialogState | null>(null);
   const [fileDialogDraft, setFileDialogDraft] = useState('${dialogSuggestedName}');
+` : ''}${useRecentFiles ? `  const [recentFilesState, setRecentFilesState] = useState<RecentFilesState | null>(null);
+  const [recentFileDraft, setRecentFileDraft] = useState('${dialogSuggestedName}');
 ` : ''}${useDeepLink ? `  const [deepLinkState, setDeepLinkState] = useState<DeepLinkState | null>(null);
   const [deepLinkDraft, setDeepLinkDraft] = useState('${protocolScheme}://open?screen=home');
 ` : ''}  const featureNames = ${JSON.stringify(features)};
@@ -1942,6 +2068,34 @@ ${useSettings ? `  useEffect(() => {
         setFileDialogDraft(next.suggestedName);
       }
     }).catch(() => {});
+  }, [api]);
+` : ''}${useRecentFiles ? `
+  useEffect(() => {
+    if (!api?.recentFiles?.getState) {
+      return undefined;
+    }
+
+    let active = true;
+    const sync = async () => {
+      try {
+        const next = await api.recentFiles?.getState?.();
+        if (active && next) {
+          setRecentFilesState(next);
+          if (next.items[0]) {
+            setRecentFileDraft(next.items[0]);
+          }
+        }
+      } catch {
+        // Ignore starter recent-files polling failures.
+      }
+    };
+
+    sync();
+    const timer = window.setInterval(sync, 3000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
   }, [api]);
 ` : ''}${useDeepLink ? `
   useEffect(() => {
@@ -2372,6 +2526,60 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             </div>
           </div>
         </section>
+` : ''}${useRecentFiles ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Recent Files</h3>
+              <p className="mt-1 text-xs text-slate-400">Persist the last documents a user touched and make reopen flows part of the starter desktop shell by default.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => mutateRecentFiles(api, 'add', recentFileDraft, setRecentFilesState)}
+                className="rounded-full border border-sky-500/40 px-3 py-1 text-xs font-medium text-sky-300 hover:border-sky-400 hover:text-sky-100"
+              >
+                Add file
+              </button>
+              <button
+                onClick={() => clearRecentFilesState(api, setRecentFilesState)}
+                className="rounded-full border border-rose-500/40 px-3 py-1 text-xs font-medium text-rose-300 hover:border-rose-400 hover:text-rose-100"
+              >
+                Clear list
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 space-y-3">
+            <label className="block text-xs text-slate-400">
+              Recent file path
+              <input
+                type="text"
+                value={recentFileDraft}
+                onChange={(event) => setRecentFileDraft(event.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+            </label>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <DiagnosticRow label="Tracked Items" value={String(recentFilesState?.items.length ?? 0)} />
+              <DiagnosticRow label="Limit" value={String(recentFilesState?.limit ?? 8)} />
+              <DiagnosticRow label="Last Opened" value={recentFilesState?.lastOpenedPath ?? 'no documents tracked yet'} />
+              <DiagnosticRow label="Auto Sources" value="file-association + file-dialogs when enabled together" />
+            </div>
+            <div className="space-y-2">
+              {recentFilesState?.items.length ? recentFilesState.items.map((item) => (
+                <div key={item} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2">
+                  <span className="break-all text-xs text-white">{item}</span>
+                  <button
+                    onClick={() => mutateRecentFiles(api, 'open', item, setRecentFilesState)}
+                    className="rounded-full border border-slate-700 px-3 py-1 text-[11px] font-medium text-slate-200 hover:border-slate-500"
+                  >
+                    Reopen
+                  </button>
+                </div>
+              )) : (
+                <p className="text-xs text-slate-500">No recent files yet. Add one manually or combine this pack with file dialogs and file associations to populate the list automatically.</p>
+              )}
+            </div>
+          </div>
+        </section>
 ` : ''}${usePlugins ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length === 1 ? 'md:col-span-2' : ''}">
           <h3 className="text-sm font-semibold text-white">Plugin Registry</h3>
           <p className="mt-1 text-xs text-slate-400">Sample plugin slots are ready for feature-oriented modules.</p>
@@ -2582,7 +2790,41 @@ async function runFileDialogAction(
     // Ignore starter file-dialog failures.
   }
 }
-` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs ? `
+` : ''}${useRecentFiles ? `
+
+async function mutateRecentFiles(
+  api: ForgeDesktopAPI | undefined,
+  action: 'add' | 'open',
+  filePath: string,
+  setState: (next: RecentFilesState) => void,
+) {
+  try {
+    const next = action === 'open'
+      ? await api?.recentFiles?.open?.(filePath)
+      : await api?.recentFiles?.add?.(filePath);
+
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter recent-files failures.
+  }
+}
+
+async function clearRecentFilesState(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: RecentFilesState) => void,
+) {
+  try {
+    const next = await api?.recentFiles?.clear?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter recent-files failures.
+  }
+}
+` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

@@ -36,6 +36,7 @@ describe('IPC_CHANNELS', () => {
     expect(IPC_CHANNELS.GLOBAL_SHORTCUT_GET_STATUS).toBe('global-shortcut:get-status');
     expect(IPC_CHANNELS.FILE_ASSOCIATION_GET_STATE).toBe('file-association:get-state');
     expect(IPC_CHANNELS.FILE_DIALOGS_GET_STATE).toBe('file-dialogs:get-state');
+    expect(IPC_CHANNELS.RECENT_FILES_GET_STATE).toBe('recent-files:get-state');
     expect(IPC_CHANNELS.UPDATE_CHECK).toBe('update:check');
   });
 });

@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -98,6 +98,12 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     id: 'file-dialogs',
     label: 'File Dialogs',
     description: 'Seed native open and save dialogs with reveal-in-folder controls for desktop file workflows',
+    minimalOnly: true,
+  },
+  {
+    id: 'recent-files',
+    label: 'Recent Files',
+    description: 'Seed a persistent recent-files registry with starter reopen and clear controls for document-based desktop apps',
     minimalOnly: true,
   },
 ];
