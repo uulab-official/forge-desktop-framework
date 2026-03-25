@@ -697,12 +697,13 @@ function getMinimalElectronMainSource(
   const useDeepLink = features.includes('deep-link');
   const useMenuBar = features.includes('menu-bar');
   const useAutoLaunch = features.includes('auto-launch');
+  const useGlobalShortcut = features.includes('global-shortcut');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
   const protocolScheme = `${toIdentifier(projectName)}`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''} } from 'electron';
 import path from 'node:path';
 ${useDiagnostics || useWindowing ? `import { ${[useDiagnostics || useWindowing ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
@@ -1044,6 +1045,62 @@ function setAutoLaunchEnabled(enabled: boolean) {
 
   return getAutoLaunchState();
 }
+` : ''}${useGlobalShortcut ? `
+const starterShortcutAccelerator = 'CommandOrControl+Shift+Y';
+let starterShortcutEnabled = true;
+let starterShortcutLastTriggeredAt: string | null = null;
+let starterShortcutError: string | null = null;
+
+function runStarterShortcutAction() {
+  starterShortcutLastTriggeredAt = new Date().toISOString();
+
+  if (!mainWindow) {
+    createWindow();
+    return getGlobalShortcutState();
+  }
+
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+
+  mainWindow.show();
+  mainWindow.focus();
+  return getGlobalShortcutState();
+}
+
+function registerStarterShortcut() {
+  globalShortcut.unregister(starterShortcutAccelerator);
+
+  if (!starterShortcutEnabled) {
+    starterShortcutError = null;
+    return getGlobalShortcutState();
+  }
+
+  const registered = globalShortcut.register(starterShortcutAccelerator, () => {
+    runStarterShortcutAction();
+  });
+
+  starterShortcutError = registered
+    ? null
+    : 'Unable to register the starter shortcut. Another app may already be using it.';
+
+  return getGlobalShortcutState();
+}
+
+function setGlobalShortcutEnabled(enabled: boolean) {
+  starterShortcutEnabled = enabled;
+  return registerStarterShortcut();
+}
+
+function getGlobalShortcutState() {
+  return {
+    accelerator: starterShortcutAccelerator,
+    enabled: starterShortcutEnabled,
+    registered: globalShortcut.isRegistered(starterShortcutAccelerator),
+    lastTriggeredAt: starterShortcutLastTriggeredAt,
+    error: starterShortcutError,
+  };
+}
 ` : ''}
 function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.WORKER_EXECUTE, async (_event, request: WorkerRequest) => {
@@ -1185,6 +1242,18 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return setAutoLaunchEnabled(enabled);
   });
 
+` : ''}${useGlobalShortcut ? `  ipcMain.handle(IPC_CHANNELS.GLOBAL_SHORTCUT_GET_STATUS, async () => {
+    return getGlobalShortcutState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.GLOBAL_SHORTCUT_SET_ENABLED, async (_event, enabled: boolean) => {
+    return setGlobalShortcutEnabled(enabled);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.GLOBAL_SHORTCUT_TRIGGER, async () => {
+    return runStarterShortcutAction();
+  });
+
 ` : ''}  logger.info('IPC handlers registered');
 }
 
@@ -1271,7 +1340,7 @@ ${useWindowing || useDeepLink ? `    if (mainWindow.isMinimized()) {
   logger.info('App starting', { isDev, appRoot });
 ${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}  registerIpcHandlers();
 ${useDeepLink ? "  captureDeepLink(findProtocolArg(process.argv));\n" : ''}  createWindow();
-${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
+${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();\n' : ''}${useGlobalShortcut ? '  registerStarterShortcut();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
     setTimeout(() => {
       updater.checkForUpdates().catch(() => {
         logger.info('Initial update check skipped');
@@ -1290,7 +1359,7 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
-${useWindowing ? '  if (mainWindow && !mainWindow.isDestroyed()) {\n    void saveWindowState(mainWindow);\n  }\n' : ''}${useTray ? '  appTray?.destroy();\n' : ''}${useUpdater ? '  updater.dispose();\n' : ''}${useJobs ? '  jobEngine.dispose();\n' : '  workerClient.dispose();\n'}});
+${useWindowing ? '  if (mainWindow && !mainWindow.isDestroyed()) {\n    void saveWindowState(mainWindow);\n  }\n' : ''}${useTray ? '  appTray?.destroy();\n' : ''}${useGlobalShortcut ? '  globalShortcut.unregister(starterShortcutAccelerator);\n' : ''}${useUpdater ? '  updater.dispose();\n' : ''}${useJobs ? '  jobEngine.dispose();\n' : '  workerClient.dispose();\n'}});
 `;
 }
 
@@ -1305,6 +1374,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useDeepLink = features.includes('deep-link');
   const useMenuBar = features.includes('menu-bar');
   const useAutoLaunch = features.includes('auto-launch');
+  const useGlobalShortcut = features.includes('global-shortcut');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -1364,6 +1434,11 @@ ${useSettings ? `  settings: {
     getStatus: () => ipcRenderer.invoke(IPC_CHANNELS.AUTO_LAUNCH_GET_STATUS),
     setEnabled: (enabled: boolean) => ipcRenderer.invoke(IPC_CHANNELS.AUTO_LAUNCH_SET_ENABLED, enabled),
   },
+` : ''}${useGlobalShortcut ? `  globalShortcut: {
+    getStatus: () => ipcRenderer.invoke(IPC_CHANNELS.GLOBAL_SHORTCUT_GET_STATUS),
+    setEnabled: (enabled: boolean) => ipcRenderer.invoke(IPC_CHANNELS.GLOBAL_SHORTCUT_SET_ENABLED, enabled),
+    trigger: () => ipcRenderer.invoke(IPC_CHANNELS.GLOBAL_SHORTCUT_TRIGGER),
+  },
 ` : ''}};
 
 contextBridge.exposeInMainWorld('api', api);
@@ -1388,6 +1463,7 @@ function getFeatureStudioSource(
   const useDeepLink = features.includes('deep-link');
   const useMenuBar = features.includes('menu-bar');
   const useAutoLaunch = features.includes('auto-launch');
+  const useGlobalShortcut = features.includes('global-shortcut');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
 
@@ -1441,6 +1517,14 @@ type AutoLaunchState = {
   openAsHidden: boolean;
 };
 
+type GlobalShortcutState = {
+  accelerator: string;
+  enabled: boolean;
+  registered: boolean;
+  lastTriggeredAt: string | null;
+  error: string | null;
+};
+
 type ForgeDesktopAPI = {
   settings?: {
     get: () => Promise<${useSettings ? 'AppSettings' : 'unknown'}>;
@@ -1490,6 +1574,11 @@ type ForgeDesktopAPI = {
     getStatus: () => Promise<AutoLaunchState>;
     setEnabled: (enabled: boolean) => Promise<AutoLaunchState>;
   };
+  globalShortcut?: {
+    getStatus: () => Promise<GlobalShortcutState>;
+    setEnabled: (enabled: boolean) => Promise<GlobalShortcutState>;
+    trigger: () => Promise<GlobalShortcutState>;
+  };
 };
 
 function getDesktopApi(): ForgeDesktopAPI | undefined {
@@ -1510,6 +1599,7 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
 ` : ''}${useTray ? `  const [trayStatus, setTrayStatus] = useState<TrayStatus | null>(null);
 ` : ''}${useMenuBar ? `  const [menuBarState, setMenuBarState] = useState<MenuBarState | null>(null);
 ` : ''}${useAutoLaunch ? `  const [autoLaunchState, setAutoLaunchState] = useState<AutoLaunchState | null>(null);
+` : ''}${useGlobalShortcut ? `  const [globalShortcutState, setGlobalShortcutState] = useState<GlobalShortcutState | null>(null);
 ` : ''}${useDeepLink ? `  const [deepLinkState, setDeepLinkState] = useState<DeepLinkState | null>(null);
   const [deepLinkDraft, setDeepLinkDraft] = useState('${protocolScheme}://open?screen=home');
 ` : ''}  const featureNames = ${JSON.stringify(features)};
@@ -1596,6 +1686,12 @@ ${useSettings ? `  useEffect(() => {
   useEffect(() => {
     api?.autoLaunch?.getStatus?.().then((next) => {
       setAutoLaunchState(next);
+    }).catch(() => {});
+  }, [api]);
+` : ''}${useGlobalShortcut ? `
+  useEffect(() => {
+    api?.globalShortcut?.getStatus?.().then((next) => {
+      setGlobalShortcutState(next);
     }).catch(() => {});
   }, [api]);
 ` : ''}${useDeepLink ? `
@@ -1916,6 +2012,37 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             <DiagnosticRow label="Scope" value="current user login" />
           </div>
         </section>
+` : ''}${useGlobalShortcut ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Global Shortcut</h3>
+              <p className="mt-1 text-xs text-slate-400">Register a system-wide shortcut that brings the desktop app back into focus from anywhere.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => triggerGlobalShortcut(api, setGlobalShortcutState)}
+                className="rounded-full border border-sky-500/40 px-3 py-1 text-xs font-medium text-sky-300 hover:border-sky-400 hover:text-sky-100"
+              >
+                Run action
+              </button>
+              <button
+                onClick={() => toggleGlobalShortcut(api, globalShortcutState, setGlobalShortcutState)}
+                className="rounded-full border border-violet-500/40 px-3 py-1 text-xs font-medium text-violet-300 hover:border-violet-400 hover:text-violet-100"
+              >
+                {globalShortcutState?.enabled ? 'Disable shortcut' : 'Enable shortcut'}
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <DiagnosticRow label="Accelerator" value={globalShortcutState?.accelerator ?? 'CommandOrControl+Shift+Y'} />
+            <DiagnosticRow label="Enabled" value={globalShortcutState?.enabled ? 'yes' : 'no'} />
+            <DiagnosticRow label="Registered" value={globalShortcutState?.registered ? 'yes' : 'no'} />
+            <DiagnosticRow label="Last Trigger" value={globalShortcutState?.lastTriggeredAt ?? 'not triggered yet'} />
+          </div>
+          {globalShortcutState?.error && (
+            <p className="mt-2 text-xs text-amber-200">{globalShortcutState.error}</p>
+          )}
+        </section>
 ` : ''}${usePlugins ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length === 1 ? 'md:col-span-2' : ''}">
           <h3 className="text-sm font-semibold text-white">Plugin Registry</h3>
           <p className="mt-1 text-xs text-slate-400">Sample plugin slots are ready for feature-oriented modules.</p>
@@ -2058,7 +2185,37 @@ async function toggleAutoLaunch(
     // Ignore starter auto-launch failures.
   }
 }
-` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch ? `
+` : ''}${useGlobalShortcut ? `
+
+async function toggleGlobalShortcut(
+  api: ForgeDesktopAPI | undefined,
+  current: GlobalShortcutState | null,
+  setState: (next: GlobalShortcutState) => void,
+) {
+  try {
+    const next = await api?.globalShortcut?.setEnabled?.(!(current?.enabled ?? false));
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter global shortcut failures.
+  }
+}
+
+async function triggerGlobalShortcut(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: GlobalShortcutState) => void,
+) {
+  try {
+    const next = await api?.globalShortcut?.trigger?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter global shortcut failures.
+  }
+}
+` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

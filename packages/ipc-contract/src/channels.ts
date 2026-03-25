@@ -37,6 +37,9 @@ export const IPC_CHANNELS = {
   MENU_REBUILD: 'menu:rebuild',
   AUTO_LAUNCH_GET_STATUS: 'auto-launch:get-status',
   AUTO_LAUNCH_SET_ENABLED: 'auto-launch:set-enabled',
+  GLOBAL_SHORTCUT_GET_STATUS: 'global-shortcut:get-status',
+  GLOBAL_SHORTCUT_SET_ENABLED: 'global-shortcut:set-enabled',
+  GLOBAL_SHORTCUT_TRIGGER: 'global-shortcut:trigger',
 
   // Updates
   UPDATE_CHECK: 'update:check',

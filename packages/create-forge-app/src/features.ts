@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -80,6 +80,12 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     id: 'auto-launch',
     label: 'Auto Launch',
     description: 'Seed login-item controls so packaged apps can toggle start-on-login from the desktop shell',
+    minimalOnly: true,
+  },
+  {
+    id: 'global-shortcut',
+    label: 'Global Shortcut',
+    description: 'Seed a global shortcut registration with starter controls and a desktop visibility action',
     minimalOnly: true,
   },
 ];

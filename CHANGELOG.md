@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.16 (2026-03-25)
+
+### Global-Shortcut Feature Pack
+
+- Added a `global-shortcut` scaffold feature pack for the `minimal` starter
+- Generated apps now register a starter system-wide shortcut, expose registration state over preload IPC, and surface focus or restore controls in `FeatureStudio`
+- Kept `global-shortcut` optional so teams can adopt it deliberately without forcing a default accelerator into every production starter
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated global-shortcut smoke app before any version bump
+
 ## 0.1.15 (2026-03-25)
 
 ### Auto-Launch Feature Pack

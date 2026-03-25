@@ -64,7 +64,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature tray \
   --feature deep-link \
   --feature menu-bar \
-  --feature auto-launch
+  --feature auto-launch \
+  --feature global-shortcut
 ```
 
 Or preview the bundled production starter:

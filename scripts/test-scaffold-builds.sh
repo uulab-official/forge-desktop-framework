@@ -11,6 +11,7 @@ TRAY_APP="examples/__scaffold_test_tray__$$"
 DEEP_LINK_APP="examples/__scaffold_test_deep_link__$$"
 MENU_BAR_APP="examples/__scaffold_test_menu_bar__$$"
 AUTO_LAUNCH_APP="examples/__scaffold_test_auto_launch__$$"
+GLOBAL_SHORTCUT_APP="examples/__scaffold_test_global_shortcut__$$"
 LOCKFILE_BACKUP="$(mktemp)"
 
 cp pnpm-lock.yaml "$LOCKFILE_BACKUP"
@@ -21,7 +22,7 @@ cleanup() {
     for (const target of process.argv.slice(1)) {
       fs.rmSync(target, { recursive: true, force: true });
     }
-  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP"
+  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP"
   cp "$LOCKFILE_BACKUP" pnpm-lock.yaml
   rm -f "$LOCKFILE_BACKUP"
 }
@@ -106,5 +107,16 @@ echo "==> Verifying auto-launch smoke app"
 pnpm --dir "$AUTO_LAUNCH_APP" release:check
 pnpm --dir "$AUTO_LAUNCH_APP" typecheck
 pnpm --dir "$AUTO_LAUNCH_APP" build
+
+echo "==> Scaffolding global-shortcut smoke app"
+node packages/create-forge-app/dist/index.js create "$GLOBAL_SHORTCUT_APP" --template minimal --feature global-shortcut --yes --package-manager pnpm >/dev/null
+
+echo "==> Installing global-shortcut smoke app with workspace links"
+pnpm install --dir "$GLOBAL_SHORTCUT_APP" --link-workspace-packages >/dev/null
+
+echo "==> Verifying global-shortcut smoke app"
+pnpm --dir "$GLOBAL_SHORTCUT_APP" release:check
+pnpm --dir "$GLOBAL_SHORTCUT_APP" typecheck
+pnpm --dir "$GLOBAL_SHORTCUT_APP" build
 
 echo "Scaffold build verification passed."
