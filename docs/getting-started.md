@@ -65,7 +65,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature deep-link \
   --feature menu-bar \
   --feature auto-launch \
-  --feature global-shortcut
+  --feature global-shortcut \
+  --feature file-association
 ```
 
 Or preview the bundled production starter:
@@ -85,6 +86,7 @@ The generated project includes:
 - GitHub Actions workflows for validation and tagged releases
 - packaging scripts for the worker and the desktop app
 - a renderer baseline with `ForgeErrorBoundary` and a floating log dock
+- optional starter packs like `file-association` can also seed file-open handling and sample `electron-builder` file association metadata
 
 ## Step 3: Create Your First Action
 

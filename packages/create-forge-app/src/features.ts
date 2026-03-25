@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -86,6 +86,12 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     id: 'global-shortcut',
     label: 'Global Shortcut',
     description: 'Seed a global shortcut registration with starter controls and a desktop visibility action',
+    minimalOnly: true,
+  },
+  {
+    id: 'file-association',
+    label: 'File Association',
+    description: 'Seed file-open handling, sample file associations, and starter file inspection controls',
     minimalOnly: true,
   },
 ];

@@ -308,7 +308,7 @@ async function writeReleasePreset(
 
   await writeFile(join(targetDir, '.gitignore'), getGitignoreContents(), 'utf-8');
   await writeFile(join(targetDir, '.env.example'), getEnvExample(projectName, metadata), 'utf-8');
-  await writeFile(join(targetDir, 'electron-builder.yml'), getElectronBuilderConfig(projectName, metadata), 'utf-8');
+  await writeFile(join(targetDir, 'electron-builder.yml'), getElectronBuilderConfig(projectName, metadata, features), 'utf-8');
   await writeFile(join(targetDir, 'electron-builder.s3.yml'), getElectronBuilderS3Config(), 'utf-8');
   await writeFile(join(targetDir, '.github', 'workflows', 'validate.yml'), getValidateWorkflow(), 'utf-8');
   await writeFile(join(targetDir, '.github', 'workflows', 'release.yml'), getReleaseWorkflow(), 'utf-8');
@@ -459,11 +459,16 @@ function wrapAppRender(source: string): string {
   );
 }
 
-function getElectronBuilderConfig(projectName: string, metadata: ScaffoldMetadata): string {
+function getElectronBuilderConfig(
+  projectName: string,
+  metadata: ScaffoldMetadata,
+  features: ScaffoldFeature[],
+): string {
   const appId = resolveAppId(projectName, metadata);
   const productName = resolveProductName(projectName, metadata);
   const githubOwner = resolveGithubOwner(metadata);
   const githubRepo = resolveGithubRepo(projectName, metadata);
+  const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
 
   return [
     `appId: ${appId}`,
@@ -478,6 +483,16 @@ function getElectronBuilderConfig(projectName: string, metadata: ScaffoldMetadat
     '    to: resources/',
     '  - from: worker/dist/',
     '    to: resources/worker/',
+    ...(features.includes('file-association')
+      ? [
+          '',
+          'fileAssociations:',
+          `  - ext: ${fileAssociationExtension}`,
+          `    name: ${productName} Document`,
+          `    description: Open ${productName} project documents`,
+          '    role: Editor',
+        ]
+      : []),
     '',
     'publish:',
     '  - provider: github',
@@ -698,10 +713,12 @@ function getMinimalElectronMainSource(
   const useMenuBar = features.includes('menu-bar');
   const useAutoLaunch = features.includes('auto-launch');
   const useGlobalShortcut = features.includes('global-shortcut');
+  const useFileAssociation = features.includes('file-association');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
   const protocolScheme = `${toIdentifier(projectName)}`;
+  const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
 
   return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''} } from 'electron';
 import path from 'node:path';
@@ -1101,6 +1118,53 @@ function getGlobalShortcutState() {
     error: starterShortcutError,
   };
 }
+` : ''}${useFileAssociation ? `
+let lastAssociatedFilePath: string | null = null;
+let lastAssociatedFileSource: string | null = null;
+
+function normalizeAssociatedFilePath(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  if (value.startsWith('file://')) {
+    try {
+      return decodeURIComponent(new URL(value).pathname);
+    } catch {
+      return null;
+    }
+  }
+
+  return value;
+}
+
+function matchesAssociatedFile(value: string | null | undefined) {
+  const normalized = normalizeAssociatedFilePath(value);
+  return normalized?.toLowerCase().endsWith(${JSON.stringify(`.${fileAssociationExtension}`)}) ?? false;
+}
+
+function getFileAssociationState() {
+  return {
+    extension: ${JSON.stringify(fileAssociationExtension)},
+    lastPath: lastAssociatedFilePath,
+    source: lastAssociatedFileSource,
+  };
+}
+
+function captureAssociatedFile(value: string | null | undefined, source: string) {
+  const normalized = normalizeAssociatedFilePath(value);
+  if (!matchesAssociatedFile(normalized)) {
+    return getFileAssociationState();
+  }
+
+  lastAssociatedFilePath = normalized;
+  lastAssociatedFileSource = source;
+  return getFileAssociationState();
+}
+
+function findAssociatedFileArg(args: string[]) {
+  return args.find((value) => matchesAssociatedFile(value)) ?? null;
+}
 ` : ''}
 function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.WORKER_EXECUTE, async (_event, request: WorkerRequest) => {
@@ -1254,6 +1318,14 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return runStarterShortcutAction();
   });
 
+` : ''}${useFileAssociation ? `  ipcMain.handle(IPC_CHANNELS.FILE_ASSOCIATION_GET_STATE, async () => {
+    return getFileAssociationState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.FILE_ASSOCIATION_OPEN, async (_event, filePath: string) => {
+    return captureAssociatedFile(filePath, 'manual');
+  });
+
 ` : ''}  logger.info('IPC handlers registered');
 }
 
@@ -1311,13 +1383,13 @@ ${useWindowing ? `  if (windowState.maximized) {
 ` : ''}
 }
 
-${useWindowing || useDeepLink ? `const hasSingleInstanceLock = app.requestSingleInstanceLock();
+${useWindowing || useDeepLink || useFileAssociation ? `const hasSingleInstanceLock = app.requestSingleInstanceLock();
 
 if (!hasSingleInstanceLock) {
   app.quit();
 } else {
   app.on('second-instance', (_event, argv) => {
-${useDeepLink ? '    captureDeepLink(findProtocolArg(argv));\n' : ''}    if (!mainWindow) {
+${useDeepLink ? '    captureDeepLink(findProtocolArg(argv));\n' : ''}${useFileAssociation ? "    captureAssociatedFile(findAssociatedFileArg(argv), 'second-instance');\n" : ''}    if (!mainWindow) {
       createWindow();
       return;
     }
@@ -1336,10 +1408,15 @@ ${useWindowing || useDeepLink ? `    if (mainWindow.isMinimized()) {
   captureDeepLink(url);
 });
 
+` : ''}${useFileAssociation ? `app.on('open-file', (event, filePath) => {
+  event.preventDefault();
+  captureAssociatedFile(filePath, 'open-file');
+});
+
 ` : ''}app.whenReady().then(async () => {
   logger.info('App starting', { isDev, appRoot });
 ${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}  registerIpcHandlers();
-${useDeepLink ? "  captureDeepLink(findProtocolArg(process.argv));\n" : ''}  createWindow();
+${useDeepLink ? "  captureDeepLink(findProtocolArg(process.argv));\n" : ''}${useFileAssociation ? "  captureAssociatedFile(findAssociatedFileArg(process.argv), 'startup-argv');\n" : ''}  createWindow();
 ${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();\n' : ''}${useGlobalShortcut ? '  registerStarterShortcut();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
     setTimeout(() => {
       updater.checkForUpdates().catch(() => {
@@ -1375,6 +1452,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useMenuBar = features.includes('menu-bar');
   const useAutoLaunch = features.includes('auto-launch');
   const useGlobalShortcut = features.includes('global-shortcut');
+  const useFileAssociation = features.includes('file-association');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -1439,6 +1517,10 @@ ${useSettings ? `  settings: {
     setEnabled: (enabled: boolean) => ipcRenderer.invoke(IPC_CHANNELS.GLOBAL_SHORTCUT_SET_ENABLED, enabled),
     trigger: () => ipcRenderer.invoke(IPC_CHANNELS.GLOBAL_SHORTCUT_TRIGGER),
   },
+` : ''}${useFileAssociation ? `  fileAssociation: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.FILE_ASSOCIATION_GET_STATE),
+    open: (filePath: string) => ipcRenderer.invoke(IPC_CHANNELS.FILE_ASSOCIATION_OPEN, filePath),
+  },
 ` : ''}};
 
 contextBridge.exposeInMainWorld('api', api);
@@ -1464,8 +1546,10 @@ function getFeatureStudioSource(
   const useMenuBar = features.includes('menu-bar');
   const useAutoLaunch = features.includes('auto-launch');
   const useGlobalShortcut = features.includes('global-shortcut');
+  const useFileAssociation = features.includes('file-association');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
+  const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
 
   return `import { useEffect, useState } from 'react';
 ${useSettings || useJobs ? `import type { ${[useSettings ? 'AppSettings' : '', useJobs ? 'JobDefinition' : ''].filter(Boolean).join(', ')} } from '@forge/ipc-contract';\n` : ''}${usePlugins ? "import { forgeFeaturePlugins } from './plugins';\n" : ''}
@@ -1525,6 +1609,12 @@ type GlobalShortcutState = {
   error: string | null;
 };
 
+type FileAssociationState = {
+  extension: string;
+  lastPath: string | null;
+  source: string | null;
+};
+
 type ForgeDesktopAPI = {
   settings?: {
     get: () => Promise<${useSettings ? 'AppSettings' : 'unknown'}>;
@@ -1579,6 +1669,10 @@ type ForgeDesktopAPI = {
     setEnabled: (enabled: boolean) => Promise<GlobalShortcutState>;
     trigger: () => Promise<GlobalShortcutState>;
   };
+  fileAssociation?: {
+    getState: () => Promise<FileAssociationState>;
+    open: (filePath: string) => Promise<FileAssociationState>;
+  };
 };
 
 function getDesktopApi(): ForgeDesktopAPI | undefined {
@@ -1600,6 +1694,8 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
 ` : ''}${useMenuBar ? `  const [menuBarState, setMenuBarState] = useState<MenuBarState | null>(null);
 ` : ''}${useAutoLaunch ? `  const [autoLaunchState, setAutoLaunchState] = useState<AutoLaunchState | null>(null);
 ` : ''}${useGlobalShortcut ? `  const [globalShortcutState, setGlobalShortcutState] = useState<GlobalShortcutState | null>(null);
+` : ''}${useFileAssociation ? `  const [fileAssociationState, setFileAssociationState] = useState<FileAssociationState | null>(null);
+  const [fileAssociationDraft, setFileAssociationDraft] = useState('sample.${fileAssociationExtension}');
 ` : ''}${useDeepLink ? `  const [deepLinkState, setDeepLinkState] = useState<DeepLinkState | null>(null);
   const [deepLinkDraft, setDeepLinkDraft] = useState('${protocolScheme}://open?screen=home');
 ` : ''}  const featureNames = ${JSON.stringify(features)};
@@ -1692,6 +1788,12 @@ ${useSettings ? `  useEffect(() => {
   useEffect(() => {
     api?.globalShortcut?.getStatus?.().then((next) => {
       setGlobalShortcutState(next);
+    }).catch(() => {});
+  }, [api]);
+` : ''}${useFileAssociation ? `
+  useEffect(() => {
+    api?.fileAssociation?.getState?.().then((next) => {
+      setFileAssociationState(next);
     }).catch(() => {});
   }, [api]);
 ` : ''}${useDeepLink ? `
@@ -2043,6 +2145,37 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             <p className="mt-2 text-xs text-amber-200">{globalShortcutState.error}</p>
           )}
         </section>
+` : ''}${useFileAssociation ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">File Association</h3>
+              <p className="mt-1 text-xs text-slate-400">Capture starter document opens from the operating system and inspect the last received file path in the desktop shell.</p>
+            </div>
+            <button
+              onClick={() => openAssociatedFile(api, fileAssociationDraft, setFileAssociationState)}
+              className="rounded-full border border-amber-500/40 px-3 py-1 text-xs font-medium text-amber-300 hover:border-amber-400 hover:text-amber-100"
+            >
+              Open sample file
+            </button>
+          </div>
+          <div className="mt-3 space-y-3">
+            <label className="block text-xs text-slate-400">
+              Sample file path
+              <input
+                type="text"
+                value={fileAssociationDraft}
+                onChange={(event) => setFileAssociationDraft(event.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+            </label>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <DiagnosticRow label="Extension" value={fileAssociationState?.extension ?? '${fileAssociationExtension}'} />
+              <DiagnosticRow label="Source" value={fileAssociationState?.source ?? 'not opened yet'} />
+              <DiagnosticRow label="Last Path" value={fileAssociationState?.lastPath ?? 'none captured yet'} />
+              <DiagnosticRow label="Packaging" value="electron-builder fileAssociations preset" />
+            </div>
+          </div>
+        </section>
 ` : ''}${usePlugins ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length === 1 ? 'md:col-span-2' : ''}">
           <h3 className="text-sm font-semibold text-white">Plugin Registry</h3>
           <p className="mt-1 text-xs text-slate-400">Sample plugin slots are ready for feature-oriented modules.</p>
@@ -2215,7 +2348,23 @@ async function triggerGlobalShortcut(
     // Ignore starter global shortcut failures.
   }
 }
-` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut ? `
+` : ''}${useFileAssociation ? `
+
+async function openAssociatedFile(
+  api: ForgeDesktopAPI | undefined,
+  filePath: string,
+  setState: (next: FileAssociationState) => void,
+) {
+  try {
+    const next = await api?.fileAssociation?.open?.(filePath);
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter file-association failures.
+  }
+}
+` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

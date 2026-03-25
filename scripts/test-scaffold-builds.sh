@@ -12,6 +12,7 @@ DEEP_LINK_APP="examples/__scaffold_test_deep_link__$$"
 MENU_BAR_APP="examples/__scaffold_test_menu_bar__$$"
 AUTO_LAUNCH_APP="examples/__scaffold_test_auto_launch__$$"
 GLOBAL_SHORTCUT_APP="examples/__scaffold_test_global_shortcut__$$"
+FILE_ASSOCIATION_APP="examples/__scaffold_test_file_association__$$"
 LOCKFILE_BACKUP="$(mktemp)"
 
 cp pnpm-lock.yaml "$LOCKFILE_BACKUP"
@@ -22,7 +23,7 @@ cleanup() {
     for (const target of process.argv.slice(1)) {
       fs.rmSync(target, { recursive: true, force: true });
     }
-  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP"
+  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP" "$FILE_ASSOCIATION_APP"
   cp "$LOCKFILE_BACKUP" pnpm-lock.yaml
   rm -f "$LOCKFILE_BACKUP"
 }
@@ -118,5 +119,16 @@ echo "==> Verifying global-shortcut smoke app"
 pnpm --dir "$GLOBAL_SHORTCUT_APP" release:check
 pnpm --dir "$GLOBAL_SHORTCUT_APP" typecheck
 pnpm --dir "$GLOBAL_SHORTCUT_APP" build
+
+echo "==> Scaffolding file-association smoke app"
+node packages/create-forge-app/dist/index.js create "$FILE_ASSOCIATION_APP" --template minimal --feature file-association --yes --package-manager pnpm >/dev/null
+
+echo "==> Installing file-association smoke app with workspace links"
+pnpm install --dir "$FILE_ASSOCIATION_APP" --link-workspace-packages >/dev/null
+
+echo "==> Verifying file-association smoke app"
+pnpm --dir "$FILE_ASSOCIATION_APP" release:check
+pnpm --dir "$FILE_ASSOCIATION_APP" typecheck
+pnpm --dir "$FILE_ASSOCIATION_APP" build
 
 echo "Scaffold build verification passed."

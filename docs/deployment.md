@@ -59,7 +59,7 @@ Scaffolded apps also include:
 The `minimal` starter also supports feature packs during scaffolding:
 
 ```bash
-forge create my-app --template minimal --feature settings --feature updater --feature diagnostics --feature notifications --feature windowing --feature tray --feature deep-link --feature menu-bar --feature auto-launch --feature global-shortcut
+forge create my-app --template minimal --feature settings --feature updater --feature diagnostics --feature notifications --feature windowing --feature tray --feature deep-link --feature menu-bar --feature auto-launch --feature global-shortcut --feature file-association
 ```
 
 For the fastest production baseline, use the preset:
@@ -67,6 +67,8 @@ For the fastest production baseline, use the preset:
 ```bash
 forge create my-app --template minimal --preset launch-ready
 ```
+
+Use `--feature file-association` when your desktop product needs starter file-open handling and sample `electron-builder` `fileAssociations` metadata for packaged document types.
 
 You can also seed release metadata up front:
 

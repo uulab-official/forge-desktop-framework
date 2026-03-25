@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.17 (2026-03-25)
+
+### File-Association Feature Pack
+
+- Added a `file-association` scaffold feature pack for the `minimal` starter
+- Generated apps now capture starter document opens through main-process handlers, expose file association state over preload IPC, and surface file-open inspection controls in `FeatureStudio`
+- Seeded packaged app metadata with a sample `electron-builder` `fileAssociations` entry so starter document types are wired into the release baseline
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated file-association smoke app before any version bump
+
 ## 0.1.16 (2026-03-25)
 
 ### Global-Shortcut Feature Pack

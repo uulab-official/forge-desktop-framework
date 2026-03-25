@@ -76,7 +76,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature deep-link \
   --feature menu-bar \
   --feature auto-launch \
-  --feature global-shortcut
+  --feature global-shortcut \
+  --feature file-association
 ```
 
 Preset creation for the production starter:
@@ -134,6 +135,7 @@ Feature packs currently target the `minimal` template and add:
 - `menu-bar` for a starter application menu with standard desktop commands and rebuild controls
 - `auto-launch` for login-item controls that toggle start-on-login from the desktop shell
 - `global-shortcut` for system-wide shortcut registration with starter focus and restore controls
+- `file-association` for starter file-open handling, preload bindings, and sample `electron-builder` file association metadata
 
 Starter presets currently target the `minimal` template:
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`

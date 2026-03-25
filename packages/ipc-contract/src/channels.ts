@@ -40,6 +40,8 @@ export const IPC_CHANNELS = {
   GLOBAL_SHORTCUT_GET_STATUS: 'global-shortcut:get-status',
   GLOBAL_SHORTCUT_SET_ENABLED: 'global-shortcut:set-enabled',
   GLOBAL_SHORTCUT_TRIGGER: 'global-shortcut:trigger',
+  FILE_ASSOCIATION_GET_STATE: 'file-association:get-state',
+  FILE_ASSOCIATION_OPEN: 'file-association:open',
 
   // Updates
   UPDATE_CHECK: 'update:check',
