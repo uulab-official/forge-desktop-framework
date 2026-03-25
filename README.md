@@ -103,7 +103,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature external-links \
   --feature system-info \
   --feature permissions \
-  --feature network-status
+  --feature network-status \
+  --feature secure-storage
 ```
 
 Or use the bundled production starter preset:
@@ -158,6 +159,7 @@ Feature packs available on the `minimal` starter today:
 - `system-info` for starter runtime OS, memory, process, and path diagnostics with refresh controls
 - `permissions` for starter camera, microphone, and screen permission diagnostics with request controls
 - `network-status` for starter online/offline diagnostics with refresh and history controls
+- `secure-storage` for starter Electron `safeStorage` secret persistence with save, load, clear, and error diagnostics
 
 Starter presets available today:
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`

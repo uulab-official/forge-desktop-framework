@@ -71,6 +71,10 @@ export const IPC_CHANNELS = {
   PERMISSIONS_REQUEST: 'permissions:request',
   NETWORK_STATUS_GET_STATE: 'network-status:get-state',
   NETWORK_STATUS_CLEAR_HISTORY: 'network-status:clear-history',
+  SECURE_STORAGE_GET_STATE: 'secure-storage:get-state',
+  SECURE_STORAGE_SAVE: 'secure-storage:save',
+  SECURE_STORAGE_LOAD: 'secure-storage:load',
+  SECURE_STORAGE_CLEAR: 'secure-storage:clear',
 
   // Updates
   UPDATE_CHECK: 'update:check',

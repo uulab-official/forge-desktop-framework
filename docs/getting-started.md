@@ -76,7 +76,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature external-links \
   --feature system-info \
   --feature permissions \
-  --feature network-status
+  --feature network-status \
+  --feature secure-storage
 ```
 
 Or preview the bundled production starter:
@@ -107,6 +108,7 @@ The generated project includes:
 - optional starter packs like `system-info` can also seed live runtime OS, memory, process, and path diagnostics with refresh controls
 - optional starter packs like `permissions` can also seed camera, microphone, and screen permission diagnostics with starter request controls
 - optional starter packs like `network-status` can also seed online and offline runtime diagnostics with starter refresh and history controls
+- optional starter packs like `secure-storage` can also seed Electron `safeStorage` secret persistence with starter save, load, clear, and error diagnostics
 
 ## Step 3: Create Your First Action
 

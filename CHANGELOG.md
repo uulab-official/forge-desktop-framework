@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.28 (2026-03-25)
+
+### Secure-Storage Feature Pack
+
+- Added a `secure-storage` scaffold feature pack for the `minimal` starter
+- Generated apps now expose Electron `safeStorage` secret save, load, and clear controls over preload IPC and surface encrypted secret diagnostics in `FeatureStudio`
+- Kept `secure-storage` optional so teams can add local secret persistence deliberately without widening the default production preset
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated secure-storage smoke app before any version bump
+
 ## 0.1.27 (2026-03-25)
 
 ### Network-Status Feature Pack

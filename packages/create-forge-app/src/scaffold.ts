@@ -724,6 +724,7 @@ function getMinimalElectronMainSource(
   const useSystemInfo = features.includes('system-info');
   const usePermissions = features.includes('permissions');
   const useNetworkStatus = features.includes('network-status');
+  const useSecureStorage = features.includes('secure-storage');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
@@ -731,10 +732,10 @@ function getMinimalElectronMainSource(
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
   const dialogFileName = `${toIdentifier(projectName)}-document.txt`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useNetworkStatus ? ', net' : ''}${useFileDialogs || useDownloads || useExternalLinks ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useNetworkStatus ? ', net' : ''}${useSecureStorage ? ', safeStorage' : ''}${useFileDialogs || useDownloads || useExternalLinks ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
 import path from 'node:path';
 ${useSystemInfo ? "import os from 'node:os';\n" : ''}
-${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
+${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
 import { createLogger } from '@forge/logger';
 import { IPC_CHANNELS, type WorkerRequest } from '@forge/ipc-contract';
@@ -1070,6 +1071,126 @@ function clearNetworkStatusHistory() {
   networkStatusState.lastCheckedAt = null;
   networkStatusState.history = [];
   return snapshotNetworkStatus();
+}
+` : ''}${useSecureStorage ? `
+type SecureStorageRecord = {
+  label: string;
+  encryptedValue: string;
+  updatedAt: string;
+};
+
+type SecureStorageState = {
+  supported: boolean;
+  label: string | null;
+  hasStoredValue: boolean;
+  lastUpdatedAt: string | null;
+  lastLoadedValue: string | null;
+  lastError: string | null;
+};
+
+const secureStoragePath = path.join(app.getPath('userData'), 'secure-storage.json');
+let secureStorageRecord: SecureStorageRecord | null = null;
+let lastLoadedSecureValue: string | null = null;
+let lastSecureStorageError: string | null = null;
+
+function isSecureStorageAvailable() {
+  try {
+    return safeStorage.isEncryptionAvailable();
+  } catch {
+    return false;
+  }
+}
+
+async function loadSecureStorageRecord() {
+  try {
+    const raw = await readFile(secureStoragePath, 'utf-8');
+    const parsed = JSON.parse(raw) as Partial<SecureStorageRecord> | null;
+    secureStorageRecord = parsed
+      && typeof parsed.label === 'string'
+      && typeof parsed.encryptedValue === 'string'
+      && typeof parsed.updatedAt === 'string'
+      ? {
+          label: parsed.label,
+          encryptedValue: parsed.encryptedValue,
+          updatedAt: parsed.updatedAt,
+        }
+      : null;
+    lastSecureStorageError = null;
+  } catch {
+    secureStorageRecord = null;
+    lastSecureStorageError = null;
+  }
+}
+
+async function persistSecureStorageRecord() {
+  await writeFile(secureStoragePath, JSON.stringify(secureStorageRecord, null, 2), 'utf-8');
+}
+
+function getSecureStorageState() {
+  return {
+    supported: isSecureStorageAvailable(),
+    label: secureStorageRecord?.label ?? null,
+    hasStoredValue: Boolean(secureStorageRecord),
+    lastUpdatedAt: secureStorageRecord?.updatedAt ?? null,
+    lastLoadedValue: lastLoadedSecureValue,
+    lastError: lastSecureStorageError,
+  };
+}
+
+async function saveSecureValue(label: string | null | undefined, value: string | null | undefined) {
+  if (!isSecureStorageAvailable()) {
+    lastSecureStorageError = 'safeStorage encryption is unavailable on this platform or desktop session.';
+    return getSecureStorageState();
+  }
+
+  try {
+    const nextLabel = label?.trim() || 'api-token';
+    const nextValue = value ?? '';
+    const encryptedValue = safeStorage.encryptString(nextValue).toString('base64');
+    secureStorageRecord = {
+      label: nextLabel,
+      encryptedValue,
+      updatedAt: new Date().toISOString(),
+    };
+    lastLoadedSecureValue = null;
+    lastSecureStorageError = null;
+    await persistSecureStorageRecord();
+  } catch (error) {
+    lastSecureStorageError = error instanceof Error ? error.message : 'Unknown secure-storage save failure';
+  }
+
+  return getSecureStorageState();
+}
+
+async function loadSecureValue() {
+  if (!secureStorageRecord) {
+    lastLoadedSecureValue = null;
+    lastSecureStorageError = null;
+    return getSecureStorageState();
+  }
+
+  if (!isSecureStorageAvailable()) {
+    lastSecureStorageError = 'safeStorage encryption is unavailable on this platform or desktop session.';
+    return getSecureStorageState();
+  }
+
+  try {
+    lastLoadedSecureValue = safeStorage.decryptString(Buffer.from(secureStorageRecord.encryptedValue, 'base64'));
+    lastSecureStorageError = null;
+  } catch (error) {
+    lastLoadedSecureValue = null;
+    lastSecureStorageError = error instanceof Error ? error.message : 'Unknown secure-storage load failure';
+  }
+
+  return getSecureStorageState();
+}
+
+async function clearSecureValue() {
+  secureStorageRecord = null;
+  lastLoadedSecureValue = null;
+  lastSecureStorageError = null;
+  await persistSecureStorageRecord();
+  return getSecureStorageState();
 }
 ` : ''}${useTray ? `
 const trayIcon = nativeImage.createFromDataURL(
@@ -2095,6 +2216,22 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return clearNetworkStatusHistory();
   });
 
+` : ''}${useSecureStorage ? `  ipcMain.handle(IPC_CHANNELS.SECURE_STORAGE_GET_STATE, async () => {
+    return getSecureStorageState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.SECURE_STORAGE_SAVE, async (_event, label?: string, value?: string) => {
+    return saveSecureValue(label, value);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.SECURE_STORAGE_LOAD, async () => {
+    return loadSecureValue();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.SECURE_STORAGE_CLEAR, async () => {
+    return clearSecureValue();
+  });
+
 ` : ''}${useNotifications ? `  ipcMain.handle(IPC_CHANNELS.NOTIFY_SHOW, async (_event, title: string, body: string) => {
     const safeTitle = title.trim() || ${JSON.stringify(productName)};
     const safeBody = body.trim() || 'Background work completed successfully.';
@@ -2408,7 +2545,7 @@ ${useWindowing || useDeepLink ? `    if (mainWindow.isMinimized()) {
 
 ` : ''}app.whenReady().then(async () => {
   logger.info('App starting', { isDev, appRoot });
-${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}${useRecentFiles ? '  await loadRecentFiles();\n' : ''}${useCrashRecovery ? '  await loadCrashRecoveryState();\n' : ''}  registerIpcHandlers();
+${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}${useRecentFiles ? '  await loadRecentFiles();\n' : ''}${useCrashRecovery ? '  await loadCrashRecoveryState();\n' : ''}${useSecureStorage ? '  await loadSecureStorageRecord();\n' : ''}  registerIpcHandlers();
 ${useDeepLink ? "  captureDeepLink(findProtocolArg(process.argv));\n" : ''}${useFileAssociation ? "  captureAssociatedFile(findAssociatedFileArg(process.argv), 'startup-argv');\n" : ''}  createWindow();
 ${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();\n' : ''}${useGlobalShortcut ? '  registerStarterShortcut();\n' : ''}${usePowerMonitor ? '  registerPowerMonitor();\n' : ''}${useDownloads ? '  registerDownloadTracking();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
     setTimeout(() => {
@@ -2456,6 +2593,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useSystemInfo = features.includes('system-info');
   const usePermissions = features.includes('permissions');
   const useNetworkStatus = features.includes('network-status');
+  const useSecureStorage = features.includes('secure-storage');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -2501,6 +2639,12 @@ ${useSettings ? `  settings: {
 ` : ''}${useNetworkStatus ? `  networkStatus: {
     getState: () => ipcRenderer.invoke(IPC_CHANNELS.NETWORK_STATUS_GET_STATE),
     clearHistory: () => ipcRenderer.invoke(IPC_CHANNELS.NETWORK_STATUS_CLEAR_HISTORY),
+  },
+` : ''}${useSecureStorage ? `  secureStorage: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.SECURE_STORAGE_GET_STATE),
+    save: (label?: string, value?: string) => ipcRenderer.invoke(IPC_CHANNELS.SECURE_STORAGE_SAVE, label, value),
+    load: () => ipcRenderer.invoke(IPC_CHANNELS.SECURE_STORAGE_LOAD),
+    clear: () => ipcRenderer.invoke(IPC_CHANNELS.SECURE_STORAGE_CLEAR),
   },
 ` : ''}${useNotifications ? `  notifications: {
     show: (title: string, body: string) => ipcRenderer.invoke(IPC_CHANNELS.NOTIFY_SHOW, title, body),
@@ -2609,6 +2753,7 @@ function getFeatureStudioSource(
   const useSystemInfo = features.includes('system-info');
   const usePermissions = features.includes('permissions');
   const useNetworkStatus = features.includes('network-status');
+  const useSecureStorage = features.includes('secure-storage');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
@@ -2708,6 +2853,15 @@ type NetworkStatusState = {
     status: 'online' | 'offline';
     timestamp: string;
   }>;
+};
+
+type SecureStorageState = {
+  supported: boolean;
+  label: string | null;
+  hasStoredValue: boolean;
+  lastUpdatedAt: string | null;
+  lastLoadedValue: string | null;
+  lastError: string | null;
 };
 
 type WindowStateSummary = {
@@ -2869,6 +3023,12 @@ type ForgeDesktopAPI = {
     getState: () => Promise<NetworkStatusState>;
     clearHistory: () => Promise<NetworkStatusState>;
   };
+  secureStorage?: {
+    getState: () => Promise<SecureStorageState>;
+    save: (label?: string, value?: string) => Promise<SecureStorageState>;
+    load: () => Promise<SecureStorageState>;
+    clear: () => Promise<SecureStorageState>;
+  };
   notifications?: {
     show: (title: string, body: string) => Promise<{ supported: boolean; delivered: boolean }>;
   };
@@ -2957,6 +3117,9 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
 ` : ''}${useSystemInfo ? `  const [systemInfoState, setSystemInfoState] = useState<SystemInfoState | null>(null);
 ` : ''}${usePermissions ? `  const [permissionsState, setPermissionsState] = useState<PermissionsState | null>(null);
 ` : ''}${useNetworkStatus ? `  const [networkStatusState, setNetworkStatusState] = useState<NetworkStatusState | null>(null);
+` : ''}${useSecureStorage ? `  const [secureStorageState, setSecureStorageState] = useState<SecureStorageState | null>(null);
+  const [secureStorageLabelDraft, setSecureStorageLabelDraft] = useState('api-token');
+  const [secureStorageValueDraft, setSecureStorageValueDraft] = useState('${displayName} demo secret');
 ` : ''}${useNotifications ? `  const [notificationDraft, setNotificationDraft] = useState({ title: 'Forge Ready', body: '${displayName} is ready for customer testing.' });
   const [notificationState, setNotificationState] = useState<'idle' | 'sent' | 'unsupported'>('idle');
 ` : ''}${useWindowing ? `  const [windowState, setWindowState] = useState<WindowStateSummary | null>(null);
@@ -3107,6 +3270,34 @@ ${useSettings ? `  useEffect(() => {
         }
       } catch {
         // Ignore starter network-status polling failures.
+      }
+    };
+
+    sync();
+    const timer = window.setInterval(sync, 5000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [api]);
+` : ''}${useSecureStorage ? `
+  useEffect(() => {
+    if (!api?.secureStorage?.getState) {
+      return undefined;
+    }
+
+    let active = true;
+    const sync = async () => {
+      try {
+        const next = await api.secureStorage?.getState?.();
+        if (active && next) {
+          setSecureStorageState(next);
+          if (next.label) {
+            setSecureStorageLabelDraft(next.label);
+          }
+        }
+      } catch {
+        // Ignore starter secure-storage polling failures.
       }
     };
 
@@ -3613,6 +3804,73 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
           ) : (
             <p className="mt-3 text-xs text-slate-500">Network status is unavailable until the desktop bridge finishes booting.</p>
           )}
+        </section>
+` : ''}${useSecureStorage ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Secure Storage</h3>
+              <p className="mt-1 text-xs text-slate-400">Persist encrypted starter secrets through Electron safeStorage so teams can validate desktop credential handling before wiring their own vault UI.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => refreshSecureStorage(api, setSecureStorageState, setSecureStorageLabelDraft)}
+                className="rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-200 hover:border-slate-500"
+              >
+                Refresh
+              </button>
+              <button
+                onClick={() => clearSecureStorage(api, setSecureStorageState, setSecureStorageLabelDraft)}
+                className="rounded-full border border-rose-500/40 px-3 py-1 text-xs font-medium text-rose-300 hover:border-rose-400 hover:text-rose-100"
+              >
+                Clear secret
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 space-y-3">
+            <label className="block text-xs text-slate-400">
+              Secret label
+              <input
+                type="text"
+                value={secureStorageLabelDraft}
+                onChange={(event) => setSecureStorageLabelDraft(event.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+            </label>
+            <label className="block text-xs text-slate-400">
+              Secret value
+              <textarea
+                value={secureStorageValueDraft}
+                onChange={(event) => setSecureStorageValueDraft(event.target.value)}
+                rows={3}
+                className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+            </label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => saveSecureStorage(api, secureStorageLabelDraft, secureStorageValueDraft, setSecureStorageState, setSecureStorageLabelDraft)}
+                className="rounded-full border border-emerald-500/40 px-3 py-1 text-xs font-medium text-emerald-300 hover:border-emerald-400 hover:text-emerald-100"
+              >
+                Save secret
+              </button>
+              <button
+                onClick={() => loadSecureStorage(api, setSecureStorageState, setSecureStorageLabelDraft)}
+                className="rounded-full border border-sky-500/40 px-3 py-1 text-xs font-medium text-sky-300 hover:border-sky-400 hover:text-sky-100"
+              >
+                Load secret
+              </button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <DiagnosticRow label="Supported" value={secureStorageState?.supported ? 'yes' : 'no'} />
+              <DiagnosticRow label="Stored Label" value={secureStorageState?.label ?? 'nothing saved yet'} />
+              <DiagnosticRow label="Stored Value" value={secureStorageState?.hasStoredValue ? 'present' : 'empty'} />
+              <DiagnosticRow label="Last Updated" value={secureStorageState?.lastUpdatedAt ?? 'not available'} />
+              <DiagnosticRow label="Last Loaded Secret" value={secureStorageState?.lastLoadedValue ?? 'load a saved secret to inspect it here'} />
+              <DiagnosticRow label="Surface" value="electron safeStorage encryptString + decryptString" />
+            </div>
+            {secureStorageState?.lastError && (
+              <p className="text-xs text-amber-200">{secureStorageState.lastError}</p>
+            )}
+          </div>
         </section>
 ` : ''}${useNotifications ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
           <div className="flex items-start justify-between gap-3">
@@ -4698,7 +4956,80 @@ async function clearNetworkStatus(
     // Ignore starter network-status clear failures.
   }
 }
-` : ''}${useDiagnostics || useSystemInfo || usePermissions || useNetworkStatus || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useDownloads || useClipboard || useExternalLinks ? `
+` : ''}${useSecureStorage ? `
+
+async function refreshSecureStorage(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: SecureStorageState) => void,
+  setLabelDraft: (next: string) => void,
+) {
+  try {
+    const next = await api?.secureStorage?.getState?.();
+    if (next) {
+      setState(next);
+      if (next.label) {
+        setLabelDraft(next.label);
+      }
+    }
+  } catch {
+    // Ignore starter secure-storage refresh failures.
+  }
+}
+
+async function saveSecureStorage(
+  api: ForgeDesktopAPI | undefined,
+  label: string,
+  value: string,
+  setState: (next: SecureStorageState) => void,
+  setLabelDraft: (next: string) => void,
+) {
+  try {
+    const next = await api?.secureStorage?.save?.(label, value);
+    if (next) {
+      setState(next);
+      if (next.label) {
+        setLabelDraft(next.label);
+      }
+    }
+  } catch {
+    // Ignore starter secure-storage save failures.
+  }
+}
+
+async function loadSecureStorage(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: SecureStorageState) => void,
+  setLabelDraft: (next: string) => void,
+) {
+  try {
+    const next = await api?.secureStorage?.load?.();
+    if (next) {
+      setState(next);
+      if (next.label) {
+        setLabelDraft(next.label);
+      }
+    }
+  } catch {
+    // Ignore starter secure-storage load failures.
+  }
+}
+
+async function clearSecureStorage(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: SecureStorageState) => void,
+  setLabelDraft: (next: string) => void,
+) {
+  try {
+    const next = await api?.secureStorage?.clear?.();
+    if (next) {
+      setState(next);
+      setLabelDraft('api-token');
+    }
+  } catch {
+    // Ignore starter secure-storage clear failures.
+  }
+}
+` : ''}${useDiagnostics || useSystemInfo || usePermissions || useNetworkStatus || useSecureStorage || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useDownloads || useClipboard || useExternalLinks ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (
