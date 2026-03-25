@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -92,6 +92,12 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     id: 'file-association',
     label: 'File Association',
     description: 'Seed file-open handling, sample file associations, and starter file inspection controls',
+    minimalOnly: true,
+  },
+  {
+    id: 'file-dialogs',
+    label: 'File Dialogs',
+    description: 'Seed native open and save dialogs with reveal-in-folder controls for desktop file workflows',
     minimalOnly: true,
   },
 ];

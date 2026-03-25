@@ -42,6 +42,10 @@ export const IPC_CHANNELS = {
   GLOBAL_SHORTCUT_TRIGGER: 'global-shortcut:trigger',
   FILE_ASSOCIATION_GET_STATE: 'file-association:get-state',
   FILE_ASSOCIATION_OPEN: 'file-association:open',
+  FILE_DIALOGS_GET_STATE: 'file-dialogs:get-state',
+  FILE_DIALOGS_OPEN: 'file-dialogs:open',
+  FILE_DIALOGS_SAVE: 'file-dialogs:save',
+  FILE_DIALOGS_REVEAL: 'file-dialogs:reveal',
 
   // Updates
   UPDATE_CHECK: 'update:check',

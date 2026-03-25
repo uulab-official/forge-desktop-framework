@@ -714,13 +714,15 @@ function getMinimalElectronMainSource(
   const useAutoLaunch = features.includes('auto-launch');
   const useGlobalShortcut = features.includes('global-shortcut');
   const useFileAssociation = features.includes('file-association');
+  const useFileDialogs = features.includes('file-dialogs');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
+  const dialogFileName = `${toIdentifier(projectName)}-document.txt`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${useFileDialogs ? ', dialog, shell, type OpenDialogOptions' : ''} } from 'electron';
 import path from 'node:path';
 ${useDiagnostics || useWindowing ? `import { ${[useDiagnostics || useWindowing ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
@@ -1165,6 +1167,101 @@ function captureAssociatedFile(value: string | null | undefined, source: string)
 function findAssociatedFileArg(args: string[]) {
   return args.find((value) => matchesAssociatedFile(value)) ?? null;
 }
+` : ''}${useFileDialogs ? `
+type FileDialogState = {
+  suggestedName: string;
+  lastOpenPath: string | null;
+  lastSavePath: string | null;
+  lastRevealPath: string | null;
+  lastAction: 'open' | 'save' | 'reveal' | null;
+};
+
+const fileDialogState: FileDialogState = {
+  suggestedName: ${JSON.stringify(dialogFileName)},
+  lastOpenPath: null,
+  lastSavePath: null,
+  lastRevealPath: null,
+  lastAction: null,
+};
+
+function normalizeDialogPath(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  if (value.startsWith('file://')) {
+    try {
+      return decodeURIComponent(new URL(value).pathname);
+    } catch {
+      return value;
+    }
+  }
+
+  return value;
+}
+
+function resolveDialogDefaultPath(value: string | null | undefined) {
+  const normalized = normalizeDialogPath(value);
+  if (normalized && normalized.trim().length > 0) {
+    return normalized;
+  }
+
+  return path.join(app.getPath('documents'), fileDialogState.suggestedName);
+}
+
+function getFileDialogState() {
+  return { ...fileDialogState };
+}
+
+async function openStarterFileDialog(defaultPath: string | null | undefined) {
+  const options: OpenDialogOptions = {
+    title: 'Open Document',
+    defaultPath: resolveDialogDefaultPath(defaultPath),
+    properties: ['openFile'],
+  };
+  const result = mainWindow
+    ? await dialog.showOpenDialog(mainWindow, options)
+    : await dialog.showOpenDialog(options);
+
+  if (!result.canceled && result.filePaths[0]) {
+    fileDialogState.lastOpenPath = result.filePaths[0];
+    fileDialogState.lastAction = 'open';
+  }
+
+  return getFileDialogState();
+}
+
+async function saveStarterFileDialog(defaultPath: string | null | undefined) {
+  const options = {
+    title: 'Save Document',
+    defaultPath: resolveDialogDefaultPath(defaultPath),
+  };
+  const result = mainWindow
+    ? await dialog.showSaveDialog(mainWindow, options)
+    : await dialog.showSaveDialog(options);
+
+  if (!result.canceled && result.filePath) {
+    fileDialogState.lastSavePath = result.filePath;
+    fileDialogState.lastAction = 'save';
+  }
+
+  return getFileDialogState();
+}
+
+function revealStarterPath(targetPath: string | null | undefined) {
+  const normalized = normalizeDialogPath(targetPath)
+    ?? fileDialogState.lastSavePath
+    ?? fileDialogState.lastOpenPath;
+
+  if (!normalized) {
+    return getFileDialogState();
+  }
+
+  shell.showItemInFolder(normalized);
+  fileDialogState.lastRevealPath = normalized;
+  fileDialogState.lastAction = 'reveal';
+  return getFileDialogState();
+}
 ` : ''}
 function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.WORKER_EXECUTE, async (_event, request: WorkerRequest) => {
@@ -1326,6 +1423,22 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return captureAssociatedFile(filePath, 'manual');
   });
 
+` : ''}${useFileDialogs ? `  ipcMain.handle(IPC_CHANNELS.FILE_DIALOGS_GET_STATE, async () => {
+    return getFileDialogState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.FILE_DIALOGS_OPEN, async (_event, defaultPath?: string) => {
+    return openStarterFileDialog(defaultPath);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.FILE_DIALOGS_SAVE, async (_event, defaultPath?: string) => {
+    return saveStarterFileDialog(defaultPath);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.FILE_DIALOGS_REVEAL, async (_event, targetPath?: string) => {
+    return revealStarterPath(targetPath);
+  });
+
 ` : ''}  logger.info('IPC handlers registered');
 }
 
@@ -1453,6 +1566,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useAutoLaunch = features.includes('auto-launch');
   const useGlobalShortcut = features.includes('global-shortcut');
   const useFileAssociation = features.includes('file-association');
+  const useFileDialogs = features.includes('file-dialogs');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -1521,6 +1635,12 @@ ${useSettings ? `  settings: {
     getState: () => ipcRenderer.invoke(IPC_CHANNELS.FILE_ASSOCIATION_GET_STATE),
     open: (filePath: string) => ipcRenderer.invoke(IPC_CHANNELS.FILE_ASSOCIATION_OPEN, filePath),
   },
+` : ''}${useFileDialogs ? `  fileDialogs: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.FILE_DIALOGS_GET_STATE),
+    open: (defaultPath?: string) => ipcRenderer.invoke(IPC_CHANNELS.FILE_DIALOGS_OPEN, defaultPath),
+    save: (defaultPath?: string) => ipcRenderer.invoke(IPC_CHANNELS.FILE_DIALOGS_SAVE, defaultPath),
+    reveal: (targetPath?: string) => ipcRenderer.invoke(IPC_CHANNELS.FILE_DIALOGS_REVEAL, targetPath),
+  },
 ` : ''}};
 
 contextBridge.exposeInMainWorld('api', api);
@@ -1547,9 +1667,11 @@ function getFeatureStudioSource(
   const useAutoLaunch = features.includes('auto-launch');
   const useGlobalShortcut = features.includes('global-shortcut');
   const useFileAssociation = features.includes('file-association');
+  const useFileDialogs = features.includes('file-dialogs');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
+  const dialogSuggestedName = `${toIdentifier(projectName)}-document.txt`;
 
   return `import { useEffect, useState } from 'react';
 ${useSettings || useJobs ? `import type { ${[useSettings ? 'AppSettings' : '', useJobs ? 'JobDefinition' : ''].filter(Boolean).join(', ')} } from '@forge/ipc-contract';\n` : ''}${usePlugins ? "import { forgeFeaturePlugins } from './plugins';\n" : ''}
@@ -1615,6 +1737,14 @@ type FileAssociationState = {
   source: string | null;
 };
 
+type FileDialogState = {
+  suggestedName: string;
+  lastOpenPath: string | null;
+  lastSavePath: string | null;
+  lastRevealPath: string | null;
+  lastAction: 'open' | 'save' | 'reveal' | null;
+};
+
 type ForgeDesktopAPI = {
   settings?: {
     get: () => Promise<${useSettings ? 'AppSettings' : 'unknown'}>;
@@ -1673,6 +1803,12 @@ type ForgeDesktopAPI = {
     getState: () => Promise<FileAssociationState>;
     open: (filePath: string) => Promise<FileAssociationState>;
   };
+  fileDialogs?: {
+    getState: () => Promise<FileDialogState>;
+    open: (defaultPath?: string) => Promise<FileDialogState>;
+    save: (defaultPath?: string) => Promise<FileDialogState>;
+    reveal: (targetPath?: string) => Promise<FileDialogState>;
+  };
 };
 
 function getDesktopApi(): ForgeDesktopAPI | undefined {
@@ -1696,6 +1832,8 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
 ` : ''}${useGlobalShortcut ? `  const [globalShortcutState, setGlobalShortcutState] = useState<GlobalShortcutState | null>(null);
 ` : ''}${useFileAssociation ? `  const [fileAssociationState, setFileAssociationState] = useState<FileAssociationState | null>(null);
   const [fileAssociationDraft, setFileAssociationDraft] = useState('sample.${fileAssociationExtension}');
+` : ''}${useFileDialogs ? `  const [fileDialogState, setFileDialogState] = useState<FileDialogState | null>(null);
+  const [fileDialogDraft, setFileDialogDraft] = useState('${dialogSuggestedName}');
 ` : ''}${useDeepLink ? `  const [deepLinkState, setDeepLinkState] = useState<DeepLinkState | null>(null);
   const [deepLinkDraft, setDeepLinkDraft] = useState('${protocolScheme}://open?screen=home');
 ` : ''}  const featureNames = ${JSON.stringify(features)};
@@ -1794,6 +1932,15 @@ ${useSettings ? `  useEffect(() => {
   useEffect(() => {
     api?.fileAssociation?.getState?.().then((next) => {
       setFileAssociationState(next);
+    }).catch(() => {});
+  }, [api]);
+` : ''}${useFileDialogs ? `
+  useEffect(() => {
+    api?.fileDialogs?.getState?.().then((next) => {
+      setFileDialogState(next);
+      if (next?.suggestedName) {
+        setFileDialogDraft(next.suggestedName);
+      }
     }).catch(() => {});
   }, [api]);
 ` : ''}${useDeepLink ? `
@@ -2176,6 +2323,55 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             </div>
           </div>
         </section>
+` : ''}${useFileDialogs ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">File Dialogs</h3>
+              <p className="mt-1 text-xs text-slate-400">Open files, choose save destinations, and reveal generated paths with the native desktop dialogs users already understand.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => runFileDialogAction(api, 'open', fileDialogDraft, setFileDialogState)}
+                className="rounded-full border border-cyan-500/40 px-3 py-1 text-xs font-medium text-cyan-300 hover:border-cyan-400 hover:text-cyan-100"
+              >
+                Open file
+              </button>
+              <button
+                onClick={() => runFileDialogAction(api, 'save', fileDialogDraft, setFileDialogState)}
+                className="rounded-full border border-emerald-500/40 px-3 py-1 text-xs font-medium text-emerald-300 hover:border-emerald-400 hover:text-emerald-100"
+              >
+                Save as
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 space-y-3">
+            <label className="block text-xs text-slate-400">
+              Default path or file name
+              <input
+                type="text"
+                value={fileDialogDraft}
+                onChange={(event) => setFileDialogDraft(event.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+            </label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => runFileDialogAction(api, 'reveal', fileDialogState?.lastSavePath ?? fileDialogState?.lastOpenPath ?? fileDialogDraft, setFileDialogState)}
+                className="rounded-full border border-amber-500/40 px-3 py-1 text-xs font-medium text-amber-300 hover:border-amber-400 hover:text-amber-100"
+              >
+                Reveal latest path
+              </button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <DiagnosticRow label="Suggested Name" value={fileDialogState?.suggestedName ?? '${dialogSuggestedName}'} />
+              <DiagnosticRow label="Last Action" value={fileDialogState?.lastAction ?? 'idle'} />
+              <DiagnosticRow label="Opened File" value={fileDialogState?.lastOpenPath ?? 'none selected yet'} />
+              <DiagnosticRow label="Saved File" value={fileDialogState?.lastSavePath ?? 'none saved yet'} />
+              <DiagnosticRow label="Revealed Path" value={fileDialogState?.lastRevealPath ?? 'nothing revealed yet'} />
+              <DiagnosticRow label="Shell Surface" value="dialog + shell.showItemInFolder" />
+            </div>
+          </div>
+        </section>
 ` : ''}${usePlugins ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length === 1 ? 'md:col-span-2' : ''}">
           <h3 className="text-sm font-semibold text-white">Plugin Registry</h3>
           <p className="mt-1 text-xs text-slate-400">Sample plugin slots are ready for feature-oriented modules.</p>
@@ -2364,7 +2560,29 @@ async function openAssociatedFile(
     // Ignore starter file-association failures.
   }
 }
-` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation ? `
+` : ''}${useFileDialogs ? `
+
+async function runFileDialogAction(
+  api: ForgeDesktopAPI | undefined,
+  action: 'open' | 'save' | 'reveal',
+  value: string,
+  setState: (next: FileDialogState) => void,
+) {
+  try {
+    const next = action === 'open'
+      ? await api?.fileDialogs?.open?.(value)
+      : action === 'save'
+        ? await api?.fileDialogs?.save?.(value)
+        : await api?.fileDialogs?.reveal?.(value);
+
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter file-dialog failures.
+  }
+}
+` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

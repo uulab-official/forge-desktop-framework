@@ -66,7 +66,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature menu-bar \
   --feature auto-launch \
   --feature global-shortcut \
-  --feature file-association
+  --feature file-association \
+  --feature file-dialogs
 ```
 
 Or preview the bundled production starter:
@@ -87,6 +88,7 @@ The generated project includes:
 - packaging scripts for the worker and the desktop app
 - a renderer baseline with `ForgeErrorBoundary` and a floating log dock
 - optional starter packs like `file-association` can also seed file-open handling and sample `electron-builder` file association metadata
+- optional starter packs like `file-dialogs` can also seed native open and save dialogs with reveal-in-folder controls
 
 ## Step 3: Create Your First Action
 

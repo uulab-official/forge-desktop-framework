@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.18 (2026-03-25)
+
+### File-Dialogs Feature Pack
+
+- Added a `file-dialogs` scaffold feature pack for the `minimal` starter
+- Generated apps now expose native open and save dialogs plus reveal-in-folder controls through preload IPC so desktop file workflows can be tested immediately from `FeatureStudio`
+- Kept `file-dialogs` optional so teams can adopt desktop shell file workflows without forcing native dialog wiring into every production starter
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated file-dialogs smoke app before any version bump
+
 ## 0.1.17 (2026-03-25)
 
 ### File-Association Feature Pack

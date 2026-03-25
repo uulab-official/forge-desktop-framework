@@ -13,6 +13,7 @@ MENU_BAR_APP="examples/__scaffold_test_menu_bar__$$"
 AUTO_LAUNCH_APP="examples/__scaffold_test_auto_launch__$$"
 GLOBAL_SHORTCUT_APP="examples/__scaffold_test_global_shortcut__$$"
 FILE_ASSOCIATION_APP="examples/__scaffold_test_file_association__$$"
+FILE_DIALOGS_APP="examples/__scaffold_test_file_dialogs__$$"
 LOCKFILE_BACKUP="$(mktemp)"
 
 cp pnpm-lock.yaml "$LOCKFILE_BACKUP"
@@ -23,7 +24,7 @@ cleanup() {
     for (const target of process.argv.slice(1)) {
       fs.rmSync(target, { recursive: true, force: true });
     }
-  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP" "$FILE_ASSOCIATION_APP"
+  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP" "$FILE_ASSOCIATION_APP" "$FILE_DIALOGS_APP"
   cp "$LOCKFILE_BACKUP" pnpm-lock.yaml
   rm -f "$LOCKFILE_BACKUP"
 }
@@ -130,5 +131,16 @@ echo "==> Verifying file-association smoke app"
 pnpm --dir "$FILE_ASSOCIATION_APP" release:check
 pnpm --dir "$FILE_ASSOCIATION_APP" typecheck
 pnpm --dir "$FILE_ASSOCIATION_APP" build
+
+echo "==> Scaffolding file-dialogs smoke app"
+node packages/create-forge-app/dist/index.js create "$FILE_DIALOGS_APP" --template minimal --feature file-dialogs --yes --package-manager pnpm >/dev/null
+
+echo "==> Installing file-dialogs smoke app with workspace links"
+pnpm install --dir "$FILE_DIALOGS_APP" --link-workspace-packages >/dev/null
+
+echo "==> Verifying file-dialogs smoke app"
+pnpm --dir "$FILE_DIALOGS_APP" release:check
+pnpm --dir "$FILE_DIALOGS_APP" typecheck
+pnpm --dir "$FILE_DIALOGS_APP" build
 
 echo "Scaffold build verification passed."
