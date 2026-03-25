@@ -716,6 +716,7 @@ function getMinimalElectronMainSource(
   const useFileAssociation = features.includes('file-association');
   const useFileDialogs = features.includes('file-dialogs');
   const useRecentFiles = features.includes('recent-files');
+  const useCrashRecovery = features.includes('crash-recovery');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
@@ -725,7 +726,7 @@ function getMinimalElectronMainSource(
 
   return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${useFileDialogs ? ', dialog, shell, type OpenDialogOptions' : ''} } from 'electron';
 import path from 'node:path';
-${useDiagnostics || useWindowing || useRecentFiles ? `import { ${[useDiagnostics || useWindowing || useRecentFiles ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
+${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
 import { createLogger } from '@forge/logger';
 import { IPC_CHANNELS, type WorkerRequest } from '@forge/ipc-contract';
@@ -1346,6 +1347,104 @@ async function clearRecentFiles() {
   await saveRecentFiles();
   return getRecentFilesState();
 }
+` : ''}${useCrashRecovery ? `
+type CrashIncident = {
+  scope: 'renderer' | 'window' | 'child-process';
+  reason: string;
+  details: string | null;
+  timestamp: string;
+};
+
+type CrashRecoveryState = {
+  hasIncident: boolean;
+  lastIncident: CrashIncident | null;
+};
+
+const crashRecoveryPath = path.join(app.getPath('userData'), 'crash-recovery.json');
+const crashRecoveryState: CrashRecoveryState = {
+  hasIncident: false,
+  lastIncident: null,
+};
+
+async function loadCrashRecoveryState() {
+  try {
+    const raw = await readFile(crashRecoveryPath, 'utf-8');
+    const parsed = JSON.parse(raw) as Partial<CrashRecoveryState>;
+    crashRecoveryState.hasIncident = parsed.hasIncident === true;
+    crashRecoveryState.lastIncident = parsed.lastIncident
+      && typeof parsed.lastIncident.reason === 'string'
+      && typeof parsed.lastIncident.scope === 'string'
+      && typeof parsed.lastIncident.timestamp === 'string'
+      ? {
+          scope: parsed.lastIncident.scope as CrashIncident['scope'],
+          reason: parsed.lastIncident.reason,
+          details: typeof parsed.lastIncident.details === 'string' ? parsed.lastIncident.details : null,
+          timestamp: parsed.lastIncident.timestamp,
+        }
+      : null;
+  } catch {
+    crashRecoveryState.hasIncident = false;
+    crashRecoveryState.lastIncident = null;
+  }
+}
+
+async function saveCrashRecoveryState() {
+  await writeFile(crashRecoveryPath, JSON.stringify(crashRecoveryState, null, 2), 'utf-8');
+}
+
+function getCrashRecoveryState() {
+  return {
+    hasIncident: crashRecoveryState.hasIncident,
+    lastIncident: crashRecoveryState.lastIncident,
+  };
+}
+
+function getCrashDetails(details: Record<string, unknown> | null | undefined) {
+  if (!details) {
+    return null;
+  }
+
+  try {
+    return JSON.stringify(details);
+  } catch {
+    return null;
+  }
+}
+
+async function recordCrashIncident(
+  scope: CrashIncident['scope'],
+  reason: string,
+  details: string | null = null,
+) {
+  crashRecoveryState.hasIncident = true;
+  crashRecoveryState.lastIncident = {
+    scope,
+    reason,
+    details,
+    timestamp: new Date().toISOString(),
+  };
+  await saveCrashRecoveryState();
+  return getCrashRecoveryState();
+}
+
+async function clearCrashRecoveryState() {
+  crashRecoveryState.hasIncident = false;
+  crashRecoveryState.lastIncident = null;
+  await saveCrashRecoveryState();
+  return getCrashRecoveryState();
+}
+
+function relaunchFromCrashRecovery() {
+  app.relaunch();
+  setTimeout(() => {
+    app.exit(0);
+  }, 25);
+
+  return {
+    ...getCrashRecoveryState(),
+    relaunching: true,
+  };
+}
 ` : ''}
 function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.WORKER_EXECUTE, async (_event, request: WorkerRequest) => {
@@ -1543,6 +1642,18 @@ ${useFileAssociation ? `    const normalized = normalizeRecentFilePath(filePath)
     return clearRecentFiles();
   });
 
+` : ''}${useCrashRecovery ? `  ipcMain.handle(IPC_CHANNELS.CRASH_RECOVERY_GET_STATE, async () => {
+    return getCrashRecoveryState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.CRASH_RECOVERY_CLEAR, async () => {
+    return clearCrashRecoveryState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.CRASH_RECOVERY_RELAUNCH, async () => {
+    return relaunchFromCrashRecovery();
+  });
+
 ` : ''}  logger.info('IPC handlers registered');
 }
 
@@ -1587,6 +1698,16 @@ ${useWindowing ? `  const persistWindowState = () => {
   mainWindow.on('maximize', persistWindowState);
   mainWindow.on('unmaximize', persistWindowState);
 ` : ''}
+${useCrashRecovery ? `  mainWindow.webContents.on('render-process-gone', (_event, details) => {
+    void recordCrashIncident('renderer', details.reason, getCrashDetails({
+      exitCode: details.exitCode,
+    }));
+  });
+
+  mainWindow.on('unresponsive', () => {
+    void recordCrashIncident('window', 'unresponsive', 'Main window stopped responding.');
+  });
+` : ''}
 
   if (isDev && process.env['VITE_DEV_SERVER_URL']) {
     mainWindow.loadURL(process.env['VITE_DEV_SERVER_URL']);
@@ -1630,9 +1751,18 @@ ${useWindowing || useDeepLink ? `    if (mainWindow.isMinimized()) {
   captureAssociatedFile(filePath, 'open-file');
 });
 
+` : ''}${useCrashRecovery ? `app.on('child-process-gone', (_event, details) => {
+  void recordCrashIncident('child-process', details.reason, getCrashDetails({
+    type: details.type,
+    name: details.name,
+    serviceName: details.serviceName,
+    exitCode: details.exitCode,
+  }));
+});
+
 ` : ''}app.whenReady().then(async () => {
   logger.info('App starting', { isDev, appRoot });
-${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}${useRecentFiles ? '  await loadRecentFiles();\n' : ''}  registerIpcHandlers();
+${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}${useRecentFiles ? '  await loadRecentFiles();\n' : ''}${useCrashRecovery ? '  await loadCrashRecoveryState();\n' : ''}  registerIpcHandlers();
 ${useDeepLink ? "  captureDeepLink(findProtocolArg(process.argv));\n" : ''}${useFileAssociation ? "  captureAssociatedFile(findAssociatedFileArg(process.argv), 'startup-argv');\n" : ''}  createWindow();
 ${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();\n' : ''}${useGlobalShortcut ? '  registerStarterShortcut();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
     setTimeout(() => {
@@ -1672,6 +1802,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useFileAssociation = features.includes('file-association');
   const useFileDialogs = features.includes('file-dialogs');
   const useRecentFiles = features.includes('recent-files');
+  const useCrashRecovery = features.includes('crash-recovery');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -1752,6 +1883,11 @@ ${useSettings ? `  settings: {
     open: (filePath: string) => ipcRenderer.invoke(IPC_CHANNELS.RECENT_FILES_OPEN, filePath),
     clear: () => ipcRenderer.invoke(IPC_CHANNELS.RECENT_FILES_CLEAR),
   },
+` : ''}${useCrashRecovery ? `  crashRecovery: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.CRASH_RECOVERY_GET_STATE),
+    clear: () => ipcRenderer.invoke(IPC_CHANNELS.CRASH_RECOVERY_CLEAR),
+    relaunch: () => ipcRenderer.invoke(IPC_CHANNELS.CRASH_RECOVERY_RELAUNCH),
+  },
 ` : ''}};
 
 contextBridge.exposeInMainWorld('api', api);
@@ -1780,6 +1916,7 @@ function getFeatureStudioSource(
   const useFileAssociation = features.includes('file-association');
   const useFileDialogs = features.includes('file-dialogs');
   const useRecentFiles = features.includes('recent-files');
+  const useCrashRecovery = features.includes('crash-recovery');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
@@ -1863,6 +2000,16 @@ type RecentFilesState = {
   lastOpenedPath: string | null;
 };
 
+type CrashRecoveryState = {
+  hasIncident: boolean;
+  lastIncident: {
+    scope: 'renderer' | 'window' | 'child-process';
+    reason: string;
+    details: string | null;
+    timestamp: string;
+  } | null;
+};
+
 type ForgeDesktopAPI = {
   settings?: {
     get: () => Promise<${useSettings ? 'AppSettings' : 'unknown'}>;
@@ -1933,6 +2080,11 @@ type ForgeDesktopAPI = {
     open: (filePath: string) => Promise<RecentFilesState>;
     clear: () => Promise<RecentFilesState>;
   };
+  crashRecovery?: {
+    getState: () => Promise<CrashRecoveryState>;
+    clear: () => Promise<CrashRecoveryState>;
+    relaunch: () => Promise<CrashRecoveryState & { relaunching?: boolean }>;
+  };
 };
 
 function getDesktopApi(): ForgeDesktopAPI | undefined {
@@ -1960,6 +2112,7 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
   const [fileDialogDraft, setFileDialogDraft] = useState('${dialogSuggestedName}');
 ` : ''}${useRecentFiles ? `  const [recentFilesState, setRecentFilesState] = useState<RecentFilesState | null>(null);
   const [recentFileDraft, setRecentFileDraft] = useState('${dialogSuggestedName}');
+` : ''}${useCrashRecovery ? `  const [crashRecoveryState, setCrashRecoveryState] = useState<CrashRecoveryState | null>(null);
 ` : ''}${useDeepLink ? `  const [deepLinkState, setDeepLinkState] = useState<DeepLinkState | null>(null);
   const [deepLinkDraft, setDeepLinkDraft] = useState('${protocolScheme}://open?screen=home');
 ` : ''}  const featureNames = ${JSON.stringify(features)};
@@ -2087,6 +2240,31 @@ ${useSettings ? `  useEffect(() => {
         }
       } catch {
         // Ignore starter recent-files polling failures.
+      }
+    };
+
+    sync();
+    const timer = window.setInterval(sync, 3000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [api]);
+` : ''}${useCrashRecovery ? `
+  useEffect(() => {
+    if (!api?.crashRecovery?.getState) {
+      return undefined;
+    }
+
+    let active = true;
+    const sync = async () => {
+      try {
+        const next = await api.crashRecovery?.getState?.();
+        if (active && next) {
+          setCrashRecoveryState(next);
+        }
+      } catch {
+        // Ignore starter crash-recovery polling failures.
       }
     };
 
@@ -2580,6 +2758,37 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             </div>
           </div>
         </section>
+` : ''}${useCrashRecovery ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Crash Recovery</h3>
+              <p className="mt-1 text-xs text-slate-400">Capture starter renderer and child-process incidents so teams can inspect failures and relaunch cleanly without wiring recovery paths from scratch.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => clearCrashRecovery(api, setCrashRecoveryState)}
+                className="rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-200 hover:border-slate-500"
+              >
+                Clear incident
+              </button>
+              <button
+                onClick={() => relaunchCrashRecovery(api, setCrashRecoveryState)}
+                className="rounded-full border border-rose-500/40 px-3 py-1 text-xs font-medium text-rose-300 hover:border-rose-400 hover:text-rose-100"
+              >
+                Relaunch app
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <DiagnosticRow label="Incident Recorded" value={crashRecoveryState?.hasIncident ? 'yes' : 'no'} />
+            <DiagnosticRow label="Scope" value={crashRecoveryState?.lastIncident?.scope ?? 'none'} />
+            <DiagnosticRow label="Reason" value={crashRecoveryState?.lastIncident?.reason ?? 'no incidents captured'} />
+            <DiagnosticRow label="Timestamp" value={crashRecoveryState?.lastIncident?.timestamp ?? 'not available'} />
+          </div>
+          {crashRecoveryState?.lastIncident?.details && (
+            <p className="mt-2 break-all text-xs text-amber-200">{crashRecoveryState.lastIncident.details}</p>
+          )}
+        </section>
 ` : ''}${usePlugins ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length === 1 ? 'md:col-span-2' : ''}">
           <h3 className="text-sm font-semibold text-white">Plugin Registry</h3>
           <p className="mt-1 text-xs text-slate-400">Sample plugin slots are ready for feature-oriented modules.</p>
@@ -2824,7 +3033,36 @@ async function clearRecentFilesState(
     // Ignore starter recent-files failures.
   }
 }
-` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles ? `
+` : ''}${useCrashRecovery ? `
+
+async function clearCrashRecovery(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: CrashRecoveryState) => void,
+) {
+  try {
+    const next = await api?.crashRecovery?.clear?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter crash-recovery failures.
+  }
+}
+
+async function relaunchCrashRecovery(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: CrashRecoveryState) => void,
+) {
+  try {
+    const next = await api?.crashRecovery?.relaunch?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter crash-recovery failures.
+  }
+}
+` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

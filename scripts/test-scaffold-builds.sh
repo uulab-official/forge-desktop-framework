@@ -15,6 +15,7 @@ GLOBAL_SHORTCUT_APP="examples/__scaffold_test_global_shortcut__$$"
 FILE_ASSOCIATION_APP="examples/__scaffold_test_file_association__$$"
 FILE_DIALOGS_APP="examples/__scaffold_test_file_dialogs__$$"
 RECENT_FILES_APP="examples/__scaffold_test_recent_files__$$"
+CRASH_RECOVERY_APP="examples/__scaffold_test_crash_recovery__$$"
 LOCKFILE_BACKUP="$(mktemp)"
 
 cp pnpm-lock.yaml "$LOCKFILE_BACKUP"
@@ -25,7 +26,7 @@ cleanup() {
     for (const target of process.argv.slice(1)) {
       fs.rmSync(target, { recursive: true, force: true });
     }
-  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP" "$FILE_ASSOCIATION_APP" "$FILE_DIALOGS_APP" "$RECENT_FILES_APP"
+  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP" "$FILE_ASSOCIATION_APP" "$FILE_DIALOGS_APP" "$RECENT_FILES_APP" "$CRASH_RECOVERY_APP"
   cp "$LOCKFILE_BACKUP" pnpm-lock.yaml
   rm -f "$LOCKFILE_BACKUP"
 }
@@ -154,5 +155,16 @@ echo "==> Verifying recent-files smoke app"
 pnpm --dir "$RECENT_FILES_APP" release:check
 pnpm --dir "$RECENT_FILES_APP" typecheck
 pnpm --dir "$RECENT_FILES_APP" build
+
+echo "==> Scaffolding crash-recovery smoke app"
+node packages/create-forge-app/dist/index.js create "$CRASH_RECOVERY_APP" --template minimal --feature crash-recovery --yes --package-manager pnpm >/dev/null
+
+echo "==> Installing crash-recovery smoke app with workspace links"
+pnpm install --dir "$CRASH_RECOVERY_APP" --link-workspace-packages >/dev/null
+
+echo "==> Verifying crash-recovery smoke app"
+pnpm --dir "$CRASH_RECOVERY_APP" release:check
+pnpm --dir "$CRASH_RECOVERY_APP" typecheck
+pnpm --dir "$CRASH_RECOVERY_APP" build
 
 echo "Scaffold build verification passed."

@@ -95,7 +95,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature global-shortcut \
   --feature file-association \
   --feature file-dialogs \
-  --feature recent-files
+  --feature recent-files \
+  --feature crash-recovery
 ```
 
 Or use the bundled production starter preset:
@@ -142,6 +143,7 @@ Feature packs available on the `minimal` starter today:
 - `file-association` for starter file-open handling, preload bindings, and sample `electron-builder` file association metadata
 - `file-dialogs` for native open and save dialogs plus reveal-in-folder controls from the starter desktop shell
 - `recent-files` for a persistent recent document registry with starter reopen and clear controls
+- `crash-recovery` for starter renderer and child-process incident tracking with relaunch and clear controls
 
 Starter presets available today:
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`

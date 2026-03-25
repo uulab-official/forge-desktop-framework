@@ -50,6 +50,9 @@ export const IPC_CHANNELS = {
   RECENT_FILES_ADD: 'recent-files:add',
   RECENT_FILES_OPEN: 'recent-files:open',
   RECENT_FILES_CLEAR: 'recent-files:clear',
+  CRASH_RECOVERY_GET_STATE: 'crash-recovery:get-state',
+  CRASH_RECOVERY_CLEAR: 'crash-recovery:clear',
+  CRASH_RECOVERY_RELAUNCH: 'crash-recovery:relaunch',
 
   // Updates
   UPDATE_CHECK: 'update:check',

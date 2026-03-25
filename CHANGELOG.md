@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.20 (2026-03-25)
+
+### Crash-Recovery Feature Pack
+
+- Added a `crash-recovery` scaffold feature pack for the `minimal` starter
+- Generated apps now persist the last renderer, window unresponsive, or child-process incident under user data, expose starter clear and relaunch controls over preload IPC, and surface recovery status in `FeatureStudio`
+- Kept `crash-recovery` optional so teams can add incident tracking and relaunch flows without forcing recovery UI into every production starter
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated crash-recovery smoke app before any version bump
+
 ## 0.1.19 (2026-03-25)
 
 ### Recent-Files Feature Pack

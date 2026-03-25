@@ -68,7 +68,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature global-shortcut \
   --feature file-association \
   --feature file-dialogs \
-  --feature recent-files
+  --feature recent-files \
+  --feature crash-recovery
 ```
 
 Or preview the bundled production starter:
@@ -91,6 +92,7 @@ The generated project includes:
 - optional starter packs like `file-association` can also seed file-open handling and sample `electron-builder` file association metadata
 - optional starter packs like `file-dialogs` can also seed native open and save dialogs with reveal-in-folder controls
 - optional starter packs like `recent-files` can also seed a persistent recent document list that pairs naturally with file dialogs and file associations
+- optional starter packs like `crash-recovery` can also seed renderer and child-process incident capture with starter relaunch controls
 
 ## Step 3: Create Your First Action
 
