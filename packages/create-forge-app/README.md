@@ -72,7 +72,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature diagnostics \
   --feature notifications \
   --feature windowing \
-  --feature tray
+  --feature tray \
+  --feature deep-link
 ```
 
 Preset creation for the production starter:
@@ -126,6 +127,7 @@ Feature packs currently target the `minimal` template and add:
 - `notifications` for native desktop notifications and a starter control surface in the runtime shell
 - `windowing` for restored window bounds, single-instance focus, and starter window controls
 - `tray` for a starter system tray integration with show or hide controls
+- `deep-link` for starter protocol URL capture, preload bindings, and in-app deep-link inspection controls
 
 Starter presets currently target the `minimal` template:
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, and `windowing`

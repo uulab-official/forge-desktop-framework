@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.13 (2026-03-25)
+
+### Deep-Link Feature Pack
+
+- Added a `deep-link` scaffold feature pack for the `minimal` starter
+- Generated apps now capture protocol URLs through main-process handlers, expose deep-link state over preload IPC, and surface starter deep-link controls in `FeatureStudio`
+- Reused the single-instance window focus path for deep-link launches so repeated protocol opens route back into the existing desktop shell
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated deep-link smoke app before any version bump
+
 ## 0.1.12 (2026-03-25)
 
 ### Tray Feature Pack

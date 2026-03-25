@@ -694,9 +694,11 @@ function getMinimalElectronMainSource(
   const useNotifications = features.includes('notifications');
   const useWindowing = features.includes('windowing');
   const useTray = features.includes('tray');
+  const useDeepLink = features.includes('deep-link');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
+  const protocolScheme = `${toIdentifier(projectName)}`;
 
   return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray ? ', Menu, Tray, nativeImage' : ''} } from 'electron';
 import path from 'node:path';
@@ -887,6 +889,32 @@ function createTray() {
     toggleMainWindowVisibility();
   });
 }
+` : ''}${useDeepLink ? `
+let lastDeepLink: string | null = null;
+
+function captureDeepLink(url: string | null | undefined) {
+  if (!url) {
+    return getDeepLinkState();
+  }
+
+  if (!url.startsWith(${JSON.stringify(`${protocolScheme}://`)})) {
+    return getDeepLinkState();
+  }
+
+  lastDeepLink = url;
+  return getDeepLinkState();
+}
+
+function getDeepLinkState() {
+  return {
+    scheme: ${JSON.stringify(protocolScheme)},
+    lastUrl: lastDeepLink,
+  };
+}
+
+function findProtocolArg(args: string[]) {
+  return args.find((value) => value.startsWith(${JSON.stringify(`${protocolScheme}://`)})) ?? null;
+}
 ` : ''}
 function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.WORKER_EXECUTE, async (_event, request: WorkerRequest) => {
@@ -1003,6 +1031,14 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return toggleMainWindowVisibility();
   });
 
+` : ''}${useDeepLink ? `  ipcMain.handle(IPC_CHANNELS.DEEP_LINK_GET_LAST, async () => {
+    return getDeepLinkState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.DEEP_LINK_OPEN, async (_event, url: string) => {
+    return captureDeepLink(url);
+  });
+
 ` : ''}  logger.info('IPC handlers registered');
 }
 
@@ -1060,30 +1096,35 @@ ${useWindowing ? `  if (windowState.maximized) {
 ` : ''}
 }
 
-${useWindowing ? `const hasSingleInstanceLock = app.requestSingleInstanceLock();
+${useWindowing || useDeepLink ? `const hasSingleInstanceLock = app.requestSingleInstanceLock();
 
 if (!hasSingleInstanceLock) {
   app.quit();
 } else {
-  app.on('second-instance', () => {
-    if (!mainWindow) {
+  app.on('second-instance', (_event, argv) => {
+${useDeepLink ? '    captureDeepLink(findProtocolArg(argv));\n' : ''}    if (!mainWindow) {
       createWindow();
       return;
     }
 
-    if (mainWindow.isMinimized()) {
+${useWindowing || useDeepLink ? `    if (mainWindow.isMinimized()) {
       mainWindow.restore();
     }
 
     mainWindow.show();
     mainWindow.focus();
-  });
+` : ''}  });
 }
+
+` : ''}${useDeepLink ? `app.on('open-url', (event, url) => {
+  event.preventDefault();
+  captureDeepLink(url);
+});
 
 ` : ''}app.whenReady().then(async () => {
   logger.info('App starting', { isDev, appRoot });
 ${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}  registerIpcHandlers();
-  createWindow();
+${useDeepLink ? "  captureDeepLink(findProtocolArg(process.argv));\n" : ''}  createWindow();
 ${useTray ? '  createTray();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
     setTimeout(() => {
       updater.checkForUpdates().catch(() => {
@@ -1115,6 +1156,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useNotifications = features.includes('notifications');
   const useWindowing = features.includes('windowing');
   const useTray = features.includes('tray');
+  const useDeepLink = features.includes('deep-link');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -1162,6 +1204,10 @@ ${useSettings ? `  settings: {
     getStatus: () => ipcRenderer.invoke(IPC_CHANNELS.TRAY_STATUS_GET),
     toggleWindow: () => ipcRenderer.invoke(IPC_CHANNELS.TRAY_TOGGLE_WINDOW),
   },
+` : ''}${useDeepLink ? `  deepLink: {
+    getLast: () => ipcRenderer.invoke(IPC_CHANNELS.DEEP_LINK_GET_LAST),
+    open: (url: string) => ipcRenderer.invoke(IPC_CHANNELS.DEEP_LINK_OPEN, url),
+  },
 ` : ''}};
 
 contextBridge.exposeInMainWorld('api', api);
@@ -1183,7 +1229,9 @@ function getFeatureStudioSource(
   const useNotifications = features.includes('notifications');
   const useWindowing = features.includes('windowing');
   const useTray = features.includes('tray');
+  const useDeepLink = features.includes('deep-link');
   const displayName = resolveProductName(projectName, metadata);
+  const protocolScheme = `${toIdentifier(projectName)}`;
 
   return `import { useEffect, useState } from 'react';
 ${useSettings || useJobs ? `import type { ${[useSettings ? 'AppSettings' : '', useJobs ? 'JobDefinition' : ''].filter(Boolean).join(', ')} } from '@forge/ipc-contract';\n` : ''}${usePlugins ? "import { forgeFeaturePlugins } from './plugins';\n" : ''}
@@ -1217,6 +1265,11 @@ type WindowStateSummary = {
 type TrayStatus = {
   enabled: boolean;
   windowVisible: boolean;
+};
+
+type DeepLinkState = {
+  scheme: string;
+  lastUrl: string | null;
 };
 
 type ForgeDesktopAPI = {
@@ -1256,6 +1309,10 @@ type ForgeDesktopAPI = {
     getStatus: () => Promise<TrayStatus>;
     toggleWindow: () => Promise<TrayStatus>;
   };
+  deepLink?: {
+    getLast: () => Promise<DeepLinkState>;
+    open: (url: string) => Promise<DeepLinkState>;
+  };
 };
 
 function getDesktopApi(): ForgeDesktopAPI | undefined {
@@ -1274,6 +1331,8 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
   const [notificationState, setNotificationState] = useState<'idle' | 'sent' | 'unsupported'>('idle');
 ` : ''}${useWindowing ? `  const [windowState, setWindowState] = useState<WindowStateSummary | null>(null);
 ` : ''}${useTray ? `  const [trayStatus, setTrayStatus] = useState<TrayStatus | null>(null);
+` : ''}${useDeepLink ? `  const [deepLinkState, setDeepLinkState] = useState<DeepLinkState | null>(null);
+  const [deepLinkDraft, setDeepLinkDraft] = useState('${protocolScheme}://open?screen=home');
 ` : ''}  const featureNames = ${JSON.stringify(features)};
 
 ${useSettings ? `  useEffect(() => {
@@ -1346,6 +1405,12 @@ ${useSettings ? `  useEffect(() => {
   useEffect(() => {
     api?.tray?.getStatus?.().then((next) => {
       setTrayStatus(next);
+    }).catch(() => {});
+  }, [api]);
+` : ''}${useDeepLink ? `
+  useEffect(() => {
+    api?.deepLink?.getLast?.().then((next) => {
+      setDeepLinkState(next);
     }).catch(() => {});
   }, [api]);
 ` : ''}  return (
@@ -1593,6 +1658,35 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             <DiagnosticRow label="Window Visible" value={trayStatus?.windowVisible ? 'yes' : 'no'} />
           </div>
         </section>
+` : ''}${useDeepLink ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Deep Links</h3>
+              <p className="mt-1 text-xs text-slate-400">Capture app protocol URLs and simulate link-driven navigation flows during development.</p>
+            </div>
+            <button
+              onClick={() => openDeepLink(api, deepLinkDraft, setDeepLinkState)}
+              className="rounded-full border border-lime-500/40 px-3 py-1 text-xs font-medium text-lime-300 hover:border-lime-400 hover:text-lime-100"
+            >
+              Open link
+            </button>
+          </div>
+          <div className="mt-3 space-y-3">
+            <label className="block text-xs text-slate-400">
+              Protocol URL
+              <input
+                type="text"
+                value={deepLinkDraft}
+                onChange={(event) => setDeepLinkDraft(event.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+            </label>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <DiagnosticRow label="Scheme" value={deepLinkState?.scheme ?? '${protocolScheme}'} />
+              <DiagnosticRow label="Last URL" value={deepLinkState?.lastUrl ?? 'none captured yet'} />
+            </div>
+          </div>
+        </section>
 ` : ''}${usePlugins ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length === 1 ? 'md:col-span-2' : ''}">
           <h3 className="text-sm font-semibold text-white">Plugin Registry</h3>
           <p className="mt-1 text-xs text-slate-400">Sample plugin slots are ready for feature-oriented modules.</p>
@@ -1688,7 +1782,23 @@ async function toggleTrayWindow(
     // Ignore starter tray failures.
   }
 }
-` : ''}${useDiagnostics || useWindowing || useTray ? `
+` : ''}${useDeepLink ? `
+
+async function openDeepLink(
+  api: ForgeDesktopAPI | undefined,
+  url: string,
+  setState: (next: DeepLinkState) => void,
+) {
+  try {
+    const next = await api?.deepLink?.open?.(url);
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter deep-link failures.
+  }
+}
+` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

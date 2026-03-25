@@ -8,6 +8,7 @@ cd "$ROOT_DIR"
 MINIMAL_APP="examples/__scaffold_test_minimal__$$"
 LAUNCH_READY_APP="examples/__scaffold_test_launch_ready__$$"
 TRAY_APP="examples/__scaffold_test_tray__$$"
+DEEP_LINK_APP="examples/__scaffold_test_deep_link__$$"
 LOCKFILE_BACKUP="$(mktemp)"
 
 cp pnpm-lock.yaml "$LOCKFILE_BACKUP"
@@ -18,7 +19,7 @@ cleanup() {
     for (const target of process.argv.slice(1)) {
       fs.rmSync(target, { recursive: true, force: true });
     }
-  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP"
+  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP"
   cp "$LOCKFILE_BACKUP" pnpm-lock.yaml
   rm -f "$LOCKFILE_BACKUP"
 }
@@ -70,5 +71,16 @@ echo "==> Verifying tray smoke app"
 pnpm --dir "$TRAY_APP" release:check
 pnpm --dir "$TRAY_APP" typecheck
 pnpm --dir "$TRAY_APP" build
+
+echo "==> Scaffolding deep-link smoke app"
+node packages/create-forge-app/dist/index.js create "$DEEP_LINK_APP" --template minimal --feature deep-link --yes --package-manager pnpm >/dev/null
+
+echo "==> Installing deep-link smoke app with workspace links"
+pnpm install --dir "$DEEP_LINK_APP" --link-workspace-packages >/dev/null
+
+echo "==> Verifying deep-link smoke app"
+pnpm --dir "$DEEP_LINK_APP" release:check
+pnpm --dir "$DEEP_LINK_APP" typecheck
+pnpm --dir "$DEEP_LINK_APP" build
 
 echo "Scaffold build verification passed."

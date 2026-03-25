@@ -61,7 +61,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature diagnostics \
   --feature notifications \
   --feature windowing \
-  --feature tray
+  --feature tray \
+  --feature deep-link
 ```
 
 Or preview the bundled production starter:

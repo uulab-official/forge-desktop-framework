@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -62,6 +62,12 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     id: 'tray',
     label: 'Tray',
     description: 'Seed a system tray integration with show or hide controls and a starter context menu',
+    minimalOnly: true,
+  },
+  {
+    id: 'deep-link',
+    label: 'Deep Link',
+    description: 'Seed a protocol handler surface with starter capture and simulation controls',
     minimalOnly: true,
   },
 ];
