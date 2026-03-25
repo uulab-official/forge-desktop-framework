@@ -2,6 +2,10 @@
 
 Build your first Forge Desktop app in 10 minutes.
 
+This guide covers the **current stable path**: running Forge from the monorepo and learning from the reference app.
+
+If you specifically want the scaffold CLI, start with [packages/create-forge-app/README.md](../packages/create-forge-app/README.md). The CLI is real, but the monorepo is still the most complete path today.
+
 ## What You'll Build
 
 A desktop app where you type text, click a button, and Python processes it. The result appears in the UI instantly.
@@ -23,7 +27,7 @@ pnpm install
 pip3 install -e packages/worker-runtime
 ```
 
-## Step 2: Run the App
+## Step 2: Run the Reference App
 
 ```bash
 ./scripts/dev.sh
@@ -35,6 +39,45 @@ An Electron window opens with:
 - **Settings** — app configuration
 
 Click **Health Check**. You should see a green success response with Python version info. That's the full round-trip: React → Electron → Python → back.
+
+## Optional: Preview The Scaffold CLI
+
+If you want to inspect the upcoming app-creation flow:
+
+```bash
+pnpm --filter create-forge-desktop build
+cd packages/create-forge-app
+node dist/create.js my-forge-app --template minimal
+```
+
+To preview the release-oriented feature packs on the `minimal` starter:
+
+```bash
+node dist/index.js create my-forge-app --template minimal \
+  --feature settings \
+  --feature updater \
+  --feature jobs \
+  --feature plugins \
+  --feature diagnostics
+```
+
+Or preview the bundled production starter:
+
+```bash
+node dist/index.js create my-forge-app --template minimal \
+  --preset launch-ready
+```
+
+That generates a starter app from one of the template snapshots under `packages/create-forge-app/templates/`.
+
+The generated project includes:
+- vendored `worker/forge_worker` runtime code
+- a standalone `README.md`
+- default `electron-builder` config
+- `.env.example`, `docs/release-playbook.md`, and `pnpm release:check`
+- GitHub Actions workflows for validation and tagged releases
+- packaging scripts for the worker and the desktop app
+- a renderer baseline with `ForgeErrorBoundary` and a floating log dock
 
 ## Step 3: Create Your First Action
 
@@ -150,3 +193,4 @@ Users double-click to install. Python is bundled inside — no Python installati
 - **[IPC Patterns](ipc-patterns.md)** — streaming, progress, events
 - **[API Reference](api-reference.md)** — package APIs
 - **[Deployment Guide](deployment.md)** — CI/CD, auto-update, code signing
+- **[create-forge-desktop README](../packages/create-forge-app/README.md)** — scaffold CLI notes and template workflow

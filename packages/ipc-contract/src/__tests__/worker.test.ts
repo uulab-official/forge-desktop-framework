@@ -26,6 +26,7 @@ describe('IPC_CHANNELS', () => {
     expect(IPC_CHANNELS.WORKER_EXECUTE).toBe('worker:execute');
     expect(IPC_CHANNELS.JOB_SUBMIT).toBe('job:submit');
     expect(IPC_CHANNELS.SETTINGS_GET).toBe('settings:get');
+    expect(IPC_CHANNELS.DIAGNOSTICS_SUMMARY).toBe('diagnostics:summary');
     expect(IPC_CHANNELS.UPDATE_CHECK).toBe('update:check');
   });
 });

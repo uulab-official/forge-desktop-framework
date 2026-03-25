@@ -6,6 +6,7 @@ import { buildCommand } from './commands/build.js';
 import { releaseCommand } from './commands/release.js';
 import { publishCommand } from './commands/publish.js';
 import { devCommand } from './commands/dev.js';
+import { doctorCommand } from './commands/doctor.js';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,8 +25,48 @@ program
   .command('create [name]')
   .description('Scaffold a new Forge Desktop app')
   .option('-t, --template <template>', 'Template to use')
-  .action(async (name: string | undefined, opts: { template?: string }) => {
+  .option('--list', 'List available templates')
+  .option('--list-features', 'List available feature packs')
+  .option('--list-presets', 'List available starter presets')
+  .option('-f, --feature <feature>', 'Enable a feature pack (repeatable)', (value, acc: string[]) => {
+    acc.push(value);
+    return acc;
+  }, [])
+  .option('-p, --preset <preset>', 'Enable a starter preset (repeatable)', (value, acc: string[]) => {
+    acc.push(value);
+    return acc;
+  }, [])
+  .option('--product-name <name>', 'Override the generated desktop product name')
+  .option('--app-id <id>', 'Override the generated Electron appId')
+  .option('--github-owner <owner>', 'Seed the default GitHub release owner')
+  .option('--github-repo <repo>', 'Seed the default GitHub release repository')
+  .option('-y, --yes', 'Use defaults for any missing prompts')
+  .option('--package-manager <pm>', 'Override package manager hint (pnpm, npm, yarn)')
+  .action(async (
+    name: string | undefined,
+    opts: {
+      template?: string;
+      list?: boolean;
+      listFeatures?: boolean;
+      listPresets?: boolean;
+      feature?: string[];
+      preset?: string[];
+      productName?: string;
+      appId?: string;
+      githubOwner?: string;
+      githubRepo?: string;
+      yes?: boolean;
+      packageManager?: string;
+    },
+  ) => {
     await createCommand(name, opts);
+  });
+
+program
+  .command('doctor')
+  .description('Check whether your local environment is ready for Forge')
+  .action(async () => {
+    await doctorCommand();
   });
 
 program

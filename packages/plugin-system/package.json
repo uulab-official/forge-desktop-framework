@@ -1,10 +1,14 @@
 {
   "name": "@forge/plugin-system",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.1.9",
+  "description": "Plugin registry and lifecycle helpers for Forge Desktop apps",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -12,7 +16,7 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -b tsconfig.json --force",
     "dev": "tsc -p tsconfig.json --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -23,5 +27,25 @@
   },
   "devDependencies": {
     "typescript": "^5.8.0"
-  }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uulab-official/forge-desktop-framework.git",
+    "directory": "packages/plugin-system"
+  },
+  "homepage": "https://github.com/uulab-official/forge-desktop-framework",
+  "bugs": {
+    "url": "https://github.com/uulab-official/forge-desktop-framework/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "forge",
+    "plugin",
+    "registry",
+    "electron",
+    "desktop"
+  ]
 }

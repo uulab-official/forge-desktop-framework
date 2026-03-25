@@ -12,6 +12,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$SCRIPT_DIR/.."
 cd "$ROOT_DIR"
 
+echo "Running scaffold build verification before version bump..."
+bash scripts/test-scaffold-builds.sh
+echo ""
+
 # Get current version
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "Current version: $CURRENT_VERSION"
@@ -34,8 +38,26 @@ pkg.version = '$NEW_VERSION';
 fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
 "
 
+node -e "
+const fs = require('fs');
+
+const pyprojectPath = 'packages/worker-runtime/pyproject.toml';
+const pyproject = fs.readFileSync(pyprojectPath, 'utf8').replace(
+  /version = \"[^\"]+\"/,
+  'version = \"$NEW_VERSION\"'
+);
+fs.writeFileSync(pyprojectPath, pyproject);
+
+const setupPath = 'packages/worker-runtime/setup.py';
+const setupPy = fs.readFileSync(setupPath, 'utf8').replace(
+  /version=\"[^\"]+\"/,
+  'version=\"$NEW_VERSION\"'
+);
+fs.writeFileSync(setupPath, setupPy);
+"
+
 # Update all workspace packages
-for pkg_json in packages/*/package.json apps/*/package.json; do
+for pkg_json in packages/*/package.json apps/*/package.json examples/*/package.json; do
   if [ -f "$pkg_json" ]; then
     node -e "
     const fs = require('fs');
@@ -46,6 +68,8 @@ for pkg_json in packages/*/package.json apps/*/package.json; do
     echo "Updated $pkg_json → $NEW_VERSION"
   fi
 done
+
+bash scripts/check-versions.sh
 
 echo ""
 echo "Version bumped to $NEW_VERSION"

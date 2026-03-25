@@ -1,7 +1,7 @@
 {
   "name": "forge-desktop-framework",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.9",
   "description": "Open source local-engine desktop app framework — Electron + Python Worker",
   "license": "MIT",
   "repository": {
@@ -34,6 +34,8 @@
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
+    "scaffold:test": "bash scripts/test-scaffold-builds.sh",
+    "version:check": "bash scripts/check-versions.sh",
     "clean": "turbo run clean"
   },
   "devDependencies": {

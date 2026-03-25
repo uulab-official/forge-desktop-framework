@@ -20,13 +20,18 @@ Build apps like: video editors, AI tools, OCR scanners, data dashboards, automat
 
 ## Quick Start
 
+Today there are two practical ways to start with Forge:
+
+- **Build an app from the reference repo**: best path right now if you want to learn the framework end to end.
+- **Use the scaffold CLI in-repo**: best path if you are actively developing the framework and its templates.
+
 ### Prerequisites
 
 - [Node.js 20+](https://nodejs.org/)
 - [pnpm 10+](https://pnpm.io/) (`npm install -g pnpm`)
 - [Python 3.12+](https://www.python.org/)
 
-### Setup
+### Path 1: Run The Framework From Source
 
 ```bash
 git clone https://github.com/uulab-official/forge-desktop-framework.git
@@ -35,7 +40,7 @@ pnpm install
 pip3 install -e packages/worker-runtime
 ```
 
-### Run
+### Run The Reference App
 
 ```bash
 ./scripts/dev.sh
@@ -46,6 +51,80 @@ This one command:
 2. Starts Vite dev server
 3. Launches Electron
 4. Python worker spawns on-demand when you click a button
+
+### Path 2: Use The Scaffold CLI From This Repo
+
+The scaffold package lives in `packages/create-forge-app/` and publishes the `create-forge-desktop` / `forge-desktop` binaries.
+
+Current status:
+- the CLI itself is real and works in this repo
+- template content is synced from `examples/`
+- core `@forge/*` package manifests are now shaped for external distribution
+- the monorepo is still the primary integration path until package publishing is fully automated
+- generated apps now receive a default packaging preset and vendored worker runtime
+- generated apps now receive release automation scaffolding for validation and tagged publishing
+
+Repo-local preview:
+
+```bash
+git clone https://github.com/uulab-official/forge-desktop-framework.git
+cd forge-desktop-framework
+pnpm install
+pip3 install -e packages/worker-runtime
+pnpm --filter create-forge-desktop build
+
+cd packages/create-forge-app
+node dist/create.js my-forge-app --template minimal
+```
+
+Feature-pack preview for the `minimal` starter:
+
+```bash
+node dist/index.js create my-forge-app --template minimal \
+  --feature settings \
+  --feature updater \
+  --feature jobs \
+  --feature plugins \
+  --feature diagnostics
+```
+
+Or use the bundled production starter preset:
+
+```bash
+node dist/index.js create my-forge-app --template minimal \
+  --preset launch-ready
+```
+
+Release metadata can also be seeded during creation:
+
+```bash
+node dist/index.js create my-forge-app --template minimal \
+  --product-name "My Forge App" \
+  --app-id "com.acme.myforgeapp" \
+  --github-owner acme \
+  --github-repo my-forge-app
+```
+
+See [packages/create-forge-app/README.md](packages/create-forge-app/README.md) for the CLI-focused notes.
+
+What the scaffold now adds by default:
+- vendored `worker/forge_worker` runtime code
+- generated project README with setup and release steps
+- `electron-builder` config files for GitHub and S3/R2 publishing
+- local scripts for Python setup, worker bundling, and app packaging
+- `.env.example`, release preflight script, and a release playbook
+- GitHub Actions workflows for validation and tagged releases
+- renderer safety/diagnostics baseline with an error boundary and runtime log dock
+
+Feature packs available on the `minimal` starter today:
+- `settings` for persisted preferences and runtime controls
+- `updater` for packaged-build update checks via Forge updater IPC
+- `jobs` for queued background work and progress events
+- `plugins` for a seeded plugin registry and sample plugin slots
+- `diagnostics` for in-app environment snapshots and support bundle export
+
+Starter presets available today:
+- `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, and `diagnostics`
 
 ## How It Works
 
@@ -161,11 +240,15 @@ echo '{"action":"summarize","payload":{"text":"First. Second. Third."}}' | pytho
 ```bash
 # Development
 ./scripts/dev.sh                          # Start everything
+pnpm --filter create-forge-desktop build  # Build the scaffold CLI
 pnpm --filter @forge/app dev              # App only
 pnpm --filter @forge-example/chat dev     # Run an example
+node packages/create-forge-app/dist/index.js doctor
 pnpm build                                # Build all packages
 pnpm typecheck                            # Type check
 pnpm test                                 # Unit tests (vitest)
+pnpm scaffold:test                        # Scaffold minimal apps and verify install/typecheck/build
+pnpm version:check                        # Verify aligned workspace versions
 bash scripts/test-workers.sh              # Test all Python workers
 
 # Production

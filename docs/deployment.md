@@ -39,6 +39,45 @@ npm install -g create-forge-desktop
 | `forge publish --s3` | Build and publish to S3/R2 |
 | `forge dev [target]` | Start development mode |
 
+Scaffolded apps now include baseline packaging files:
+- `electron-builder.yml`
+- `electron-builder.s3.yml`
+- `build/entitlements.mac.plist`
+- `.env.example`
+- `.github/workflows/validate.yml`
+- `.github/workflows/release.yml`
+- `docs/release-playbook.md`
+- `scripts/setup-python.sh`
+- `scripts/build-worker.sh`
+- `scripts/build-app.sh`
+- `scripts/preflight-release.sh`
+
+Scaffolded apps also include:
+- `pnpm release:check` for local release preflight
+- tagged GitHub Actions publishing via `.github/workflows/release.yml`
+
+The `minimal` starter also supports feature packs during scaffolding:
+
+```bash
+forge create my-app --template minimal --feature settings --feature updater --feature diagnostics
+```
+
+For the fastest production baseline, use the preset:
+
+```bash
+forge create my-app --template minimal --preset launch-ready
+```
+
+You can also seed release metadata up front:
+
+```bash
+forge create my-app --template minimal \
+  --product-name "My App" \
+  --app-id "com.acme.myapp" \
+  --github-owner acme \
+  --github-repo my-app
+```
+
 ## Setting Up GitHub Actions Secrets
 
 Navigate to your repository **Settings > Secrets and variables > Actions** and add:
@@ -97,9 +136,18 @@ forge release patch    # or minor, major
 git push && git push --tags
 ```
 
+The repo release script now runs scaffold verification before the version bump. If you want to run the same check manually first, use:
+
+```bash
+pnpm scaffold:test
+```
+
 ### Build and Publish Locally
 
 ```bash
+# Verify local release prerequisites
+pnpm release:check
+
 # GitHub Releases
 export GH_TOKEN="your-github-token"
 forge publish
@@ -203,10 +251,10 @@ if (app.isPackaged) {
 For local testing without publishing:
 
 ```bash
-# Build the app
-forge build
+# Package the app locally
+pnpm --filter @forge/app package
 
-# The packaged app will be in app/release/
+# The packaged app will be in apps/app/release/
 # Install and run it to test
 ```
 

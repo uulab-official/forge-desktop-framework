@@ -1,10 +1,14 @@
 {
   "name": "@forge/ui-kit",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.1.9",
+  "description": "React UI components for Forge Desktop apps",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -12,7 +16,7 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -b tsconfig.json --force",
     "dev": "tsc -p tsconfig.json --watch",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist .tsbuildinfo"
@@ -27,5 +31,25 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "typescript": "^5.8.0"
-  }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uulab-official/forge-desktop-framework.git",
+    "directory": "packages/ui-kit"
+  },
+  "homepage": "https://github.com/uulab-official/forge-desktop-framework",
+  "bugs": {
+    "url": "https://github.com/uulab-official/forge-desktop-framework/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "forge",
+    "react",
+    "components",
+    "ui-kit",
+    "desktop"
+  ]
 }

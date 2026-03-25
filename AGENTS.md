@@ -1,0 +1,43 @@
+# forge-desktop-framework
+
+## Purpose
+Forge is a framework product, not just a monorepo. Keep the public story aligned across:
+- `docs/`
+- `packages/create-forge-app/`
+- `examples/`
+- `scripts/`
+
+If a change affects onboarding, packaging, scaffolding, or examples, update the matching docs and CLI behavior in the same pass.
+
+## Repo Map
+- `apps/app/` — reference Electron app
+- `apps/worker/` — reference Python worker
+- `packages/` — reusable framework packages
+- `packages/create-forge-app/` — public CLI (`create-forge-desktop`, `forge-desktop`)
+- `examples/` — source of truth for scaffold templates
+- `docs/` — product documentation
+- `scripts/` — monorepo automation
+
+## Working Rules
+- Prefer changing `examples/` first when the scaffolded app behavior should change.
+- Treat `packages/create-forge-app/templates/` as generated copies. Sync them from `examples/` with `scripts/sync-templates.sh`.
+- Keep terms consistent. If docs say a package or workflow is "official", the code should already support it.
+- When touching build, release, or publish flows, verify actual paths under `apps/`, `packages/`, and `examples/` rather than assuming old monorepo layouts.
+- Framework-facing work should bump the repo version. Default to `./scripts/release.sh patch` unless the change clearly needs `minor` or `major`.
+- Never bump the framework version before running scaffold build verification. Use `bash scripts/test-scaffold-builds.sh` or the release script, which now runs it automatically.
+
+## Validation
+- Framework-wide checks: `pnpm build`, `pnpm typecheck`
+- CLI package: `pnpm --filter create-forge-desktop build`
+- Scaffold verification: `bash scripts/test-scaffold-builds.sh`
+- Reference app: `pnpm --filter @forge/app build`
+- Python worker smoke test: `bash scripts/test-workers.sh`
+
+## Codex Notes
+- Codex reads `AGENTS.md` from the repo. Use this file for the short operational contract.
+- Repo-local playbooks live in `.codex/`.
+- Start with `.codex/project.md` for framework priorities.
+- Open the matching skill when the task fits:
+  - `.codex/skills/forge-framework-maintainer/SKILL.md`
+  - `.codex/skills/forge-template-workflow/SKILL.md`
+  - `.codex/skills/forge-release-workflow/SKILL.md`

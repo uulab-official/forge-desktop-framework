@@ -61,3 +61,7 @@ export const TEMPLATES: Template[] = [
     hint: 'Matrix multiply shader, GPU vs CPU benchmark, heatmap',
   },
 ];
+
+export function getTemplateById(templateId: string): Template | undefined {
+  return TEMPLATES.find((template) => template.id === templateId);
+}

@@ -114,7 +114,7 @@ export async function publishCommand(opts: { s3?: boolean; github?: boolean; ski
 
     const bucket = process.env['S3_BUCKET']!;
     const endpoint = process.env['S3_ENDPOINT']!;
-    const releaseDir = resolve(root, 'app/release');
+    const releaseDir = resolve(root, 'apps/app/release');
     const region = process.env['AWS_REGION'] || 'auto';
 
     // Get version from package.json
@@ -124,15 +124,15 @@ export async function publishCommand(opts: { s3?: boolean; github?: boolean; ski
     const version = `v${rootPkg.version}`;
 
     try {
-      if (!existsSync(releaseDir)) {
-        throw new Error(`Release directory not found: ${releaseDir}. Run build first.`);
-      }
-
       // Build with S3 config
       run(
         'pnpm --filter @forge/app package -- -c electron-builder.s3.yml',
         root,
       );
+
+      if (!existsSync(releaseDir)) {
+        throw new Error(`Release directory not found after packaging: ${releaseDir}`);
+      }
 
       // Sync release artifacts to S3
       run(

@@ -23,6 +23,8 @@ export const IPC_CHANNELS = {
 
   // Logs
   LOG_ENTRY: 'log:entry',
+  DIAGNOSTICS_SUMMARY: 'diagnostics:summary',
+  DIAGNOSTICS_EXPORT: 'diagnostics:export',
 
   // Updates
   UPDATE_CHECK: 'update:check',

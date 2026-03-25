@@ -48,6 +48,10 @@ jobs:
           bash scripts/sync-templates.sh
           git diff --exit-code packages/create-forge-app/templates/ || (echo "Templates out of sync! Run scripts/sync-templates.sh" && exit 1)
 
+      - name: Verify scaffolded app builds
+        if: matrix.os == 'ubuntu-latest'
+        run: pnpm scaffold:test
+
   python:
     runs-on: ubuntu-latest
     steps:

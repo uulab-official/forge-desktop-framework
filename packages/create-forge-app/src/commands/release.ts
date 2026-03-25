@@ -1,5 +1,5 @@
 import { execSync } from 'node:child_process';
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
@@ -24,6 +24,27 @@ function writePkgVersion(filePath: string, version: string): void {
   const pkg = JSON.parse(readFileSync(filePath, 'utf-8'));
   pkg.version = version;
   writeFileSync(filePath, JSON.stringify(pkg, null, 2) + '\n', 'utf-8');
+}
+
+function collectWorkspacePackageJsons(root: string): string[] {
+  const packageJsons: string[] = [];
+
+  for (const dir of ['packages', 'apps', 'examples']) {
+    const fullDir = join(root, dir);
+    if (!existsSync(fullDir)) continue;
+
+    const entries = readdirSync(fullDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+
+      const pkgPath = join(fullDir, entry.name, 'package.json');
+      if (existsSync(pkgPath)) {
+        packageJsons.push(pkgPath);
+      }
+    }
+  }
+
+  return packageJsons;
 }
 
 function bumpVersion(current: string, type: 'patch' | 'minor' | 'major'): string {
@@ -87,33 +108,11 @@ export async function releaseCommand(type?: string) {
   writePkgVersion(rootPkgPath, newVersion);
 
   // Update all workspace package.json files
-  const packageDirs = ['packages', 'app'];
   let updatedCount = 1; // root already updated
 
-  for (const dir of packageDirs) {
-    const fullDir = join(root, dir);
-    if (!existsSync(fullDir)) continue;
-
-    if (dir === 'app') {
-      const pkgPath = join(fullDir, 'package.json');
-      if (existsSync(pkgPath)) {
-        writePkgVersion(pkgPath, newVersion);
-        updatedCount++;
-      }
-    } else {
-      // Scan subdirectories
-      const { readdirSync } = await import('node:fs');
-      const entries = readdirSync(fullDir, { withFileTypes: true });
-      for (const entry of entries) {
-        if (entry.isDirectory()) {
-          const pkgPath = join(fullDir, entry.name, 'package.json');
-          if (existsSync(pkgPath)) {
-            writePkgVersion(pkgPath, newVersion);
-            updatedCount++;
-          }
-        }
-      }
-    }
+  for (const pkgPath of collectWorkspacePackageJsons(root)) {
+    writePkgVersion(pkgPath, newVersion);
+    updatedCount++;
   }
 
   s.stop(pc.green(`Updated ${updatedCount} package.json files`));
