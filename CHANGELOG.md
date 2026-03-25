@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.15 (2026-03-25)
+
+### Auto-Launch Feature Pack
+
+- Added an `auto-launch` scaffold feature pack for the `minimal` starter
+- Generated apps now expose login-item status and on/off controls through preload IPC so packaged desktop apps can toggle start-on-login from `FeatureStudio`
+- Kept `auto-launch` optional so launch behavior remains product-specific while still shipping as a first-party starter capability
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated auto-launch smoke app before any version bump
+
 ## 0.1.14 (2026-03-25)
 
 ### Menu-Bar Feature Pack

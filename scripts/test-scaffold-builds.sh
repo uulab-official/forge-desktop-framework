@@ -10,6 +10,7 @@ LAUNCH_READY_APP="examples/__scaffold_test_launch_ready__$$"
 TRAY_APP="examples/__scaffold_test_tray__$$"
 DEEP_LINK_APP="examples/__scaffold_test_deep_link__$$"
 MENU_BAR_APP="examples/__scaffold_test_menu_bar__$$"
+AUTO_LAUNCH_APP="examples/__scaffold_test_auto_launch__$$"
 LOCKFILE_BACKUP="$(mktemp)"
 
 cp pnpm-lock.yaml "$LOCKFILE_BACKUP"
@@ -20,7 +21,7 @@ cleanup() {
     for (const target of process.argv.slice(1)) {
       fs.rmSync(target, { recursive: true, force: true });
     }
-  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP"
+  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP"
   cp "$LOCKFILE_BACKUP" pnpm-lock.yaml
   rm -f "$LOCKFILE_BACKUP"
 }
@@ -94,5 +95,16 @@ echo "==> Verifying menu-bar smoke app"
 pnpm --dir "$MENU_BAR_APP" release:check
 pnpm --dir "$MENU_BAR_APP" typecheck
 pnpm --dir "$MENU_BAR_APP" build
+
+echo "==> Scaffolding auto-launch smoke app"
+node packages/create-forge-app/dist/index.js create "$AUTO_LAUNCH_APP" --template minimal --feature auto-launch --yes --package-manager pnpm >/dev/null
+
+echo "==> Installing auto-launch smoke app with workspace links"
+pnpm install --dir "$AUTO_LAUNCH_APP" --link-workspace-packages >/dev/null
+
+echo "==> Verifying auto-launch smoke app"
+pnpm --dir "$AUTO_LAUNCH_APP" release:check
+pnpm --dir "$AUTO_LAUNCH_APP" typecheck
+pnpm --dir "$AUTO_LAUNCH_APP" build
 
 echo "Scaffold build verification passed."

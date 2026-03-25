@@ -35,6 +35,8 @@ export const IPC_CHANNELS = {
   DEEP_LINK_OPEN: 'deep-link:open',
   MENU_STATE_GET: 'menu:get-state',
   MENU_REBUILD: 'menu:rebuild',
+  AUTO_LAUNCH_GET_STATUS: 'auto-launch:get-status',
+  AUTO_LAUNCH_SET_ENABLED: 'auto-launch:set-enabled',
 
   // Updates
   UPDATE_CHECK: 'update:check',

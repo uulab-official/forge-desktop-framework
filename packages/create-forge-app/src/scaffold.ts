@@ -696,6 +696,7 @@ function getMinimalElectronMainSource(
   const useTray = features.includes('tray');
   const useDeepLink = features.includes('deep-link');
   const useMenuBar = features.includes('menu-bar');
+  const useAutoLaunch = features.includes('auto-launch');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
@@ -1009,6 +1010,40 @@ function getMenuState() {
     itemLabels: Menu.getApplicationMenu()?.items.map((item) => item.label || '').filter((value) => value.length > 0) ?? [],
   };
 }
+` : ''}${useAutoLaunch ? `
+function isAutoLaunchSupported() {
+  return process.platform === 'darwin' || process.platform === 'win32';
+}
+
+function getAutoLaunchState() {
+  const supported = isAutoLaunchSupported();
+  const settings = supported ? app.getLoginItemSettings() : null;
+
+  return {
+    supported,
+    enabled: supported ? settings?.openAtLogin === true : false,
+    openAsHidden: supported ? settings?.openAsHidden === true : false,
+  };
+}
+
+function setAutoLaunchEnabled(enabled: boolean) {
+  if (!isAutoLaunchSupported()) {
+    return getAutoLaunchState();
+  }
+
+  if (process.platform === 'darwin') {
+    app.setLoginItemSettings({
+      openAtLogin: enabled,
+      openAsHidden: false,
+    });
+  } else {
+    app.setLoginItemSettings({
+      openAtLogin: enabled,
+    });
+  }
+
+  return getAutoLaunchState();
+}
 ` : ''}
 function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.WORKER_EXECUTE, async (_event, request: WorkerRequest) => {
@@ -1142,6 +1177,14 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return getMenuState();
   });
 
+` : ''}${useAutoLaunch ? `  ipcMain.handle(IPC_CHANNELS.AUTO_LAUNCH_GET_STATUS, async () => {
+    return getAutoLaunchState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.AUTO_LAUNCH_SET_ENABLED, async (_event, enabled: boolean) => {
+    return setAutoLaunchEnabled(enabled);
+  });
+
 ` : ''}  logger.info('IPC handlers registered');
 }
 
@@ -1261,6 +1304,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useTray = features.includes('tray');
   const useDeepLink = features.includes('deep-link');
   const useMenuBar = features.includes('menu-bar');
+  const useAutoLaunch = features.includes('auto-launch');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -1316,6 +1360,10 @@ ${useSettings ? `  settings: {
     getState: () => ipcRenderer.invoke(IPC_CHANNELS.MENU_STATE_GET),
     rebuild: () => ipcRenderer.invoke(IPC_CHANNELS.MENU_REBUILD),
   },
+` : ''}${useAutoLaunch ? `  autoLaunch: {
+    getStatus: () => ipcRenderer.invoke(IPC_CHANNELS.AUTO_LAUNCH_GET_STATUS),
+    setEnabled: (enabled: boolean) => ipcRenderer.invoke(IPC_CHANNELS.AUTO_LAUNCH_SET_ENABLED, enabled),
+  },
 ` : ''}};
 
 contextBridge.exposeInMainWorld('api', api);
@@ -1339,6 +1387,7 @@ function getFeatureStudioSource(
   const useTray = features.includes('tray');
   const useDeepLink = features.includes('deep-link');
   const useMenuBar = features.includes('menu-bar');
+  const useAutoLaunch = features.includes('auto-launch');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
 
@@ -1386,6 +1435,12 @@ type MenuBarState = {
   itemLabels: string[];
 };
 
+type AutoLaunchState = {
+  supported: boolean;
+  enabled: boolean;
+  openAsHidden: boolean;
+};
+
 type ForgeDesktopAPI = {
   settings?: {
     get: () => Promise<${useSettings ? 'AppSettings' : 'unknown'}>;
@@ -1431,6 +1486,10 @@ type ForgeDesktopAPI = {
     getState: () => Promise<MenuBarState>;
     rebuild: () => Promise<MenuBarState>;
   };
+  autoLaunch?: {
+    getStatus: () => Promise<AutoLaunchState>;
+    setEnabled: (enabled: boolean) => Promise<AutoLaunchState>;
+  };
 };
 
 function getDesktopApi(): ForgeDesktopAPI | undefined {
@@ -1450,6 +1509,7 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
 ` : ''}${useWindowing ? `  const [windowState, setWindowState] = useState<WindowStateSummary | null>(null);
 ` : ''}${useTray ? `  const [trayStatus, setTrayStatus] = useState<TrayStatus | null>(null);
 ` : ''}${useMenuBar ? `  const [menuBarState, setMenuBarState] = useState<MenuBarState | null>(null);
+` : ''}${useAutoLaunch ? `  const [autoLaunchState, setAutoLaunchState] = useState<AutoLaunchState | null>(null);
 ` : ''}${useDeepLink ? `  const [deepLinkState, setDeepLinkState] = useState<DeepLinkState | null>(null);
   const [deepLinkDraft, setDeepLinkDraft] = useState('${protocolScheme}://open?screen=home');
 ` : ''}  const featureNames = ${JSON.stringify(features)};
@@ -1530,6 +1590,12 @@ ${useSettings ? `  useEffect(() => {
   useEffect(() => {
     api?.menuBar?.getState?.().then((next) => {
       setMenuBarState(next);
+    }).catch(() => {});
+  }, [api]);
+` : ''}${useAutoLaunch ? `
+  useEffect(() => {
+    api?.autoLaunch?.getStatus?.().then((next) => {
+      setAutoLaunchState(next);
     }).catch(() => {});
   }, [api]);
 ` : ''}${useDeepLink ? `
@@ -1830,6 +1896,26 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             <DiagnosticRow label="Top Level Items" value={menuBarState?.itemLabels.join(', ') || 'none'} />
           </div>
         </section>
+` : ''}${useAutoLaunch ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Auto Launch</h3>
+              <p className="mt-1 text-xs text-slate-400">Toggle whether the packaged app starts automatically at user login on supported desktop platforms.</p>
+            </div>
+            <button
+              onClick={() => toggleAutoLaunch(api, autoLaunchState, setAutoLaunchState)}
+              className="rounded-full border border-emerald-500/40 px-3 py-1 text-xs font-medium text-emerald-300 hover:border-emerald-400 hover:text-emerald-100"
+            >
+              {autoLaunchState?.enabled ? 'Disable launch at login' : 'Enable launch at login'}
+            </button>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <DiagnosticRow label="Supported" value={autoLaunchState?.supported ? 'yes' : 'no'} />
+            <DiagnosticRow label="Enabled" value={autoLaunchState?.enabled ? 'yes' : 'no'} />
+            <DiagnosticRow label="Hidden Start" value={autoLaunchState?.openAsHidden ? 'yes' : 'no'} />
+            <DiagnosticRow label="Scope" value="current user login" />
+          </div>
+        </section>
 ` : ''}${usePlugins ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length === 1 ? 'md:col-span-2' : ''}">
           <h3 className="text-sm font-semibold text-white">Plugin Registry</h3>
           <p className="mt-1 text-xs text-slate-400">Sample plugin slots are ready for feature-oriented modules.</p>
@@ -1956,7 +2042,23 @@ async function rebuildMenuBar(
     // Ignore starter menu-bar failures.
   }
 }
-` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar ? `
+` : ''}${useAutoLaunch ? `
+
+async function toggleAutoLaunch(
+  api: ForgeDesktopAPI | undefined,
+  current: AutoLaunchState | null,
+  setState: (next: AutoLaunchState) => void,
+) {
+  try {
+    const next = await api?.autoLaunch?.setEnabled?.(!(current?.enabled ?? false));
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter auto-launch failures.
+  }
+}
+` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

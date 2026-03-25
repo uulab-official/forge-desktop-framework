@@ -63,7 +63,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature windowing \
   --feature tray \
   --feature deep-link \
-  --feature menu-bar
+  --feature menu-bar \
+  --feature auto-launch
 ```
 
 Or preview the bundled production starter:
