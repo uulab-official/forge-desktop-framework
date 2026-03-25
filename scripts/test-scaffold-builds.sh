@@ -20,6 +20,7 @@ POWER_MONITOR_APP="examples/__scaffold_test_power_monitor__$$"
 DOWNLOADS_APP="examples/__scaffold_test_downloads__$$"
 CLIPBOARD_APP="examples/__scaffold_test_clipboard__$$"
 EXTERNAL_LINKS_APP="examples/__scaffold_test_external_links__$$"
+SYSTEM_INFO_APP="examples/__scaffold_test_system_info__$$"
 LOCKFILE_BACKUP="$(mktemp)"
 
 cp pnpm-lock.yaml "$LOCKFILE_BACKUP"
@@ -30,7 +31,7 @@ cleanup() {
     for (const target of process.argv.slice(1)) {
       fs.rmSync(target, { recursive: true, force: true });
     }
-  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP" "$FILE_ASSOCIATION_APP" "$FILE_DIALOGS_APP" "$RECENT_FILES_APP" "$CRASH_RECOVERY_APP" "$POWER_MONITOR_APP" "$DOWNLOADS_APP" "$CLIPBOARD_APP" "$EXTERNAL_LINKS_APP"
+  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP" "$FILE_ASSOCIATION_APP" "$FILE_DIALOGS_APP" "$RECENT_FILES_APP" "$CRASH_RECOVERY_APP" "$POWER_MONITOR_APP" "$DOWNLOADS_APP" "$CLIPBOARD_APP" "$EXTERNAL_LINKS_APP" "$SYSTEM_INFO_APP"
   cp "$LOCKFILE_BACKUP" pnpm-lock.yaml
   rm -f "$LOCKFILE_BACKUP"
 }
@@ -214,5 +215,16 @@ echo "==> Verifying external-links smoke app"
 pnpm --dir "$EXTERNAL_LINKS_APP" release:check
 pnpm --dir "$EXTERNAL_LINKS_APP" typecheck
 pnpm --dir "$EXTERNAL_LINKS_APP" build
+
+echo "==> Scaffolding system-info smoke app"
+node packages/create-forge-app/dist/index.js create "$SYSTEM_INFO_APP" --template minimal --feature system-info --yes --package-manager pnpm >/dev/null
+
+echo "==> Installing system-info smoke app with workspace links"
+pnpm install --dir "$SYSTEM_INFO_APP" --link-workspace-packages >/dev/null
+
+echo "==> Verifying system-info smoke app"
+pnpm --dir "$SYSTEM_INFO_APP" release:check
+pnpm --dir "$SYSTEM_INFO_APP" typecheck
+pnpm --dir "$SYSTEM_INFO_APP" build
 
 echo "Scaffold build verification passed."

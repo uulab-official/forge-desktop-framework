@@ -1,6 +1,6 @@
 {
   "name": "@forge/job-engine",
-  "version": "0.1.24",
+  "version": "0.1.25",
   "description": "In-memory job queue and progress tracking for Forge Desktop apps",
   "type": "module",
   "main": "./dist/index.js",

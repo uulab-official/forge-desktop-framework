@@ -721,6 +721,7 @@ function getMinimalElectronMainSource(
   const useDownloads = features.includes('downloads');
   const useClipboard = features.includes('clipboard');
   const useExternalLinks = features.includes('external-links');
+  const useSystemInfo = features.includes('system-info');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
@@ -730,6 +731,7 @@ function getMinimalElectronMainSource(
 
   return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${useFileDialogs || useDownloads || useExternalLinks ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
 import path from 'node:path';
+${useSystemInfo ? "import os from 'node:os';\n" : ''}
 ${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
 import { createLogger } from '@forge/logger';
@@ -863,6 +865,53 @@ async function exportDiagnosticsBundle() {
   };
   await writeFile(filePath, JSON.stringify(payload, null, 2), 'utf-8');
   return { filePath, generatedAt: payload.generatedAt };
+}
+` : ''}${useSystemInfo ? `
+function toMegabytes(bytes: number) {
+  return Math.round((bytes / 1024 / 1024) * 10) / 10;
+}
+
+async function getSystemInfoState() {
+  const cpus = os.cpus();
+  const memoryUsage = process.memoryUsage();
+
+  return {
+    refreshedAt: new Date().toISOString(),
+    runtime: {
+      appName: app.getName(),
+      appVersion: app.getVersion(),
+      isPackaged: app.isPackaged,
+      electronVersion: process.versions.electron,
+      chromeVersion: process.versions.chrome,
+      nodeVersion: process.versions.node,
+    },
+    os: {
+      platform: process.platform,
+      arch: process.arch,
+      hostname: os.hostname(),
+      release: os.release(),
+      uptimeMinutes: Math.round(os.uptime() / 60),
+      cpuModel: cpus[0]?.model ?? 'unknown',
+      cpuCores: cpus.length,
+      loadAverage: os.loadavg().map((value) => Math.round(value * 100) / 100),
+      totalMemoryMb: toMegabytes(os.totalmem()),
+      freeMemoryMb: toMegabytes(os.freemem()),
+    },
+    process: {
+      pid: process.pid,
+      processCount: app.getAppMetrics().length,
+      rssMb: toMegabytes(memoryUsage.rss),
+      heapUsedMb: toMegabytes(memoryUsage.heapUsed),
+      heapTotalMb: toMegabytes(memoryUsage.heapTotal),
+    },
+    paths: {
+      appPath: app.getAppPath(),
+      userDataPath: app.getPath('userData'),
+      tempPath: app.getPath('temp'),
+      downloadsPath: app.getPath('downloads'),
+      logsPath: app.getPath('logs'),
+    },
+  };
 }
 ` : ''}${useTray ? `
 const trayIcon = nativeImage.createFromDataURL(
@@ -1868,6 +1917,10 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return exportDiagnosticsBundle();
   });
 
+` : ''}${useSystemInfo ? `  ipcMain.handle(IPC_CHANNELS.SYSTEM_INFO_GET_STATE, async () => {
+    return getSystemInfoState();
+  });
+
 ` : ''}${useNotifications ? `  ipcMain.handle(IPC_CHANNELS.NOTIFY_SHOW, async (_event, title: string, body: string) => {
     const safeTitle = title.trim() || ${JSON.stringify(productName)};
     const safeBody = body.trim() || 'Background work completed successfully.';
@@ -2226,6 +2279,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useDownloads = features.includes('downloads');
   const useClipboard = features.includes('clipboard');
   const useExternalLinks = features.includes('external-links');
+  const useSystemInfo = features.includes('system-info');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -2260,6 +2314,9 @@ ${useSettings ? `  settings: {
 ` : ''}${useDiagnostics ? `  diagnostics: {
     getSummary: () => ipcRenderer.invoke(IPC_CHANNELS.DIAGNOSTICS_SUMMARY),
     exportBundle: () => ipcRenderer.invoke(IPC_CHANNELS.DIAGNOSTICS_EXPORT),
+  },
+` : ''}${useSystemInfo ? `  systemInfo: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_INFO_GET_STATE),
   },
 ` : ''}${useNotifications ? `  notifications: {
     show: (title: string, body: string) => ipcRenderer.invoke(IPC_CHANNELS.NOTIFY_SHOW, title, body),
@@ -2365,6 +2422,7 @@ function getFeatureStudioSource(
   const useDownloads = features.includes('downloads');
   const useClipboard = features.includes('clipboard');
   const useExternalLinks = features.includes('external-links');
+  const useSystemInfo = features.includes('system-info');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
@@ -2388,6 +2446,44 @@ type DiagnosticsSummary = {
   chromeVersion: string;
   electronVersion: string;
   enabledFeatures: string[];
+};
+
+type SystemInfoState = {
+  refreshedAt: string;
+  runtime: {
+    appName: string;
+    appVersion: string;
+    isPackaged: boolean;
+    electronVersion: string;
+    chromeVersion: string;
+    nodeVersion: string;
+  };
+  os: {
+    platform: string;
+    arch: string;
+    hostname: string;
+    release: string;
+    uptimeMinutes: number;
+    cpuModel: string;
+    cpuCores: number;
+    loadAverage: number[];
+    totalMemoryMb: number;
+    freeMemoryMb: number;
+  };
+  process: {
+    pid: number;
+    processCount: number;
+    rssMb: number;
+    heapUsedMb: number;
+    heapTotalMb: number;
+  };
+  paths: {
+    appPath: string;
+    userDataPath: string;
+    tempPath: string;
+    downloadsPath: string;
+    logsPath: string;
+  };
 };
 
 type WindowStateSummary = {
@@ -2538,6 +2634,9 @@ type ForgeDesktopAPI = {
     getSummary: () => Promise<DiagnosticsSummary>;
     exportBundle: () => Promise<{ filePath: string; generatedAt: string }>;
   };
+  systemInfo?: {
+    getState: () => Promise<SystemInfoState>;
+  };
   notifications?: {
     show: (title: string, body: string) => Promise<{ supported: boolean; delivered: boolean }>;
   };
@@ -2623,6 +2722,7 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
 ` : ''}${useUpdater ? `  const [updateStatus, setUpdateStatus] = useState<{ status: string; version?: string; progress?: { percent: number }; error?: string }>({ status: 'idle' });
 ` : ''}${useDiagnostics ? `  const [diagnostics, setDiagnostics] = useState<DiagnosticsSummary | null>(null);
   const [diagnosticsExport, setDiagnosticsExport] = useState<{ filePath: string; generatedAt: string } | null>(null);
+` : ''}${useSystemInfo ? `  const [systemInfoState, setSystemInfoState] = useState<SystemInfoState | null>(null);
 ` : ''}${useNotifications ? `  const [notificationDraft, setNotificationDraft] = useState({ title: 'Forge Ready', body: '${displayName} is ready for customer testing.' });
   const [notificationState, setNotificationState] = useState<'idle' | 'sent' | 'unsupported'>('idle');
 ` : ''}${useWindowing ? `  const [windowState, setWindowState] = useState<WindowStateSummary | null>(null);
@@ -2707,6 +2807,31 @@ ${useSettings ? `  useEffect(() => {
     api?.diagnostics?.getSummary?.().then((next) => {
       setDiagnostics(next);
     }).catch(() => {});
+  }, [api]);
+` : ''}${useSystemInfo ? `
+  useEffect(() => {
+    if (!api?.systemInfo?.getState) {
+      return undefined;
+    }
+
+    let active = true;
+    const sync = async () => {
+      try {
+        const next = await api.systemInfo?.getState?.();
+        if (active && next) {
+          setSystemInfoState(next);
+        }
+      } catch {
+        // Ignore starter system-info polling failures.
+      }
+    };
+
+    sync();
+    const timer = window.setInterval(sync, 5000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
   }, [api]);
 ` : ''}${useWindowing ? `
   useEffect(() => {
@@ -3067,6 +3192,49 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             <p className="mt-2 text-xs text-amber-200">
               Support bundle exported to <span className="text-white">{diagnosticsExport.filePath}</span>
             </p>
+          )}
+        </section>
+` : ''}${useSystemInfo ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">System Info</h3>
+              <p className="mt-1 text-xs text-slate-400">Inspect live runtime, OS, memory, and path details so teams can debug real desktop environments without wiring a custom shell panel first.</p>
+            </div>
+            <button
+              onClick={() => refreshSystemInfo(api, setSystemInfoState)}
+              className="rounded-full border border-cyan-500/40 px-3 py-1 text-xs font-medium text-cyan-300 hover:border-cyan-400 hover:text-cyan-100"
+            >
+              Refresh
+            </button>
+          </div>
+          {systemInfoState ? (
+            <>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <DiagnosticRow label="App" value={\`\${systemInfoState.runtime.appName} \${systemInfoState.runtime.appVersion}\`} />
+                <DiagnosticRow label="Runtime" value={systemInfoState.runtime.isPackaged ? 'packaged' : 'development'} />
+                <DiagnosticRow label="Platform" value={\`\${systemInfoState.os.platform} / \${systemInfoState.os.arch}\`} />
+                <DiagnosticRow label="Host" value={systemInfoState.os.hostname} />
+                <DiagnosticRow label="OS Release" value={systemInfoState.os.release} />
+                <DiagnosticRow label="Uptime" value={\`\${systemInfoState.os.uptimeMinutes} minutes\`} />
+                <DiagnosticRow label="CPU" value={\`\${systemInfoState.os.cpuModel} (\${systemInfoState.os.cpuCores} cores)\`} />
+                <DiagnosticRow label="Load Average" value={systemInfoState.os.loadAverage.join(' / ')} />
+                <DiagnosticRow label="Memory Free / Total" value={\`\${systemInfoState.os.freeMemoryMb} MB / \${systemInfoState.os.totalMemoryMb} MB\`} />
+                <DiagnosticRow label="RSS / Heap Used" value={\`\${systemInfoState.process.rssMb} MB / \${systemInfoState.process.heapUsedMb} MB\`} />
+                <DiagnosticRow label="Heap Total / Processes" value={\`\${systemInfoState.process.heapTotalMb} MB / \${systemInfoState.process.processCount}\`} />
+                <DiagnosticRow label="PID / Refreshed" value={\`\${systemInfoState.process.pid} / \${systemInfoState.refreshedAt}\`} />
+                <DiagnosticRow label="App Path" value={systemInfoState.paths.appPath} />
+                <DiagnosticRow label="User Data" value={systemInfoState.paths.userDataPath} />
+                <DiagnosticRow label="Downloads" value={systemInfoState.paths.downloadsPath} />
+                <DiagnosticRow label="Logs" value={systemInfoState.paths.logsPath} />
+                <DiagnosticRow label="Temp" value={systemInfoState.paths.tempPath} />
+                <DiagnosticRow label="Electron / Node" value={\`\${systemInfoState.runtime.electronVersion} / \${systemInfoState.runtime.nodeVersion}\`} />
+              </div>
+              <div className="mt-3 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-xs text-slate-400">
+                Chrome version: <span className="text-white">{systemInfoState.runtime.chromeVersion}</span>
+              </div>
+            </>
+          ) : (
+            <p className="mt-3 text-xs text-slate-500">System info is unavailable until the desktop bridge finishes booting.</p>
           )}
         </section>
 ` : ''}${useNotifications ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
@@ -4067,7 +4235,22 @@ async function clearExternalLinks(
     // Ignore starter external-link history failures.
   }
 }
-` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useDownloads || useClipboard || useExternalLinks ? `
+` : ''}${useSystemInfo ? `
+
+async function refreshSystemInfo(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: SystemInfoState) => void,
+) {
+  try {
+    const next = await api?.systemInfo?.getState?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter system-info refresh failures.
+  }
+}
+` : ''}${useDiagnostics || useSystemInfo || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useDownloads || useClipboard || useExternalLinks ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

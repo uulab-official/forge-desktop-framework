@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.25 (2026-03-25)
+
+### System-Info Feature Pack
+
+- Added a `system-info` scaffold feature pack for the `minimal` starter
+- Generated apps now expose live OS, memory, process, and path diagnostics over preload IPC and surface refreshable runtime environment details in `FeatureStudio`
+- Kept `system-info` optional so teams can add richer support and QA instrumentation without widening the default production preset
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated system-info smoke app before any version bump
+
 ## 0.1.24 (2026-03-25)
 
 ### External-Links Feature Pack
