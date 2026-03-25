@@ -719,6 +719,7 @@ function getMinimalElectronMainSource(
   const useCrashRecovery = features.includes('crash-recovery');
   const usePowerMonitor = features.includes('power-monitor');
   const useDownloads = features.includes('downloads');
+  const useClipboard = features.includes('clipboard');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
@@ -726,7 +727,7 @@ function getMinimalElectronMainSource(
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
   const dialogFileName = `${toIdentifier(projectName)}-document.txt`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useFileDialogs || useDownloads ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${useFileDialogs || useDownloads ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
 import path from 'node:path';
 ${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
@@ -1664,6 +1665,69 @@ function startStarterDownload(url: string | null | undefined) {
   mainWindow?.webContents.downloadURL(targetUrl);
   return getDownloadsState();
 }
+` : ''}${useClipboard ? `
+type ClipboardAction = 'read' | 'write' | 'clear';
+
+type ClipboardHistoryEntry = {
+  action: ClipboardAction;
+  text: string;
+  timestamp: string;
+};
+
+type ClipboardState = {
+  currentText: string;
+  lastAction: ClipboardAction | null;
+  history: ClipboardHistoryEntry[];
+};
+
+const clipboardHistoryLimit = 6;
+const clipboardState: ClipboardState = {
+  currentText: '',
+  lastAction: null,
+  history: [],
+};
+
+function syncClipboardState(action: ClipboardAction | null = null) {
+  clipboardState.currentText = clipboard.readText();
+  clipboardState.lastAction = action;
+  return {
+    currentText: clipboardState.currentText,
+    lastAction: clipboardState.lastAction,
+    history: [...clipboardState.history],
+  };
+}
+
+function recordClipboardAction(action: ClipboardAction, text: string) {
+  clipboardState.history = [
+    {
+      action,
+      text,
+      timestamp: new Date().toISOString(),
+    },
+    ...clipboardState.history,
+  ].slice(0, clipboardHistoryLimit);
+  return syncClipboardState(action);
+}
+
+function getClipboardState() {
+  return syncClipboardState(clipboardState.lastAction);
+}
+
+function readClipboardText() {
+  const text = clipboard.readText();
+  return recordClipboardAction('read', text);
+}
+
+function writeClipboardText(text: string | null | undefined) {
+  const value = text?.trim() ?? '';
+  clipboard.writeText(value);
+  return recordClipboardAction('write', value);
+}
+
+function clearClipboardText() {
+  clipboard.clear();
+  return recordClipboardAction('clear', '');
+}
 ` : ''}
 function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.WORKER_EXECUTE, async (_event, request: WorkerRequest) => {
@@ -1897,6 +1961,22 @@ ${useFileAssociation ? `    const normalized = normalizeRecentFilePath(filePath)
     return revealDownloadedItem(targetPath);
   });
 
+` : ''}${useClipboard ? `  ipcMain.handle(IPC_CHANNELS.CLIPBOARD_GET_STATE, async () => {
+    return getClipboardState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.CLIPBOARD_READ_TEXT, async () => {
+    return readClipboardText();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.CLIPBOARD_WRITE_TEXT, async (_event, text?: string) => {
+    return writeClipboardText(text);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.CLIPBOARD_CLEAR, async () => {
+    return clearClipboardText();
+  });
+
 ` : ''}  logger.info('IPC handlers registered');
 }
 
@@ -2048,6 +2128,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useCrashRecovery = features.includes('crash-recovery');
   const usePowerMonitor = features.includes('power-monitor');
   const useDownloads = features.includes('downloads');
+  const useClipboard = features.includes('clipboard');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -2143,6 +2224,12 @@ ${useSettings ? `  settings: {
     clearHistory: () => ipcRenderer.invoke(IPC_CHANNELS.DOWNLOADS_CLEAR_HISTORY),
     reveal: (targetPath?: string) => ipcRenderer.invoke(IPC_CHANNELS.DOWNLOADS_REVEAL, targetPath),
   },
+` : ''}${useClipboard ? `  clipboard: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.CLIPBOARD_GET_STATE),
+    readText: () => ipcRenderer.invoke(IPC_CHANNELS.CLIPBOARD_READ_TEXT),
+    writeText: (text?: string) => ipcRenderer.invoke(IPC_CHANNELS.CLIPBOARD_WRITE_TEXT, text),
+    clear: () => ipcRenderer.invoke(IPC_CHANNELS.CLIPBOARD_CLEAR),
+  },
 ` : ''}};
 
 contextBridge.exposeInMainWorld('api', api);
@@ -2174,6 +2261,7 @@ function getFeatureStudioSource(
   const useCrashRecovery = features.includes('crash-recovery');
   const usePowerMonitor = features.includes('power-monitor');
   const useDownloads = features.includes('downloads');
+  const useClipboard = features.includes('clipboard');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
@@ -2298,6 +2386,16 @@ type DownloadsState = {
   }>;
 };
 
+type ClipboardState = {
+  currentText: string;
+  lastAction: 'read' | 'write' | 'clear' | null;
+  history: Array<{
+    action: 'read' | 'write' | 'clear';
+    text: string;
+    timestamp: string;
+  }>;
+};
+
 type ForgeDesktopAPI = {
   settings?: {
     get: () => Promise<${useSettings ? 'AppSettings' : 'unknown'}>;
@@ -2383,6 +2481,12 @@ type ForgeDesktopAPI = {
     clearHistory: () => Promise<DownloadsState>;
     reveal: (targetPath?: string) => Promise<DownloadsState>;
   };
+  clipboard?: {
+    getState: () => Promise<ClipboardState>;
+    readText: () => Promise<ClipboardState>;
+    writeText: (text?: string) => Promise<ClipboardState>;
+    clear: () => Promise<ClipboardState>;
+  };
 };
 
 function getDesktopApi(): ForgeDesktopAPI | undefined {
@@ -2414,6 +2518,8 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
 ` : ''}${usePowerMonitor ? `  const [powerMonitorState, setPowerMonitorState] = useState<PowerMonitorState | null>(null);
 ` : ''}${useDownloads ? `  const [downloadsState, setDownloadsState] = useState<DownloadsState | null>(null);
   const [downloadUrlDraft, setDownloadUrlDraft] = useState('https://raw.githubusercontent.com/electron/electron/main/README.md');
+` : ''}${useClipboard ? `  const [clipboardState, setClipboardState] = useState<ClipboardState | null>(null);
+  const [clipboardDraft, setClipboardDraft] = useState('${displayName} ready for desktop copy and paste flows.');
 ` : ''}${useDeepLink ? `  const [deepLinkState, setDeepLinkState] = useState<DeepLinkState | null>(null);
   const [deepLinkDraft, setDeepLinkDraft] = useState('${protocolScheme}://open?screen=home');
 ` : ''}  const featureNames = ${JSON.stringify(features)};
@@ -2617,6 +2723,31 @@ ${useSettings ? `  useEffect(() => {
         }
       } catch {
         // Ignore starter downloads polling failures.
+      }
+    };
+
+    sync();
+    const timer = window.setInterval(sync, 3000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [api]);
+` : ''}${useClipboard ? `
+  useEffect(() => {
+    if (!api?.clipboard?.getState) {
+      return undefined;
+    }
+
+    let active = true;
+    const sync = async () => {
+      try {
+        const next = await api.clipboard?.getState?.();
+        if (active && next) {
+          setClipboardState(next);
+        }
+      } catch {
+        // Ignore starter clipboard polling failures.
       }
     };
 
@@ -3247,6 +3378,66 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             </div>
           </div>
         </section>
+` : ''}${useClipboard ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Clipboard</h3>
+              <p className="mt-1 text-xs text-slate-400">Read, write, and clear clipboard text with starter history so teams can wire paste-heavy desktop workflows without rebuilding shell bridges.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => readClipboard(api, setClipboardState)}
+                className="rounded-full border border-sky-500/40 px-3 py-1 text-xs font-medium text-sky-300 hover:border-sky-400 hover:text-sky-100"
+              >
+                Read now
+              </button>
+              <button
+                onClick={() => clearClipboard(api, setClipboardState)}
+                className="rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-200 hover:border-slate-500"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 space-y-3">
+            <label className="block text-xs text-slate-400">
+              Clipboard text
+              <textarea
+                value={clipboardDraft}
+                onChange={(event) => setClipboardDraft(event.target.value)}
+                rows={3}
+                className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+            </label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => writeClipboard(api, clipboardDraft, setClipboardState)}
+                className="rounded-full border border-emerald-500/40 px-3 py-1 text-xs font-medium text-emerald-300 hover:border-emerald-400 hover:text-emerald-100"
+              >
+                Write text
+              </button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <DiagnosticRow label="Current Text" value={clipboardState?.currentText || 'clipboard is empty'} />
+              <DiagnosticRow label="Last Action" value={clipboardState?.lastAction ?? 'none yet'} />
+              <DiagnosticRow label="History Entries" value={String(clipboardState?.history.length ?? 0)} />
+              <DiagnosticRow label="Surface" value="electron clipboard readText, writeText, clear" />
+            </div>
+            <div className="space-y-2">
+              {clipboardState?.history.length ? clipboardState.history.map((entry) => (
+                <div key={\`\${entry.action}-\${entry.timestamp}\`} className="rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-300">{entry.action}</span>
+                    <span className="text-xs text-slate-500">{entry.timestamp}</span>
+                  </div>
+                  <p className="mt-2 break-all text-xs text-white">{entry.text || '(empty text)'}</p>
+                </div>
+              )) : (
+                <p className="text-xs text-slate-500">No clipboard history yet. Read or write text to exercise the starter clipboard bridge.</p>
+              )}
+            </div>
+          </div>
+        </section>
 ` : ''}${usePlugins ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length === 1 ? 'md:col-span-2' : ''}">
           <h3 className="text-sm font-semibold text-white">Plugin Registry</h3>
           <p className="mt-1 text-xs text-slate-400">Sample plugin slots are ready for feature-oriented modules.</p>
@@ -3594,7 +3785,51 @@ async function revealDownloadedFile(
     // Ignore starter reveal failures.
   }
 }
-` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useDownloads ? `
+` : ''}${useClipboard ? `
+
+async function readClipboard(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: ClipboardState) => void,
+) {
+  try {
+    const next = await api?.clipboard?.readText?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter clipboard read failures.
+  }
+}
+
+async function writeClipboard(
+  api: ForgeDesktopAPI | undefined,
+  text: string,
+  setState: (next: ClipboardState) => void,
+) {
+  try {
+    const next = await api?.clipboard?.writeText?.(text);
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter clipboard write failures.
+  }
+}
+
+async function clearClipboard(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: ClipboardState) => void,
+) {
+  try {
+    const next = await api?.clipboard?.clear?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter clipboard clear failures.
+  }
+}
+` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useDownloads || useClipboard ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

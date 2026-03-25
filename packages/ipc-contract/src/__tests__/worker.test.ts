@@ -40,6 +40,7 @@ describe('IPC_CHANNELS', () => {
     expect(IPC_CHANNELS.CRASH_RECOVERY_GET_STATE).toBe('crash-recovery:get-state');
     expect(IPC_CHANNELS.POWER_MONITOR_GET_STATE).toBe('power-monitor:get-state');
     expect(IPC_CHANNELS.DOWNLOADS_GET_STATE).toBe('downloads:get-state');
+    expect(IPC_CHANNELS.CLIPBOARD_GET_STATE).toBe('clipboard:get-state');
     expect(IPC_CHANNELS.UPDATE_CHECK).toBe('update:check');
   });
 });

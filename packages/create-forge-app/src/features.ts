@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'downloads';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'downloads' | 'clipboard';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -122,6 +122,12 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     id: 'downloads',
     label: 'Downloads',
     description: 'Seed starter download tracking with progress, history, and reveal-in-folder controls',
+    minimalOnly: true,
+  },
+  {
+    id: 'clipboard',
+    label: 'Clipboard',
+    description: 'Seed clipboard read, write, clear, and history controls for desktop workflows',
     minimalOnly: true,
   },
 ];

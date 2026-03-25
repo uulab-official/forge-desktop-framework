@@ -59,6 +59,10 @@ export const IPC_CHANNELS = {
   DOWNLOADS_START: 'downloads:start',
   DOWNLOADS_CLEAR_HISTORY: 'downloads:clear-history',
   DOWNLOADS_REVEAL: 'downloads:reveal',
+  CLIPBOARD_GET_STATE: 'clipboard:get-state',
+  CLIPBOARD_READ_TEXT: 'clipboard:read-text',
+  CLIPBOARD_WRITE_TEXT: 'clipboard:write-text',
+  CLIPBOARD_CLEAR: 'clipboard:clear',
 
   // Updates
   UPDATE_CHECK: 'update:check',

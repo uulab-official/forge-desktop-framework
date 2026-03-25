@@ -71,7 +71,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature recent-files \
   --feature crash-recovery \
   --feature power-monitor \
-  --feature downloads
+  --feature downloads \
+  --feature clipboard
 ```
 
 Or preview the bundled production starter:
@@ -97,6 +98,7 @@ The generated project includes:
 - optional starter packs like `crash-recovery` can also seed renderer and child-process incident capture with starter relaunch controls
 - optional starter packs like `power-monitor` can also seed suspend, resume, lock, unlock, and power-source tracking for long-running desktop workflows
 - optional starter packs like `downloads` can also seed file download tracking with progress and reveal-in-folder controls
+- optional starter packs like `clipboard` can also seed copy and paste flows with starter read, write, clear, and history controls
 
 ## Step 3: Create Your First Action
 

@@ -98,7 +98,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature recent-files \
   --feature crash-recovery \
   --feature power-monitor \
-  --feature downloads
+  --feature downloads \
+  --feature clipboard
 ```
 
 Or use the bundled production starter preset:
@@ -148,6 +149,7 @@ Feature packs available on the `minimal` starter today:
 - `crash-recovery` for starter renderer and child-process incident tracking with relaunch and clear controls
 - `power-monitor` for suspend, resume, lock, unlock, and power-source monitoring with starter history and clear controls
 - `downloads` for starter download tracking with progress, history, and reveal-in-folder controls
+- `clipboard` for starter clipboard read, write, clear, and history controls
 
 Starter presets available today:
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`

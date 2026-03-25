@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.23 (2026-03-25)
+
+### Clipboard Feature Pack
+
+- Added a `clipboard` scaffold feature pack for the `minimal` starter
+- Generated apps now expose clipboard text read, write, and clear controls over preload IPC and surface clipboard history in `FeatureStudio`
+- Kept `clipboard` optional so teams can add copy and paste flows deliberately without widening the default production preset
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated clipboard smoke app before any version bump
+
 ## 0.1.22 (2026-03-25)
 
 ### Downloads Feature Pack

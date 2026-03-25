@@ -59,7 +59,7 @@ Scaffolded apps also include:
 The `minimal` starter also supports feature packs during scaffolding:
 
 ```bash
-forge create my-app --template minimal --feature settings --feature updater --feature diagnostics --feature notifications --feature windowing --feature tray --feature deep-link --feature menu-bar --feature auto-launch --feature global-shortcut --feature file-association --feature file-dialogs --feature recent-files --feature crash-recovery --feature power-monitor --feature downloads
+forge create my-app --template minimal --feature settings --feature updater --feature diagnostics --feature notifications --feature windowing --feature tray --feature deep-link --feature menu-bar --feature auto-launch --feature global-shortcut --feature file-association --feature file-dialogs --feature recent-files --feature crash-recovery --feature power-monitor --feature downloads --feature clipboard
 ```
 
 For the fastest production baseline, use the preset:
@@ -79,6 +79,8 @@ Use `--feature crash-recovery` when your desktop product needs starter incident 
 Use `--feature power-monitor` when your desktop product needs starter suspend, resume, lock, unlock, and power-source tracking for background work or device-lifecycle-sensitive flows.
 
 Use `--feature downloads` when your desktop product needs starter file download progress, history, and reveal-in-folder controls without wiring Electron session events by hand.
+
+Use `--feature clipboard` when your desktop product needs starter copy and paste behavior with text read, write, clear, and history controls in the generated shell.
 
 You can also seed release metadata up front:
 
