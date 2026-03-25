@@ -1,6 +1,6 @@
 {
   "name": "@forge/error-handler",
-  "version": "0.1.23",
+  "version": "0.1.24",
   "description": "Friendly error mapping and React error boundaries for Forge Desktop apps",
   "type": "module",
   "main": "./dist/index.js",

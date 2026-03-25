@@ -63,6 +63,9 @@ export const IPC_CHANNELS = {
   CLIPBOARD_READ_TEXT: 'clipboard:read-text',
   CLIPBOARD_WRITE_TEXT: 'clipboard:write-text',
   CLIPBOARD_CLEAR: 'clipboard:clear',
+  EXTERNAL_LINKS_GET_STATE: 'external-links:get-state',
+  EXTERNAL_LINKS_OPEN: 'external-links:open',
+  EXTERNAL_LINKS_CLEAR_HISTORY: 'external-links:clear-history',
 
   // Updates
   UPDATE_CHECK: 'update:check',

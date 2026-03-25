@@ -720,6 +720,7 @@ function getMinimalElectronMainSource(
   const usePowerMonitor = features.includes('power-monitor');
   const useDownloads = features.includes('downloads');
   const useClipboard = features.includes('clipboard');
+  const useExternalLinks = features.includes('external-links');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
@@ -727,7 +728,7 @@ function getMinimalElectronMainSource(
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
   const dialogFileName = `${toIdentifier(projectName)}-document.txt`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${useFileDialogs || useDownloads ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${useFileDialogs || useDownloads || useExternalLinks ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
 import path from 'node:path';
 ${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
@@ -1728,6 +1729,89 @@ function clearClipboardText() {
   clipboard.clear();
   return recordClipboardAction('clear', '');
 }
+` : ''}${useExternalLinks ? `
+type ExternalLinkHistoryEntry = {
+  url: string;
+  status: 'opened' | 'failed';
+  error: string | null;
+  timestamp: string;
+};
+
+type ExternalLinksState = {
+  defaultUrl: string;
+  lastUrl: string | null;
+  lastOpenedAt: string | null;
+  openCount: number;
+  lastError: string | null;
+  history: ExternalLinkHistoryEntry[];
+};
+
+const externalLinksHistoryLimit = 6;
+const externalLinksState: ExternalLinksState = {
+  defaultUrl: 'https://www.electronjs.org',
+  lastUrl: null,
+  lastOpenedAt: null,
+  openCount: 0,
+  lastError: null,
+  history: [],
+};
+
+function getExternalLinksState() {
+  return {
+    defaultUrl: externalLinksState.defaultUrl,
+    lastUrl: externalLinksState.lastUrl,
+    lastOpenedAt: externalLinksState.lastOpenedAt,
+    openCount: externalLinksState.openCount,
+    lastError: externalLinksState.lastError,
+    history: [...externalLinksState.history],
+  };
+}
+
+function recordExternalLinkResult(
+  url: string,
+  status: 'opened' | 'failed',
+  error: string | null = null,
+) {
+  const timestamp = new Date().toISOString();
+  externalLinksState.lastUrl = url;
+  externalLinksState.lastOpenedAt = timestamp;
+  externalLinksState.lastError = error;
+  if (status === 'opened') {
+    externalLinksState.openCount += 1;
+  }
+  externalLinksState.history = [
+    {
+      url,
+      status,
+      error,
+      timestamp,
+    },
+    ...externalLinksState.history,
+  ].slice(0, externalLinksHistoryLimit);
+  return getExternalLinksState();
+}
+
+async function openStarterExternalLink(url: string | null | undefined) {
+  const targetUrl = url?.trim() || externalLinksState.defaultUrl;
+  externalLinksState.defaultUrl = targetUrl;
+
+  try {
+    await shell.openExternal(targetUrl);
+    return recordExternalLinkResult(targetUrl, 'opened');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown shell open error';
+    return recordExternalLinkResult(targetUrl, 'failed', message);
+  }
+}
+
+function clearExternalLinksHistory() {
+  externalLinksState.lastUrl = null;
+  externalLinksState.lastOpenedAt = null;
+  externalLinksState.openCount = 0;
+  externalLinksState.lastError = null;
+  externalLinksState.history = [];
+  return getExternalLinksState();
+}
 ` : ''}
 function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.WORKER_EXECUTE, async (_event, request: WorkerRequest) => {
@@ -1977,6 +2061,18 @@ ${useFileAssociation ? `    const normalized = normalizeRecentFilePath(filePath)
     return clearClipboardText();
   });
 
+` : ''}${useExternalLinks ? `  ipcMain.handle(IPC_CHANNELS.EXTERNAL_LINKS_GET_STATE, async () => {
+    return getExternalLinksState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.EXTERNAL_LINKS_OPEN, async (_event, url?: string) => {
+    return openStarterExternalLink(url);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.EXTERNAL_LINKS_CLEAR_HISTORY, async () => {
+    return clearExternalLinksHistory();
+  });
+
 ` : ''}  logger.info('IPC handlers registered');
 }
 
@@ -2129,6 +2225,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const usePowerMonitor = features.includes('power-monitor');
   const useDownloads = features.includes('downloads');
   const useClipboard = features.includes('clipboard');
+  const useExternalLinks = features.includes('external-links');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -2230,6 +2327,11 @@ ${useSettings ? `  settings: {
     writeText: (text?: string) => ipcRenderer.invoke(IPC_CHANNELS.CLIPBOARD_WRITE_TEXT, text),
     clear: () => ipcRenderer.invoke(IPC_CHANNELS.CLIPBOARD_CLEAR),
   },
+` : ''}${useExternalLinks ? `  externalLinks: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.EXTERNAL_LINKS_GET_STATE),
+    open: (url?: string) => ipcRenderer.invoke(IPC_CHANNELS.EXTERNAL_LINKS_OPEN, url),
+    clearHistory: () => ipcRenderer.invoke(IPC_CHANNELS.EXTERNAL_LINKS_CLEAR_HISTORY),
+  },
 ` : ''}};
 
 contextBridge.exposeInMainWorld('api', api);
@@ -2262,6 +2364,7 @@ function getFeatureStudioSource(
   const usePowerMonitor = features.includes('power-monitor');
   const useDownloads = features.includes('downloads');
   const useClipboard = features.includes('clipboard');
+  const useExternalLinks = features.includes('external-links');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
@@ -2396,6 +2499,20 @@ type ClipboardState = {
   }>;
 };
 
+type ExternalLinksState = {
+  defaultUrl: string;
+  lastUrl: string | null;
+  lastOpenedAt: string | null;
+  openCount: number;
+  lastError: string | null;
+  history: Array<{
+    url: string;
+    status: 'opened' | 'failed';
+    error: string | null;
+    timestamp: string;
+  }>;
+};
+
 type ForgeDesktopAPI = {
   settings?: {
     get: () => Promise<${useSettings ? 'AppSettings' : 'unknown'}>;
@@ -2487,6 +2604,11 @@ type ForgeDesktopAPI = {
     writeText: (text?: string) => Promise<ClipboardState>;
     clear: () => Promise<ClipboardState>;
   };
+  externalLinks?: {
+    getState: () => Promise<ExternalLinksState>;
+    open: (url?: string) => Promise<ExternalLinksState>;
+    clearHistory: () => Promise<ExternalLinksState>;
+  };
 };
 
 function getDesktopApi(): ForgeDesktopAPI | undefined {
@@ -2520,6 +2642,8 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
   const [downloadUrlDraft, setDownloadUrlDraft] = useState('https://raw.githubusercontent.com/electron/electron/main/README.md');
 ` : ''}${useClipboard ? `  const [clipboardState, setClipboardState] = useState<ClipboardState | null>(null);
   const [clipboardDraft, setClipboardDraft] = useState('${displayName} ready for desktop copy and paste flows.');
+` : ''}${useExternalLinks ? `  const [externalLinksState, setExternalLinksState] = useState<ExternalLinksState | null>(null);
+  const [externalLinkDraft, setExternalLinkDraft] = useState('https://www.electronjs.org');
 ` : ''}${useDeepLink ? `  const [deepLinkState, setDeepLinkState] = useState<DeepLinkState | null>(null);
   const [deepLinkDraft, setDeepLinkDraft] = useState('${protocolScheme}://open?screen=home');
 ` : ''}  const featureNames = ${JSON.stringify(features)};
@@ -2748,6 +2872,32 @@ ${useSettings ? `  useEffect(() => {
         }
       } catch {
         // Ignore starter clipboard polling failures.
+      }
+    };
+
+    sync();
+    const timer = window.setInterval(sync, 3000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [api]);
+` : ''}${useExternalLinks ? `
+  useEffect(() => {
+    if (!api?.externalLinks?.getState) {
+      return undefined;
+    }
+
+    let active = true;
+    const sync = async () => {
+      try {
+        const next = await api.externalLinks?.getState?.();
+        if (active && next) {
+          setExternalLinksState(next);
+          setExternalLinkDraft(next.defaultUrl);
+        }
+      } catch {
+        // Ignore starter external-links polling failures.
       }
     };
 
@@ -3438,6 +3588,64 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             </div>
           </div>
         </section>
+` : ''}${useExternalLinks ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">External Links</h3>
+              <p className="mt-1 text-xs text-slate-400">Open external web or mail links through the system shell with starter history and error tracking for desktop link-out flows.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => openExternalLink(api, externalLinkDraft, setExternalLinksState)}
+                className="rounded-full border border-emerald-500/40 px-3 py-1 text-xs font-medium text-emerald-300 hover:border-emerald-400 hover:text-emerald-100"
+              >
+                Open link
+              </button>
+              <button
+                onClick={() => clearExternalLinks(api, setExternalLinksState)}
+                className="rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-200 hover:border-slate-500"
+              >
+                Clear history
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 space-y-3">
+            <label className="block text-xs text-slate-400">
+              External URL
+              <input
+                type="text"
+                value={externalLinkDraft}
+                onChange={(event) => setExternalLinkDraft(event.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+            </label>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <DiagnosticRow label="Default URL" value={externalLinksState?.defaultUrl ?? 'https://www.electronjs.org'} />
+              <DiagnosticRow label="Last URL" value={externalLinksState?.lastUrl ?? 'nothing opened yet'} />
+              <DiagnosticRow label="Last Opened At" value={externalLinksState?.lastOpenedAt ?? 'not available'} />
+              <DiagnosticRow label="Open Count" value={String(externalLinksState?.openCount ?? 0)} />
+            </div>
+            {externalLinksState?.lastError && (
+              <p className="text-xs text-rose-300">{externalLinksState.lastError}</p>
+            )}
+            <div className="space-y-2">
+              {externalLinksState?.history.length ? externalLinksState.history.map((entry) => (
+                <div key={\`\${entry.url}-\${entry.timestamp}\`} className="rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-300">{entry.status}</span>
+                    <span className="text-xs text-slate-500">{entry.timestamp}</span>
+                  </div>
+                  <p className="mt-2 break-all text-xs text-white">{entry.url}</p>
+                  {entry.error && (
+                    <p className="mt-2 break-all text-xs text-rose-300">{entry.error}</p>
+                  )}
+                </div>
+              )) : (
+                <p className="text-xs text-slate-500">No external-link history yet. Open a URL to exercise the starter shell bridge.</p>
+              )}
+            </div>
+          </div>
+        </section>
 ` : ''}${usePlugins ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length === 1 ? 'md:col-span-2' : ''}">
           <h3 className="text-sm font-semibold text-white">Plugin Registry</h3>
           <p className="mt-1 text-xs text-slate-400">Sample plugin slots are ready for feature-oriented modules.</p>
@@ -3829,7 +4037,37 @@ async function clearClipboard(
     // Ignore starter clipboard clear failures.
   }
 }
-` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useDownloads || useClipboard ? `
+` : ''}${useExternalLinks ? `
+
+async function openExternalLink(
+  api: ForgeDesktopAPI | undefined,
+  url: string,
+  setState: (next: ExternalLinksState) => void,
+) {
+  try {
+    const next = await api?.externalLinks?.open?.(url);
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter external-link failures.
+  }
+}
+
+async function clearExternalLinks(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: ExternalLinksState) => void,
+) {
+  try {
+    const next = await api?.externalLinks?.clearHistory?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter external-link history failures.
+  }
+}
+` : ''}${useDiagnostics || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useDownloads || useClipboard || useExternalLinks ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.24 (2026-03-25)
+
+### External-Links Feature Pack
+
+- Added an `external-links` scaffold feature pack for the `minimal` starter
+- Generated apps now expose `shell.openExternal` over preload IPC and surface starter open history plus error tracking in `FeatureStudio`
+- Kept `external-links` optional so teams can add browser, mail, or protocol launch flows deliberately without widening the default production preset
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated external-links smoke app before any version bump
+
 ## 0.1.23 (2026-03-25)
 
 ### Clipboard Feature Pack
