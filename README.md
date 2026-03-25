@@ -85,7 +85,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature updater \
   --feature jobs \
   --feature plugins \
-  --feature diagnostics
+  --feature diagnostics \
+  --feature notifications
 ```
 
 Or use the bundled production starter preset:
@@ -122,9 +123,10 @@ Feature packs available on the `minimal` starter today:
 - `jobs` for queued background work and progress events
 - `plugins` for a seeded plugin registry and sample plugin slots
 - `diagnostics` for in-app environment snapshots and support bundle export
+- `notifications` for native desktop notifications from the generated runtime shell
 
 Starter presets available today:
-- `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, and `diagnostics`
+- `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, and `notifications`
 
 ## How It Works
 

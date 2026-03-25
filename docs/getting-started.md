@@ -58,7 +58,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature updater \
   --feature jobs \
   --feature plugins \
-  --feature diagnostics
+  --feature diagnostics \
+  --feature notifications
 ```
 
 Or preview the bundled production starter:

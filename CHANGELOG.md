@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.10 (2026-03-25)
+
+### Notifications Feature Pack
+
+- Added a `notifications` scaffold feature pack for the `minimal` starter
+- Generated apps can now expose native desktop notifications through preload and main-process IPC
+- Added a starter notifications panel to `FeatureStudio` so new apps can test reminder and completion flows immediately
+
+### Launch-Ready Preset
+
+- Expanded `forge create --preset launch-ready` to include `notifications`
+- Updated CLI and docs surfaces so the production starter preset reflects the full release-oriented feature bundle
+
 ## 0.1.9 (2026-03-25)
 
 ### Launch-Ready Starter

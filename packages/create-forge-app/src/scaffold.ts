@@ -691,11 +691,12 @@ function getMinimalElectronMainSource(
   const useJobs = features.includes('jobs');
   const useUpdater = features.includes('updater');
   const useDiagnostics = features.includes('diagnostics');
+  const useNotifications = features.includes('notifications');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
 
-  return `import { app, BrowserWindow, ipcMain } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''} } from 'electron';
 import path from 'node:path';
 ${useDiagnostics ? "import { mkdir, writeFile } from 'node:fs/promises';\n" : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
@@ -815,6 +816,24 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return exportDiagnosticsBundle();
   });
 
+` : ''}${useNotifications ? `  ipcMain.handle(IPC_CHANNELS.NOTIFY_SHOW, async (_event, title: string, body: string) => {
+    const safeTitle = title.trim() || ${JSON.stringify(productName)};
+    const safeBody = body.trim() || 'Background work completed successfully.';
+
+    if (!Notification.isSupported()) {
+      return { supported: false, delivered: false };
+    }
+
+    const notification = new Notification({
+      title: safeTitle,
+      body: safeBody,
+      silent: false,
+    });
+
+    notification.show();
+    return { supported: true, delivered: true };
+  });
+
 ` : ''}  logger.info('IPC handlers registered');
 }
 
@@ -884,6 +903,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useJobs = features.includes('jobs');
   const useUpdater = features.includes('updater');
   const useDiagnostics = features.includes('diagnostics');
+  const useNotifications = features.includes('notifications');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -919,6 +939,9 @@ ${useSettings ? `  settings: {
     getSummary: () => ipcRenderer.invoke(IPC_CHANNELS.DIAGNOSTICS_SUMMARY),
     exportBundle: () => ipcRenderer.invoke(IPC_CHANNELS.DIAGNOSTICS_EXPORT),
   },
+` : ''}${useNotifications ? `  notifications: {
+    show: (title: string, body: string) => ipcRenderer.invoke(IPC_CHANNELS.NOTIFY_SHOW, title, body),
+  },
 ` : ''}};
 
 contextBridge.exposeInMainWorld('api', api);
@@ -937,6 +960,7 @@ function getFeatureStudioSource(
   const useUpdater = features.includes('updater');
   const usePlugins = features.includes('plugins');
   const useDiagnostics = features.includes('diagnostics');
+  const useNotifications = features.includes('notifications');
   const displayName = resolveProductName(projectName, metadata);
 
   return `import { useEffect, useState } from 'react';
@@ -984,6 +1008,9 @@ type ForgeDesktopAPI = {
     getSummary: () => Promise<DiagnosticsSummary>;
     exportBundle: () => Promise<{ filePath: string; generatedAt: string }>;
   };
+  notifications?: {
+    show: (title: string, body: string) => Promise<{ supported: boolean; delivered: boolean }>;
+  };
 };
 
 function getDesktopApi(): ForgeDesktopAPI | undefined {
@@ -998,6 +1025,8 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
 ` : ''}${useUpdater ? `  const [updateStatus, setUpdateStatus] = useState<{ status: string; version?: string; progress?: { percent: number }; error?: string }>({ status: 'idle' });
 ` : ''}${useDiagnostics ? `  const [diagnostics, setDiagnostics] = useState<DiagnosticsSummary | null>(null);
   const [diagnosticsExport, setDiagnosticsExport] = useState<{ filePath: string; generatedAt: string } | null>(null);
+` : ''}${useNotifications ? `  const [notificationDraft, setNotificationDraft] = useState({ title: 'Forge Ready', body: '${displayName} is ready for customer testing.' });
+  const [notificationState, setNotificationState] = useState<'idle' | 'sent' | 'unsupported'>('idle');
 ` : ''}  const featureNames = ${JSON.stringify(features)};
 
 ${useSettings ? `  useEffect(() => {
@@ -1215,6 +1244,46 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             </p>
           )}
         </section>
+` : ''}${useNotifications ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Notifications</h3>
+              <p className="mt-1 text-xs text-slate-400">Trigger native desktop notifications for reminders, completions, and support follow-ups.</p>
+            </div>
+            <button
+              onClick={() => sendNotification(api, notificationDraft, setNotificationState)}
+              className="rounded-full border border-fuchsia-500/40 px-3 py-1 text-xs font-medium text-fuchsia-300 hover:border-fuchsia-400 hover:text-fuchsia-100"
+            >
+              Send sample
+            </button>
+          </div>
+          <div className="mt-3 space-y-3">
+            <label className="block text-xs text-slate-400">
+              Title
+              <input
+                type="text"
+                value={notificationDraft.title}
+                onChange={(event) => setNotificationDraft((prev) => ({ ...prev, title: event.target.value }))}
+                className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+            </label>
+            <label className="block text-xs text-slate-400">
+              Body
+              <textarea
+                rows={3}
+                value={notificationDraft.body}
+                onChange={(event) => setNotificationDraft((prev) => ({ ...prev, body: event.target.value }))}
+                className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+            </label>
+            <p className="text-xs text-slate-500">
+              Status:{' '}
+              <span className="text-white">
+                {notificationState === 'idle' ? 'ready' : notificationState === 'sent' ? 'delivered' : 'not supported on this platform'}
+              </span>
+            </p>
+          </div>
+        </section>
 ` : ''}${usePlugins ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length === 1 ? 'md:col-span-2' : ''}">
           <h3 className="text-sm font-semibold text-white">Plugin Registry</h3>
           <p className="mt-1 text-xs text-slate-400">Sample plugin slots are ready for feature-oriented modules.</p>
@@ -1260,6 +1329,20 @@ function applyTheme(theme: AppSettings['theme']) {
     await api?.job?.submit?.('reverse', { text: 'Queued from Feature Studio' });
   } catch {
     // Ignore demo failures in starter apps.
+  }
+}
+` : ''}${useNotifications ? `
+
+async function sendNotification(
+  api: ForgeDesktopAPI | undefined,
+  draft: { title: string; body: string },
+  setState: (next: 'idle' | 'sent' | 'unsupported') => void,
+) {
+  try {
+    const result = await api?.notifications?.show?.(draft.title, draft.body);
+    setState(result?.supported ? 'sent' : 'unsupported');
+  } catch {
+    setState('unsupported');
   }
 }
 ` : ''}${useDiagnostics ? `
