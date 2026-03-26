@@ -82,6 +82,9 @@ export const IPC_CHANNELS = {
   SUPPORT_BUNDLE_GET_STATE: 'support-bundle:get-state',
   SUPPORT_BUNDLE_EXPORT: 'support-bundle:export',
   SUPPORT_BUNDLE_REVEAL: 'support-bundle:reveal',
+  LOG_ARCHIVE_GET_STATE: 'log-archive:get-state',
+  LOG_ARCHIVE_EXPORT: 'log-archive:export',
+  LOG_ARCHIVE_REVEAL: 'log-archive:reveal',
 
   // Updates
   UPDATE_CHECK: 'update:check',

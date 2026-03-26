@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.32 (2026-03-26)
+
+### Log-Archive Feature Pack
+
+- Added a `log-archive` scaffold feature pack for the `minimal` starter
+- Generated apps now snapshot the runtime logs directory into timestamped support folders, emit a manifest, and surface refresh, export, and reveal controls in `FeatureStudio`
+- Kept `log-archive` optional so teams can add desktop evidence handoff deliberately without widening the default production preset
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated log-archive smoke app before any version bump
+
 ## 0.1.31 (2026-03-26)
 
 ### Support-Bundle Feature Pack

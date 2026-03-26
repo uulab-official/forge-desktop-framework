@@ -728,6 +728,7 @@ function getMinimalElectronMainSource(
   const useNetworkStatus = features.includes('network-status');
   const useSecureStorage = features.includes('secure-storage');
   const useSupportBundle = features.includes('support-bundle');
+  const useLogArchive = features.includes('log-archive');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
@@ -735,10 +736,10 @@ function getMinimalElectronMainSource(
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
   const dialogFileName = `${toIdentifier(projectName)}-document.txt`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor || useIdlePresence ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useNetworkStatus ? ', net' : ''}${useSecureStorage ? ', safeStorage' : ''}${useFileDialogs || useDownloads || useExternalLinks || useSupportBundle ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor || useIdlePresence ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useNetworkStatus ? ', net' : ''}${useSecureStorage ? ', safeStorage' : ''}${useFileDialogs || useDownloads || useExternalLinks || useSupportBundle || useLogArchive ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
 import path from 'node:path';
 ${useSystemInfo ? "import os from 'node:os';\n" : ''}
-${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage || useSupportBundle ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage ? 'readFile' : '', 'writeFile', ...((useDiagnostics || useSupportBundle) ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
+${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage || useSupportBundle || useLogArchive ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage ? 'readFile' : '', 'writeFile', ...((useDiagnostics || useSupportBundle || useLogArchive) ? ['mkdir'] : []), ...(useLogArchive ? ['readdir', 'stat', 'copyFile'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
 import { createLogger } from '@forge/logger';
 import { IPC_CHANNELS, type WorkerRequest } from '@forge/ipc-contract';
@@ -872,6 +873,134 @@ async function exportDiagnosticsBundle() {
   await writeFile(filePath, JSON.stringify(payload, null, 2), 'utf-8');
   return { filePath, generatedAt: payload.generatedAt };
 }
+` : ''}${useLogArchive ? `
+type LogArchiveFileEntry = {
+  name: string;
+  sourcePath: string;
+  sizeBytes: number;
+  modifiedAt: string;
+};
+
+type LogArchiveState = {
+  logsPath: string;
+  archiveDirectoryPath: string;
+  fileCount: number;
+  totalBytes: number;
+  files: LogArchiveFileEntry[];
+  lastArchivePath: string | null;
+  lastArchivedAt: string | null;
+  archiveCount: number;
+  lastError: string | null;
+};
+
+const logArchiveState: LogArchiveState = {
+  logsPath: app.getPath('logs'),
+  archiveDirectoryPath: path.join(app.getPath('downloads'), ${JSON.stringify(supportFolder)}, 'log-archives'),
+  fileCount: 0,
+  totalBytes: 0,
+  files: [],
+  lastArchivePath: null,
+  lastArchivedAt: null,
+  archiveCount: 0,
+  lastError: null,
+};
+
+async function listLogArchiveFiles() {
+  try {
+    const entries = await readdir(logArchiveState.logsPath, { withFileTypes: true });
+    const files = (
+      await Promise.all(entries.filter((entry) => entry.isFile()).map(async (entry) => {
+        const sourcePath = path.join(logArchiveState.logsPath, entry.name);
+        const details = await stat(sourcePath);
+        return {
+          name: entry.name,
+          sourcePath,
+          sizeBytes: details.size,
+          modifiedAt: details.mtime.toISOString(),
+        } satisfies LogArchiveFileEntry;
+      }))
+    ).sort((left, right) => right.modifiedAt.localeCompare(left.modifiedAt));
+
+    return files;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException | undefined)?.code === 'ENOENT') {
+      return [] as LogArchiveFileEntry[];
+    }
+    throw error;
+  }
+}
+
+async function getLogArchiveState() {
+  try {
+    const files = await listLogArchiveFiles();
+    logArchiveState.files = files;
+    logArchiveState.fileCount = files.length;
+    logArchiveState.totalBytes = files.reduce((total, entry) => total + entry.sizeBytes, 0);
+    logArchiveState.lastError = null;
+  } catch (error) {
+    logArchiveState.lastError = error instanceof Error ? error.message : 'Unknown log archive inspection error';
+  }
+
+  return {
+    logsPath: logArchiveState.logsPath,
+    archiveDirectoryPath: logArchiveState.archiveDirectoryPath,
+    fileCount: logArchiveState.fileCount,
+    totalBytes: logArchiveState.totalBytes,
+    files: [...logArchiveState.files],
+    lastArchivePath: logArchiveState.lastArchivePath,
+    lastArchivedAt: logArchiveState.lastArchivedAt,
+    archiveCount: logArchiveState.archiveCount,
+    lastError: logArchiveState.lastError,
+  };
+}
+
+function createLogArchiveFolderName() {
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  return \`${toIdentifier(projectName)}-logs-\${stamp}\`;
+}
+
+async function exportLogArchive() {
+  try {
+    const files = await listLogArchiveFiles();
+    await mkdir(logArchiveState.archiveDirectoryPath, { recursive: true });
+    const archivePath = path.join(logArchiveState.archiveDirectoryPath, createLogArchiveFolderName());
+    await mkdir(archivePath, { recursive: true });
+
+    for (const entry of files) {
+      await copyFile(entry.sourcePath, path.join(archivePath, entry.name));
+    }
+
+    const generatedAt = new Date().toISOString();
+    const manifest = {
+      generatedAt,
+      sourceLogsPath: logArchiveState.logsPath,
+      fileCount: files.length,
+      totalBytes: files.reduce((total, entry) => total + entry.sizeBytes, 0),
+      files,
+    };
+
+    await writeFile(path.join(archivePath, 'manifest.json'), JSON.stringify(manifest, null, 2), 'utf-8');
+    logArchiveState.lastArchivePath = archivePath;
+    logArchiveState.lastArchivedAt = generatedAt;
+    logArchiveState.archiveCount += 1;
+    logArchiveState.lastError = null;
+    return getLogArchiveState();
+  } catch (error) {
+    logArchiveState.lastError = error instanceof Error ? error.message : 'Unknown log archive export error';
+    throw error;
+  }
+}
+
+async function revealLogArchive() {
+  const targetPath = logArchiveState.lastArchivePath ?? logArchiveState.logsPath;
+  try {
+    shell.showItemInFolder(targetPath);
+    logArchiveState.lastError = null;
+  } catch (error) {
+    logArchiveState.lastError = error instanceof Error ? error.message : 'Unknown log archive reveal error';
+  }
+  return getLogArchiveState();
+}
 ` : ''}${useSupportBundle ? `
 type SupportBundleState = {
   directoryPath: string;
@@ -916,7 +1045,7 @@ async function exportSupportBundle() {
     const generatedAt = new Date().toISOString();
     const includedSections = [
     'runtime',
-${useDiagnostics ? "    'diagnostics',\n" : ''}${useSystemInfo ? "    'systemInfo',\n" : ''}${usePermissions ? "    'permissions',\n" : ''}${useNetworkStatus ? "    'networkStatus',\n" : ''}${useSecureStorage ? "    'secureStorage',\n" : ''}${useWindowing ? "    'windowing',\n" : ''}${useTray ? "    'tray',\n" : ''}${useDeepLink ? "    'deepLink',\n" : ''}${useMenuBar ? "    'menuBar',\n" : ''}${useAutoLaunch ? "    'autoLaunch',\n" : ''}${useGlobalShortcut ? "    'globalShortcut',\n" : ''}${useFileAssociation ? "    'fileAssociation',\n" : ''}${useFileDialogs ? "    'fileDialogs',\n" : ''}${useRecentFiles ? "    'recentFiles',\n" : ''}${useCrashRecovery ? "    'crashRecovery',\n" : ''}${usePowerMonitor ? "    'powerMonitor',\n" : ''}${useIdlePresence ? "    'idlePresence',\n" : ''}${useSessionState ? "    'sessionState',\n" : ''}${useDownloads ? "    'downloads',\n" : ''}${useClipboard ? "    'clipboard',\n" : ''}${useExternalLinks ? "    'externalLinks',\n" : ''}  ] as const;
+${useDiagnostics ? "    'diagnostics',\n" : ''}${useSystemInfo ? "    'systemInfo',\n" : ''}${usePermissions ? "    'permissions',\n" : ''}${useNetworkStatus ? "    'networkStatus',\n" : ''}${useSecureStorage ? "    'secureStorage',\n" : ''}${useLogArchive ? "    'logArchive',\n" : ''}${useWindowing ? "    'windowing',\n" : ''}${useTray ? "    'tray',\n" : ''}${useDeepLink ? "    'deepLink',\n" : ''}${useMenuBar ? "    'menuBar',\n" : ''}${useAutoLaunch ? "    'autoLaunch',\n" : ''}${useGlobalShortcut ? "    'globalShortcut',\n" : ''}${useFileAssociation ? "    'fileAssociation',\n" : ''}${useFileDialogs ? "    'fileDialogs',\n" : ''}${useRecentFiles ? "    'recentFiles',\n" : ''}${useCrashRecovery ? "    'crashRecovery',\n" : ''}${usePowerMonitor ? "    'powerMonitor',\n" : ''}${useIdlePresence ? "    'idlePresence',\n" : ''}${useSessionState ? "    'sessionState',\n" : ''}${useDownloads ? "    'downloads',\n" : ''}${useClipboard ? "    'clipboard',\n" : ''}${useExternalLinks ? "    'externalLinks',\n" : ''}  ] as const;
 
     const payload = {
       generatedAt,
@@ -938,7 +1067,7 @@ ${useDiagnostics ? "    'diagnostics',\n" : ''}${useSystemInfo ? "    'systemInf
         electronVersion: process.versions.electron,
         enabledFeatures,
       },
-${useDiagnostics ? '    diagnostics: await getDiagnosticsSummary(),\n' : ''}${useSystemInfo ? '    systemInfo: await getSystemInfoState(),\n' : ''}${usePermissions ? '    permissions: getPermissionsState(),\n' : ''}${useNetworkStatus ? '    networkStatus: snapshotNetworkStatus(),\n' : ''}${useSecureStorage ? '    secureStorage: getSecureStorageState(),\n' : ''}${useWindowing ? '    windowing: getCurrentWindowState(),\n' : ''}${useTray ? '    tray: getTrayStatus(),\n' : ''}${useDeepLink ? '    deepLink: getDeepLinkState(),\n' : ''}${useMenuBar ? '    menuBar: getMenuBarState(),\n' : ''}${useAutoLaunch ? '    autoLaunch: getAutoLaunchState(),\n' : ''}${useGlobalShortcut ? '    globalShortcut: getGlobalShortcutState(),\n' : ''}${useFileAssociation ? '    fileAssociation: getFileAssociationState(),\n' : ''}${useFileDialogs ? '    fileDialogs: getFileDialogState(),\n' : ''}${useRecentFiles ? '    recentFiles: getRecentFilesState(),\n' : ''}${useCrashRecovery ? '    crashRecovery: getCrashRecoveryState(),\n' : ''}${usePowerMonitor ? '    powerMonitor: getPowerMonitorState(),\n' : ''}${useIdlePresence ? '    idlePresence: getIdlePresenceState(),\n' : ''}${useSessionState ? '    sessionState: getSessionStateSnapshot(),\n' : ''}${useDownloads ? '    downloads: getDownloadsState(),\n' : ''}${useClipboard ? '    clipboard: getClipboardState(),\n' : ''}${useExternalLinks ? '    externalLinks: getExternalLinksState(),\n' : ''}  };
+${useDiagnostics ? '    diagnostics: await getDiagnosticsSummary(),\n' : ''}${useSystemInfo ? '    systemInfo: await getSystemInfoState(),\n' : ''}${usePermissions ? '    permissions: getPermissionsState(),\n' : ''}${useNetworkStatus ? '    networkStatus: snapshotNetworkStatus(),\n' : ''}${useSecureStorage ? '    secureStorage: getSecureStorageState(),\n' : ''}${useLogArchive ? '    logArchive: await getLogArchiveState(),\n' : ''}${useWindowing ? '    windowing: getCurrentWindowState(),\n' : ''}${useTray ? '    tray: getTrayStatus(),\n' : ''}${useDeepLink ? '    deepLink: getDeepLinkState(),\n' : ''}${useMenuBar ? '    menuBar: getMenuBarState(),\n' : ''}${useAutoLaunch ? '    autoLaunch: getAutoLaunchState(),\n' : ''}${useGlobalShortcut ? '    globalShortcut: getGlobalShortcutState(),\n' : ''}${useFileAssociation ? '    fileAssociation: getFileAssociationState(),\n' : ''}${useFileDialogs ? '    fileDialogs: getFileDialogState(),\n' : ''}${useRecentFiles ? '    recentFiles: getRecentFilesState(),\n' : ''}${useCrashRecovery ? '    crashRecovery: getCrashRecoveryState(),\n' : ''}${usePowerMonitor ? '    powerMonitor: getPowerMonitorState(),\n' : ''}${useIdlePresence ? '    idlePresence: getIdlePresenceState(),\n' : ''}${useSessionState ? '    sessionState: getSessionStateSnapshot(),\n' : ''}${useDownloads ? '    downloads: getDownloadsState(),\n' : ''}${useClipboard ? '    clipboard: getClipboardState(),\n' : ''}${useExternalLinks ? '    externalLinks: getExternalLinksState(),\n' : ''}  };
 
     const filePath = path.join(supportBundleState.directoryPath, createSupportBundleFileName());
     const body = JSON.stringify(payload, null, 2);
@@ -2628,6 +2757,18 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return revealSupportBundle();
   });
 
+` : ''}${useLogArchive ? `  ipcMain.handle(IPC_CHANNELS.LOG_ARCHIVE_GET_STATE, async () => {
+    return getLogArchiveState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.LOG_ARCHIVE_EXPORT, async () => {
+    return exportLogArchive();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.LOG_ARCHIVE_REVEAL, async () => {
+    return revealLogArchive();
+  });
+
 ` : ''}${useNotifications ? `  ipcMain.handle(IPC_CHANNELS.NOTIFY_SHOW, async (_event, title: string, body: string) => {
     const safeTitle = title.trim() || ${JSON.stringify(productName)};
     const safeBody = body.trim() || 'Background work completed successfully.';
@@ -3009,6 +3150,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useNetworkStatus = features.includes('network-status');
   const useSecureStorage = features.includes('secure-storage');
   const useSupportBundle = features.includes('support-bundle');
+  const useLogArchive = features.includes('log-archive');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -3065,6 +3207,11 @@ ${useSettings ? `  settings: {
     getState: () => ipcRenderer.invoke(IPC_CHANNELS.SUPPORT_BUNDLE_GET_STATE),
     export: () => ipcRenderer.invoke(IPC_CHANNELS.SUPPORT_BUNDLE_EXPORT),
     reveal: () => ipcRenderer.invoke(IPC_CHANNELS.SUPPORT_BUNDLE_REVEAL),
+  },
+` : ''}${useLogArchive ? `  logArchive: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.LOG_ARCHIVE_GET_STATE),
+    export: () => ipcRenderer.invoke(IPC_CHANNELS.LOG_ARCHIVE_EXPORT),
+    reveal: () => ipcRenderer.invoke(IPC_CHANNELS.LOG_ARCHIVE_REVEAL),
   },
 ` : ''}${useNotifications ? `  notifications: {
     show: (title: string, body: string) => ipcRenderer.invoke(IPC_CHANNELS.NOTIFY_SHOW, title, body),
@@ -3185,6 +3332,7 @@ function getFeatureStudioSource(
   const useNetworkStatus = features.includes('network-status');
   const useSecureStorage = features.includes('secure-storage');
   const useSupportBundle = features.includes('support-bundle');
+  const useLogArchive = features.includes('log-archive');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
@@ -3302,6 +3450,25 @@ type SupportBundleState = {
   lastSizeBytes: number | null;
   exportCount: number;
   includedSections: string[];
+  lastError: string | null;
+};
+
+type LogArchiveFileEntry = {
+  name: string;
+  sourcePath: string;
+  sizeBytes: number;
+  modifiedAt: string;
+};
+
+type LogArchiveState = {
+  logsPath: string;
+  archiveDirectoryPath: string;
+  fileCount: number;
+  totalBytes: number;
+  files: LogArchiveFileEntry[];
+  lastArchivePath: string | null;
+  lastArchivedAt: string | null;
+  archiveCount: number;
   lastError: string | null;
 };
 
@@ -3509,6 +3676,11 @@ type ForgeDesktopAPI = {
     export: () => Promise<SupportBundleState>;
     reveal: () => Promise<SupportBundleState>;
   };
+  logArchive?: {
+    getState: () => Promise<LogArchiveState>;
+    export: () => Promise<LogArchiveState>;
+    reveal: () => Promise<LogArchiveState>;
+  };
   notifications?: {
     show: (title: string, body: string) => Promise<{ supported: boolean; delivered: boolean }>;
   };
@@ -3609,6 +3781,7 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
   const [secureStorageLabelDraft, setSecureStorageLabelDraft] = useState('api-token');
   const [secureStorageValueDraft, setSecureStorageValueDraft] = useState('${displayName} demo secret');
 ` : ''}${useSupportBundle ? `  const [supportBundleState, setSupportBundleState] = useState<SupportBundleState | null>(null);
+` : ''}${useLogArchive ? `  const [logArchiveState, setLogArchiveState] = useState<LogArchiveState | null>(null);
 ` : ''}${useNotifications ? `  const [notificationDraft, setNotificationDraft] = useState({ title: 'Forge Ready', body: '${displayName} is ready for customer testing.' });
   const [notificationState, setNotificationState] = useState<'idle' | 'sent' | 'unsupported'>('idle');
 ` : ''}${useWindowing ? `  const [windowState, setWindowState] = useState<WindowStateSummary | null>(null);
@@ -3699,6 +3872,10 @@ ${useSettings ? `  useEffect(() => {
 ` : ''}${useSupportBundle ? `
   useEffect(() => {
     refreshSupportBundle(api, setSupportBundleState);
+  }, [api]);
+` : ''}${useLogArchive ? `
+  useEffect(() => {
+    refreshLogArchive(api, setLogArchiveState);
   }, [api]);
 ` : ''}${useSystemInfo ? `
   useEffect(() => {
@@ -4251,6 +4428,69 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             </>
           ) : (
             <p className="mt-3 text-xs text-slate-500">Support bundle state is unavailable until the desktop bridge finishes booting.</p>
+          )}
+        </section>
+` : ''}${useLogArchive ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Log Archive</h3>
+              <p className="mt-1 text-xs text-slate-400">Snapshot the runtime logs directory into a timestamped handoff folder so QA and support can attach real desktop evidence without opening the app bundle by hand.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => refreshLogArchive(api, setLogArchiveState)}
+                className="rounded-full border border-cyan-500/40 px-3 py-1 text-xs font-medium text-cyan-300 hover:border-cyan-400 hover:text-cyan-100"
+              >
+                Refresh
+              </button>
+              <button
+                onClick={() => exportLogArchiveFromStudio(api, setLogArchiveState)}
+                className="rounded-full border border-amber-500/40 px-3 py-1 text-xs font-medium text-amber-300 hover:border-amber-400 hover:text-amber-100"
+              >
+                Export
+              </button>
+              <button
+                onClick={() => revealLogArchiveFromStudio(api, setLogArchiveState)}
+                className="rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-200 hover:border-slate-500"
+              >
+                Reveal
+              </button>
+            </div>
+          </div>
+          {logArchiveState ? (
+            <>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <DiagnosticRow label="Logs Folder" value={logArchiveState.logsPath} />
+                <DiagnosticRow label="Archive Folder" value={logArchiveState.archiveDirectoryPath} />
+                <DiagnosticRow label="Log Files" value={String(logArchiveState.fileCount)} />
+                <DiagnosticRow label="Bytes" value={String(logArchiveState.totalBytes)} />
+                <DiagnosticRow label="Last Archive" value={logArchiveState.lastArchivePath ?? 'Not archived yet'} />
+                <DiagnosticRow label="Archived At" value={logArchiveState.lastArchivedAt ?? 'Not archived yet'} />
+              </div>
+              <div className="mt-3 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-xs text-slate-400">
+                Archive exports: <span className="text-white">{logArchiveState.archiveCount}</span>
+                {' · '}
+                Last error: <span className="text-white">{logArchiveState.lastError ?? 'none'}</span>
+              </div>
+              <div className="mt-3 space-y-2">
+                {logArchiveState.files.length === 0 ? (
+                  <p className="text-xs text-slate-500">No log files were found yet. Generate activity in the app and refresh to inspect the runtime logs folder.</p>
+                ) : (
+                  logArchiveState.files.map((entry) => (
+                    <div key={entry.sourcePath} className="rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-sm font-medium text-white">{entry.name}</span>
+                        <span className="text-[11px] uppercase tracking-[0.18em] text-slate-400">{entry.sizeBytes} bytes</span>
+                      </div>
+                      <p className="mt-1 break-all text-xs text-slate-500">{entry.sourcePath}</p>
+                      <p className="mt-1 text-xs text-slate-500">Modified {entry.modifiedAt}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          ) : (
+            <p className="mt-3 text-xs text-slate-500">Log archive state is unavailable until the desktop bridge finishes booting.</p>
           )}
         </section>
 ` : ''}${useSystemInfo ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
@@ -5809,7 +6049,50 @@ async function revealSupportBundleFromStudio(
     // Ignore starter support-bundle reveal failures.
   }
 }
-` : ''}${useDiagnostics || useSystemInfo || usePermissions || useNetworkStatus || useSecureStorage || useSupportBundle || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useIdlePresence || useSessionState || useDownloads || useClipboard || useExternalLinks ? `
+` : ''}${useLogArchive ? `
+
+async function refreshLogArchive(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: LogArchiveState) => void,
+) {
+  try {
+    const next = await api?.logArchive?.getState?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter log-archive refresh failures.
+  }
+}
+
+async function exportLogArchiveFromStudio(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: LogArchiveState) => void,
+) {
+  try {
+    const next = await api?.logArchive?.export?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter log-archive export failures.
+  }
+}
+
+async function revealLogArchiveFromStudio(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: LogArchiveState) => void,
+) {
+  try {
+    const next = await api?.logArchive?.reveal?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter log-archive reveal failures.
+  }
+}
+` : ''}${useDiagnostics || useSystemInfo || usePermissions || useNetworkStatus || useSecureStorage || useSupportBundle || useLogArchive || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useIdlePresence || useSessionState || useDownloads || useClipboard || useExternalLinks ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

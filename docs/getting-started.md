@@ -80,7 +80,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature permissions \
   --feature network-status \
   --feature secure-storage \
-  --feature support-bundle
+  --feature support-bundle \
+  --feature log-archive
 ```
 
 Or preview the bundled production starter:
@@ -115,6 +116,7 @@ The generated project includes:
 - optional starter packs like `network-status` can also seed online and offline runtime diagnostics with starter refresh and history controls
 - optional starter packs like `secure-storage` can also seed Electron `safeStorage` secret persistence with starter save, load, clear, and error diagnostics
 - optional starter packs like `support-bundle` can also seed structured support JSON exports with reveal controls for QA, support, and customer handoff
+- optional starter packs like `log-archive` can also seed timestamped runtime log exports with manifest files for QA, support, and escalation handoff
 
 ## Step 3: Create Your First Action
 
