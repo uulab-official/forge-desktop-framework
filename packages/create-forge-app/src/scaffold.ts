@@ -727,6 +727,7 @@ function getMinimalElectronMainSource(
   const usePermissions = features.includes('permissions');
   const useNetworkStatus = features.includes('network-status');
   const useSecureStorage = features.includes('secure-storage');
+  const useSupportBundle = features.includes('support-bundle');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
@@ -734,10 +735,10 @@ function getMinimalElectronMainSource(
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
   const dialogFileName = `${toIdentifier(projectName)}-document.txt`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor || useIdlePresence ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useNetworkStatus ? ', net' : ''}${useSecureStorage ? ', safeStorage' : ''}${useFileDialogs || useDownloads || useExternalLinks ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor || useIdlePresence ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useNetworkStatus ? ', net' : ''}${useSecureStorage ? ', safeStorage' : ''}${useFileDialogs || useDownloads || useExternalLinks || useSupportBundle ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
 import path from 'node:path';
 ${useSystemInfo ? "import os from 'node:os';\n" : ''}
-${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage ? 'readFile' : '', 'writeFile', ...(useDiagnostics ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
+${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage || useSupportBundle ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage ? 'readFile' : '', 'writeFile', ...((useDiagnostics || useSupportBundle) ? ['mkdir'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
 import { createLogger } from '@forge/logger';
 import { IPC_CHANNELS, type WorkerRequest } from '@forge/ipc-contract';
@@ -870,6 +871,100 @@ async function exportDiagnosticsBundle() {
   };
   await writeFile(filePath, JSON.stringify(payload, null, 2), 'utf-8');
   return { filePath, generatedAt: payload.generatedAt };
+}
+` : ''}${useSupportBundle ? `
+type SupportBundleState = {
+  directoryPath: string;
+  lastExportPath: string | null;
+  lastGeneratedAt: string | null;
+  lastSizeBytes: number | null;
+  exportCount: number;
+  includedSections: string[];
+  lastError: string | null;
+};
+
+const supportBundleState: SupportBundleState = {
+  directoryPath: path.join(app.getPath('downloads'), ${JSON.stringify(supportFolder)}),
+  lastExportPath: null,
+  lastGeneratedAt: null,
+  lastSizeBytes: null,
+  exportCount: 0,
+  includedSections: [],
+  lastError: null,
+};
+
+function getSupportBundleState() {
+  return {
+    directoryPath: supportBundleState.directoryPath,
+    lastExportPath: supportBundleState.lastExportPath,
+    lastGeneratedAt: supportBundleState.lastGeneratedAt,
+    lastSizeBytes: supportBundleState.lastSizeBytes,
+    exportCount: supportBundleState.exportCount,
+    includedSections: [...supportBundleState.includedSections],
+    lastError: supportBundleState.lastError,
+  };
+}
+
+function createSupportBundleFileName() {
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  return \`${toIdentifier(projectName)}-support-bundle-\${stamp}.json\`;
+}
+
+async function exportSupportBundle() {
+  try {
+    await mkdir(supportBundleState.directoryPath, { recursive: true });
+    const generatedAt = new Date().toISOString();
+    const includedSections = [
+    'runtime',
+${useDiagnostics ? "    'diagnostics',\n" : ''}${useSystemInfo ? "    'systemInfo',\n" : ''}${usePermissions ? "    'permissions',\n" : ''}${useNetworkStatus ? "    'networkStatus',\n" : ''}${useSecureStorage ? "    'secureStorage',\n" : ''}${useWindowing ? "    'windowing',\n" : ''}${useTray ? "    'tray',\n" : ''}${useDeepLink ? "    'deepLink',\n" : ''}${useMenuBar ? "    'menuBar',\n" : ''}${useAutoLaunch ? "    'autoLaunch',\n" : ''}${useGlobalShortcut ? "    'globalShortcut',\n" : ''}${useFileAssociation ? "    'fileAssociation',\n" : ''}${useFileDialogs ? "    'fileDialogs',\n" : ''}${useRecentFiles ? "    'recentFiles',\n" : ''}${useCrashRecovery ? "    'crashRecovery',\n" : ''}${usePowerMonitor ? "    'powerMonitor',\n" : ''}${useIdlePresence ? "    'idlePresence',\n" : ''}${useSessionState ? "    'sessionState',\n" : ''}${useDownloads ? "    'downloads',\n" : ''}${useClipboard ? "    'clipboard',\n" : ''}${useExternalLinks ? "    'externalLinks',\n" : ''}  ] as const;
+
+    const payload = {
+      generatedAt,
+      runtime: {
+        productName: ${JSON.stringify(productName)},
+        appId: ${JSON.stringify(appId)},
+        version: app.getVersion(),
+        platform: process.platform,
+        arch: process.arch,
+        isPackaged: app.isPackaged,
+        appPath: app.getAppPath(),
+        userDataPath: app.getPath('userData'),
+        logsPath: app.getPath('logs'),
+        downloadsPath: app.getPath('downloads'),
+        workerPath: resourceManager.getWorkerPath(),
+        pythonPath: resourceManager.getPythonPath(),
+        nodeVersion: process.versions.node,
+        chromeVersion: process.versions.chrome,
+        electronVersion: process.versions.electron,
+        enabledFeatures,
+      },
+${useDiagnostics ? '    diagnostics: await getDiagnosticsSummary(),\n' : ''}${useSystemInfo ? '    systemInfo: await getSystemInfoState(),\n' : ''}${usePermissions ? '    permissions: getPermissionsState(),\n' : ''}${useNetworkStatus ? '    networkStatus: snapshotNetworkStatus(),\n' : ''}${useSecureStorage ? '    secureStorage: getSecureStorageState(),\n' : ''}${useWindowing ? '    windowing: getCurrentWindowState(),\n' : ''}${useTray ? '    tray: getTrayStatus(),\n' : ''}${useDeepLink ? '    deepLink: getDeepLinkState(),\n' : ''}${useMenuBar ? '    menuBar: getMenuBarState(),\n' : ''}${useAutoLaunch ? '    autoLaunch: getAutoLaunchState(),\n' : ''}${useGlobalShortcut ? '    globalShortcut: getGlobalShortcutState(),\n' : ''}${useFileAssociation ? '    fileAssociation: getFileAssociationState(),\n' : ''}${useFileDialogs ? '    fileDialogs: getFileDialogState(),\n' : ''}${useRecentFiles ? '    recentFiles: getRecentFilesState(),\n' : ''}${useCrashRecovery ? '    crashRecovery: getCrashRecoveryState(),\n' : ''}${usePowerMonitor ? '    powerMonitor: getPowerMonitorState(),\n' : ''}${useIdlePresence ? '    idlePresence: getIdlePresenceState(),\n' : ''}${useSessionState ? '    sessionState: getSessionStateSnapshot(),\n' : ''}${useDownloads ? '    downloads: getDownloadsState(),\n' : ''}${useClipboard ? '    clipboard: getClipboardState(),\n' : ''}${useExternalLinks ? '    externalLinks: getExternalLinksState(),\n' : ''}  };
+
+    const filePath = path.join(supportBundleState.directoryPath, createSupportBundleFileName());
+    const body = JSON.stringify(payload, null, 2);
+    await writeFile(filePath, body, 'utf-8');
+    supportBundleState.lastExportPath = filePath;
+    supportBundleState.lastGeneratedAt = generatedAt;
+    supportBundleState.lastSizeBytes = Buffer.byteLength(body, 'utf-8');
+    supportBundleState.exportCount += 1;
+    supportBundleState.includedSections = [...includedSections];
+    supportBundleState.lastError = null;
+    return getSupportBundleState();
+  } catch (error) {
+    supportBundleState.lastError = error instanceof Error ? error.message : 'Unknown support bundle export error';
+    throw error;
+  }
+}
+
+async function revealSupportBundle() {
+  const targetPath = supportBundleState.lastExportPath ?? supportBundleState.directoryPath;
+  try {
+    shell.showItemInFolder(targetPath);
+    supportBundleState.lastError = null;
+  } catch (error) {
+    supportBundleState.lastError = error instanceof Error ? error.message : 'Unknown support bundle reveal error';
+  }
+  return getSupportBundleState();
 }
 ` : ''}${useSystemInfo ? `
 function toMegabytes(bytes: number) {
@@ -1087,6 +1182,16 @@ type SecureStorageState = {
   hasStoredValue: boolean;
   lastUpdatedAt: string | null;
   lastLoadedValue: string | null;
+  lastError: string | null;
+};
+
+type SupportBundleState = {
+  directoryPath: string;
+  lastExportPath: string | null;
+  lastGeneratedAt: string | null;
+  lastSizeBytes: number | null;
+  exportCount: number;
+  includedSections: string[];
   lastError: string | null;
 };
 
@@ -2511,6 +2616,18 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return clearSecureValue();
   });
 
+` : ''}${useSupportBundle ? `  ipcMain.handle(IPC_CHANNELS.SUPPORT_BUNDLE_GET_STATE, async () => {
+    return getSupportBundleState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.SUPPORT_BUNDLE_EXPORT, async () => {
+    return exportSupportBundle();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.SUPPORT_BUNDLE_REVEAL, async () => {
+    return revealSupportBundle();
+  });
+
 ` : ''}${useNotifications ? `  ipcMain.handle(IPC_CHANNELS.NOTIFY_SHOW, async (_event, title: string, body: string) => {
     const safeTitle = title.trim() || ${JSON.stringify(productName)};
     const safeBody = body.trim() || 'Background work completed successfully.';
@@ -2891,6 +3008,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const usePermissions = features.includes('permissions');
   const useNetworkStatus = features.includes('network-status');
   const useSecureStorage = features.includes('secure-storage');
+  const useSupportBundle = features.includes('support-bundle');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -2942,6 +3060,11 @@ ${useSettings ? `  settings: {
     save: (label?: string, value?: string) => ipcRenderer.invoke(IPC_CHANNELS.SECURE_STORAGE_SAVE, label, value),
     load: () => ipcRenderer.invoke(IPC_CHANNELS.SECURE_STORAGE_LOAD),
     clear: () => ipcRenderer.invoke(IPC_CHANNELS.SECURE_STORAGE_CLEAR),
+  },
+` : ''}${useSupportBundle ? `  supportBundle: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.SUPPORT_BUNDLE_GET_STATE),
+    export: () => ipcRenderer.invoke(IPC_CHANNELS.SUPPORT_BUNDLE_EXPORT),
+    reveal: () => ipcRenderer.invoke(IPC_CHANNELS.SUPPORT_BUNDLE_REVEAL),
   },
 ` : ''}${useNotifications ? `  notifications: {
     show: (title: string, body: string) => ipcRenderer.invoke(IPC_CHANNELS.NOTIFY_SHOW, title, body),
@@ -3061,6 +3184,7 @@ function getFeatureStudioSource(
   const usePermissions = features.includes('permissions');
   const useNetworkStatus = features.includes('network-status');
   const useSecureStorage = features.includes('secure-storage');
+  const useSupportBundle = features.includes('support-bundle');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
@@ -3168,6 +3292,16 @@ type SecureStorageState = {
   hasStoredValue: boolean;
   lastUpdatedAt: string | null;
   lastLoadedValue: string | null;
+  lastError: string | null;
+};
+
+type SupportBundleState = {
+  directoryPath: string;
+  lastExportPath: string | null;
+  lastGeneratedAt: string | null;
+  lastSizeBytes: number | null;
+  exportCount: number;
+  includedSections: string[];
   lastError: string | null;
 };
 
@@ -3370,6 +3504,11 @@ type ForgeDesktopAPI = {
     load: () => Promise<SecureStorageState>;
     clear: () => Promise<SecureStorageState>;
   };
+  supportBundle?: {
+    getState: () => Promise<SupportBundleState>;
+    export: () => Promise<SupportBundleState>;
+    reveal: () => Promise<SupportBundleState>;
+  };
   notifications?: {
     show: (title: string, body: string) => Promise<{ supported: boolean; delivered: boolean }>;
   };
@@ -3469,6 +3608,7 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
 ` : ''}${useSecureStorage ? `  const [secureStorageState, setSecureStorageState] = useState<SecureStorageState | null>(null);
   const [secureStorageLabelDraft, setSecureStorageLabelDraft] = useState('api-token');
   const [secureStorageValueDraft, setSecureStorageValueDraft] = useState('${displayName} demo secret');
+` : ''}${useSupportBundle ? `  const [supportBundleState, setSupportBundleState] = useState<SupportBundleState | null>(null);
 ` : ''}${useNotifications ? `  const [notificationDraft, setNotificationDraft] = useState({ title: 'Forge Ready', body: '${displayName} is ready for customer testing.' });
   const [notificationState, setNotificationState] = useState<'idle' | 'sent' | 'unsupported'>('idle');
 ` : ''}${useWindowing ? `  const [windowState, setWindowState] = useState<WindowStateSummary | null>(null);
@@ -3555,6 +3695,10 @@ ${useSettings ? `  useEffect(() => {
     api?.diagnostics?.getSummary?.().then((next) => {
       setDiagnostics(next);
     }).catch(() => {});
+  }, [api]);
+` : ''}${useSupportBundle ? `
+  useEffect(() => {
+    refreshSupportBundle(api, setSupportBundleState);
   }, [api]);
 ` : ''}${useSystemInfo ? `
   useEffect(() => {
@@ -4068,6 +4212,45 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             <p className="mt-2 text-xs text-amber-200">
               Support bundle exported to <span className="text-white">{diagnosticsExport.filePath}</span>
             </p>
+          )}
+        </section>
+` : ''}${useSupportBundle ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Support Bundle</h3>
+              <p className="mt-1 text-xs text-slate-400">Export structured runtime evidence into a single JSON handoff and reveal the last bundle in Finder without wiring a custom support tool first.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => exportSupportBundleFromStudio(api, setSupportBundleState)}
+                className="rounded-full border border-amber-500/40 px-3 py-1 text-xs font-medium text-amber-300 hover:border-amber-400 hover:text-amber-100"
+              >
+                Export
+              </button>
+              <button
+                onClick={() => revealSupportBundleFromStudio(api, setSupportBundleState)}
+                className="rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-200 hover:border-slate-500"
+              >
+                Reveal
+              </button>
+            </div>
+          </div>
+          {supportBundleState ? (
+            <>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <DiagnosticRow label="Bundle Folder" value={supportBundleState.directoryPath} />
+                <DiagnosticRow label="Exports" value={String(supportBundleState.exportCount)} />
+                <DiagnosticRow label="Last Export" value={supportBundleState.lastExportPath ?? 'Not exported yet'} />
+                <DiagnosticRow label="Generated" value={supportBundleState.lastGeneratedAt ?? 'Not exported yet'} />
+                <DiagnosticRow label="Bundle Size" value={supportBundleState.lastSizeBytes ? \`\${supportBundleState.lastSizeBytes} bytes\` : 'Unknown'} />
+                <DiagnosticRow label="Last Error" value={supportBundleState.lastError ?? 'none'} />
+              </div>
+              <div className="mt-3 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-xs text-slate-400">
+                Included sections: <span className="text-white">{supportBundleState.includedSections.length > 0 ? supportBundleState.includedSections.join(', ') : 'runtime'}</span>
+              </div>
+            </>
+          ) : (
+            <p className="mt-3 text-xs text-slate-500">Support bundle state is unavailable until the desktop bridge finishes booting.</p>
           )}
         </section>
 ` : ''}${useSystemInfo ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
@@ -5583,7 +5766,50 @@ async function clearSecureStorage(
     // Ignore starter secure-storage clear failures.
   }
 }
-` : ''}${useDiagnostics || useSystemInfo || usePermissions || useNetworkStatus || useSecureStorage || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useIdlePresence || useSessionState || useDownloads || useClipboard || useExternalLinks ? `
+` : ''}${useSupportBundle ? `
+
+async function refreshSupportBundle(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: SupportBundleState) => void,
+) {
+  try {
+    const next = await api?.supportBundle?.getState?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter support-bundle refresh failures.
+  }
+}
+
+async function exportSupportBundleFromStudio(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: SupportBundleState) => void,
+) {
+  try {
+    const next = await api?.supportBundle?.export?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter support-bundle export failures.
+  }
+}
+
+async function revealSupportBundleFromStudio(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: SupportBundleState) => void,
+) {
+  try {
+    const next = await api?.supportBundle?.reveal?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter support-bundle reveal failures.
+  }
+}
+` : ''}${useDiagnostics || useSystemInfo || usePermissions || useNetworkStatus || useSecureStorage || useSupportBundle || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useIdlePresence || useSessionState || useDownloads || useClipboard || useExternalLinks ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

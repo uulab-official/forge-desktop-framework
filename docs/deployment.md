@@ -59,7 +59,7 @@ Scaffolded apps also include:
 The `minimal` starter also supports feature packs during scaffolding:
 
 ```bash
-forge create my-app --template minimal --feature settings --feature updater --feature diagnostics --feature notifications --feature windowing --feature tray --feature deep-link --feature menu-bar --feature auto-launch --feature global-shortcut --feature file-association --feature file-dialogs --feature recent-files --feature crash-recovery --feature power-monitor --feature idle-presence --feature session-state --feature downloads --feature clipboard --feature external-links --feature system-info --feature permissions --feature network-status --feature secure-storage
+forge create my-app --template minimal --feature settings --feature updater --feature diagnostics --feature notifications --feature windowing --feature tray --feature deep-link --feature menu-bar --feature auto-launch --feature global-shortcut --feature file-association --feature file-dialogs --feature recent-files --feature crash-recovery --feature power-monitor --feature idle-presence --feature session-state --feature downloads --feature clipboard --feature external-links --feature system-info --feature permissions --feature network-status --feature secure-storage --feature support-bundle
 ```
 
 For the fastest production baseline, use the preset:
@@ -95,6 +95,8 @@ Use `--feature permissions` when your desktop product needs starter camera, micr
 Use `--feature network-status` when your desktop product needs starter online or offline diagnostics and wants a generated shell panel for connectivity-aware sync, retry, or degraded-mode UX.
 
 Use `--feature secure-storage` when your desktop product needs starter Electron `safeStorage` encryption with save, load, clear, and error diagnostics for local secrets or app tokens.
+
+Use `--feature support-bundle` when your desktop product needs a structured JSON handoff for support, QA, or customer escalations and wants export plus reveal controls wired into the generated shell.
 
 You can also seed release metadata up front:
 

@@ -90,7 +90,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature system-info \
   --feature permissions \
   --feature network-status \
-  --feature secure-storage
+  --feature secure-storage \
+  --feature support-bundle
 ```
 
 Preset creation for the production starter:
@@ -162,6 +163,7 @@ Feature packs currently target the `minimal` template and add:
 - `permissions` for starter camera, microphone, and screen permission diagnostics with request controls
 - `network-status` for starter online/offline diagnostics with refresh and history controls
 - `secure-storage` for starter Electron `safeStorage` secret persistence with save, load, clear, and error diagnostics
+- `support-bundle` for structured JSON support handoff exports with reveal-in-folder controls and included-section tracking
 
 Starter presets currently target the `minimal` template:
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`

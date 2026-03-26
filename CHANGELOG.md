@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.31 (2026-03-26)
+
+### Support-Bundle Feature Pack
+
+- Added a `support-bundle` scaffold feature pack for the `minimal` starter
+- Generated apps now export structured JSON support bundles over preload IPC and surface last-export path, included sections, size, and reveal controls in `FeatureStudio`
+- Kept `support-bundle` optional so teams can add support handoff tooling deliberately without widening the default production preset
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated support-bundle smoke app before any version bump
+
 ## 0.1.30 (2026-03-26)
 
 ### Session-State Feature Pack

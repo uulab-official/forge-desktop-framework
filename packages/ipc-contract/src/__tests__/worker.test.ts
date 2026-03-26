@@ -48,6 +48,7 @@ describe('IPC_CHANNELS', () => {
     expect(IPC_CHANNELS.PERMISSIONS_GET_STATE).toBe('permissions:get-state');
     expect(IPC_CHANNELS.NETWORK_STATUS_GET_STATE).toBe('network-status:get-state');
     expect(IPC_CHANNELS.SECURE_STORAGE_GET_STATE).toBe('secure-storage:get-state');
+    expect(IPC_CHANNELS.SUPPORT_BUNDLE_GET_STATE).toBe('support-bundle:get-state');
     expect(IPC_CHANNELS.UPDATE_CHECK).toBe('update:check');
   });
 });

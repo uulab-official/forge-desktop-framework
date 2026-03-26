@@ -79,6 +79,9 @@ export const IPC_CHANNELS = {
   SECURE_STORAGE_SAVE: 'secure-storage:save',
   SECURE_STORAGE_LOAD: 'secure-storage:load',
   SECURE_STORAGE_CLEAR: 'secure-storage:clear',
+  SUPPORT_BUNDLE_GET_STATE: 'support-bundle:get-state',
+  SUPPORT_BUNDLE_EXPORT: 'support-bundle:export',
+  SUPPORT_BUNDLE_REVEAL: 'support-bundle:reveal',
 
   // Updates
   UPDATE_CHECK: 'update:check',

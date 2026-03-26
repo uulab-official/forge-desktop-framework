@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'idle-presence' | 'session-state' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions' | 'network-status' | 'secure-storage';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'idle-presence' | 'session-state' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions' | 'network-status' | 'secure-storage' | 'support-bundle';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -170,6 +170,12 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     id: 'secure-storage',
     label: 'Secure Storage',
     description: 'Seed encrypted secret persistence with safeStorage diagnostics and starter save or load controls',
+    minimalOnly: true,
+  },
+  {
+    id: 'support-bundle',
+    label: 'Support Bundle',
+    description: 'Seed structured support bundle export and reveal controls so teams can hand off desktop diagnostics quickly',
     minimalOnly: true,
   },
 ];
