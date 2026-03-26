@@ -81,7 +81,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature network-status \
   --feature secure-storage \
   --feature support-bundle \
-  --feature log-archive
+  --feature log-archive \
+  --feature incident-report
 ```
 
 Or preview the bundled production starter:
@@ -117,6 +118,7 @@ The generated project includes:
 - optional starter packs like `secure-storage` can also seed Electron `safeStorage` secret persistence with starter save, load, clear, and error diagnostics
 - optional starter packs like `support-bundle` can also seed structured support JSON exports with reveal controls for QA, support, and customer handoff
 - optional starter packs like `log-archive` can also seed timestamped runtime log exports with manifest files for QA, support, and escalation handoff
+- optional starter packs like `incident-report` can also seed structured incident handoff drafts with severity, summary, repro steps, and export controls for escalation workflows
 
 ## Step 3: Create Your First Action
 

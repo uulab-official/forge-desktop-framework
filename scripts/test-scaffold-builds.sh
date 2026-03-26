@@ -28,6 +28,7 @@ NETWORK_STATUS_APP="examples/__scaffold_test_network_status__$$"
 SECURE_STORAGE_APP="examples/__scaffold_test_secure_storage__$$"
 SUPPORT_BUNDLE_APP="examples/__scaffold_test_support_bundle__$$"
 LOG_ARCHIVE_APP="examples/__scaffold_test_log_archive__$$"
+INCIDENT_REPORT_APP="examples/__scaffold_test_incident_report__$$"
 LOCKFILE_BACKUP="$(mktemp)"
 
 cp pnpm-lock.yaml "$LOCKFILE_BACKUP"
@@ -38,7 +39,7 @@ cleanup() {
     for (const target of process.argv.slice(1)) {
       fs.rmSync(target, { recursive: true, force: true });
     }
-  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP" "$FILE_ASSOCIATION_APP" "$FILE_DIALOGS_APP" "$RECENT_FILES_APP" "$CRASH_RECOVERY_APP" "$POWER_MONITOR_APP" "$IDLE_PRESENCE_APP" "$SESSION_STATE_APP" "$DOWNLOADS_APP" "$CLIPBOARD_APP" "$EXTERNAL_LINKS_APP" "$SYSTEM_INFO_APP" "$PERMISSIONS_APP" "$NETWORK_STATUS_APP" "$SECURE_STORAGE_APP" "$SUPPORT_BUNDLE_APP" "$LOG_ARCHIVE_APP"
+  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP" "$FILE_ASSOCIATION_APP" "$FILE_DIALOGS_APP" "$RECENT_FILES_APP" "$CRASH_RECOVERY_APP" "$POWER_MONITOR_APP" "$IDLE_PRESENCE_APP" "$SESSION_STATE_APP" "$DOWNLOADS_APP" "$CLIPBOARD_APP" "$EXTERNAL_LINKS_APP" "$SYSTEM_INFO_APP" "$PERMISSIONS_APP" "$NETWORK_STATUS_APP" "$SECURE_STORAGE_APP" "$SUPPORT_BUNDLE_APP" "$LOG_ARCHIVE_APP" "$INCIDENT_REPORT_APP"
   cp "$LOCKFILE_BACKUP" pnpm-lock.yaml
   rm -f "$LOCKFILE_BACKUP"
 }
@@ -310,5 +311,16 @@ echo "==> Verifying log-archive smoke app"
 pnpm --dir "$LOG_ARCHIVE_APP" release:check
 pnpm --dir "$LOG_ARCHIVE_APP" typecheck
 pnpm --dir "$LOG_ARCHIVE_APP" build
+
+echo "==> Scaffolding incident-report smoke app"
+node packages/create-forge-app/dist/index.js create "$INCIDENT_REPORT_APP" --template minimal --feature incident-report --yes --package-manager pnpm >/dev/null
+
+echo "==> Installing incident-report smoke app with workspace links"
+pnpm install --dir "$INCIDENT_REPORT_APP" --link-workspace-packages >/dev/null
+
+echo "==> Verifying incident-report smoke app"
+pnpm --dir "$INCIDENT_REPORT_APP" release:check
+pnpm --dir "$INCIDENT_REPORT_APP" typecheck
+pnpm --dir "$INCIDENT_REPORT_APP" build
 
 echo "Scaffold build verification passed."

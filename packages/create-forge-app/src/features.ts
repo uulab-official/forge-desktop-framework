@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'idle-presence' | 'session-state' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions' | 'network-status' | 'secure-storage' | 'support-bundle' | 'log-archive';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'idle-presence' | 'session-state' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions' | 'network-status' | 'secure-storage' | 'support-bundle' | 'log-archive' | 'incident-report';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -182,6 +182,12 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     id: 'log-archive',
     label: 'Log Archive',
     description: 'Seed runtime log snapshot export and reveal controls so teams can ship real desktop evidence to support quickly',
+    minimalOnly: true,
+  },
+  {
+    id: 'incident-report',
+    label: 'Incident Report',
+    description: 'Seed a structured desktop incident handoff draft with export and reveal controls for support escalations',
     minimalOnly: true,
   },
 ];

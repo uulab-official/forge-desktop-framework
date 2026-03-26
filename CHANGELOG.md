@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.33 (2026-03-26)
+
+### Incident-Report Feature Pack
+
+- Added an `incident-report` scaffold feature pack for the `minimal` starter
+- Generated apps now draft support-ready desktop escalation payloads with severity, affected area, repro steps, expected and actual behavior, recommended action, and JSON export or reveal controls in `FeatureStudio`
+- Kept `incident-report` optional so teams can add structured escalation handoff deliberately without widening the default production preset
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated incident-report smoke app before any version bump
+
 ## 0.1.32 (2026-03-26)
 
 ### Log-Archive Feature Pack

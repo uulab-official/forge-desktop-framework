@@ -85,6 +85,9 @@ export const IPC_CHANNELS = {
   LOG_ARCHIVE_GET_STATE: 'log-archive:get-state',
   LOG_ARCHIVE_EXPORT: 'log-archive:export',
   LOG_ARCHIVE_REVEAL: 'log-archive:reveal',
+  INCIDENT_REPORT_GET_STATE: 'incident-report:get-state',
+  INCIDENT_REPORT_EXPORT: 'incident-report:export',
+  INCIDENT_REPORT_REVEAL: 'incident-report:reveal',
 
   // Updates
   UPDATE_CHECK: 'update:check',

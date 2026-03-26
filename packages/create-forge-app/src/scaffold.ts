@@ -729,6 +729,7 @@ function getMinimalElectronMainSource(
   const useSecureStorage = features.includes('secure-storage');
   const useSupportBundle = features.includes('support-bundle');
   const useLogArchive = features.includes('log-archive');
+  const useIncidentReport = features.includes('incident-report');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
@@ -736,10 +737,10 @@ function getMinimalElectronMainSource(
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
   const dialogFileName = `${toIdentifier(projectName)}-document.txt`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor || useIdlePresence ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useNetworkStatus ? ', net' : ''}${useSecureStorage ? ', safeStorage' : ''}${useFileDialogs || useDownloads || useExternalLinks || useSupportBundle || useLogArchive ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor || useIdlePresence ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useNetworkStatus ? ', net' : ''}${useSecureStorage ? ', safeStorage' : ''}${useFileDialogs || useDownloads || useExternalLinks || useSupportBundle || useLogArchive || useIncidentReport ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
 import path from 'node:path';
 ${useSystemInfo ? "import os from 'node:os';\n" : ''}
-${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage || useSupportBundle || useLogArchive ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage ? 'readFile' : '', 'writeFile', ...((useDiagnostics || useSupportBundle || useLogArchive) ? ['mkdir'] : []), ...(useLogArchive ? ['readdir', 'stat', 'copyFile'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
+${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage || useSupportBundle || useLogArchive || useIncidentReport ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage ? 'readFile' : '', 'writeFile', ...((useDiagnostics || useSupportBundle || useLogArchive || useIncidentReport) ? ['mkdir'] : []), ...(useLogArchive ? ['readdir', 'stat', 'copyFile'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
 import { createLogger } from '@forge/logger';
 import { IPC_CHANNELS, type WorkerRequest } from '@forge/ipc-contract';
@@ -893,6 +894,29 @@ type LogArchiveState = {
   lastError: string | null;
 };
 
+type IncidentReportSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+type IncidentReportDraft = {
+  title: string;
+  severity: IncidentReportSeverity;
+  affectedArea: string;
+  summary: string;
+  stepsToReproduce: string;
+  expectedBehavior: string;
+  actualBehavior: string;
+  recommendedAction: string;
+  notes: string;
+};
+
+type IncidentReportState = {
+  directoryPath: string;
+  lastExportPath: string | null;
+  lastGeneratedAt: string | null;
+  exportCount: number;
+  lastError: string | null;
+  currentDraft: IncidentReportDraft;
+};
+
 const logArchiveState: LogArchiveState = {
   logsPath: app.getPath('logs'),
   archiveDirectoryPath: path.join(app.getPath('downloads'), ${JSON.stringify(supportFolder)}, 'log-archives'),
@@ -1000,6 +1024,133 @@ async function revealLogArchive() {
     logArchiveState.lastError = error instanceof Error ? error.message : 'Unknown log archive reveal error';
   }
   return getLogArchiveState();
+}
+` : ''}${useIncidentReport ? `
+type IncidentReportSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+type IncidentReportDraft = {
+  title: string;
+  severity: IncidentReportSeverity;
+  affectedArea: string;
+  summary: string;
+  stepsToReproduce: string;
+  expectedBehavior: string;
+  actualBehavior: string;
+  recommendedAction: string;
+  notes: string;
+};
+
+type IncidentReportState = {
+  directoryPath: string;
+  lastExportPath: string | null;
+  lastGeneratedAt: string | null;
+  exportCount: number;
+  lastError: string | null;
+  currentDraft: IncidentReportDraft;
+};
+
+const defaultIncidentReportDraft: IncidentReportDraft = {
+  title: ${JSON.stringify(`${productName} desktop issue`)},
+  severity: 'medium',
+  affectedArea: 'desktop-shell',
+  summary: 'Customer-facing issue observed in the packaged desktop flow.',
+  stepsToReproduce: '1. Launch the app\\n2. Navigate to the affected workflow\\n3. Capture the incorrect behavior',
+  expectedBehavior: 'The workflow should complete without a shell or runtime issue.',
+  actualBehavior: 'The desktop shell or runtime produced an unexpected result.',
+  recommendedAction: 'Attach support bundle and logs, then triage with product and QA owners.',
+  notes: '',
+};
+
+const incidentReportState: IncidentReportState = {
+  directoryPath: path.join(app.getPath('downloads'), ${JSON.stringify(supportFolder)}, 'incident-reports'),
+  lastExportPath: null,
+  lastGeneratedAt: null,
+  exportCount: 0,
+  lastError: null,
+  currentDraft: { ...defaultIncidentReportDraft },
+};
+
+function getIncidentReportState() {
+  return {
+    directoryPath: incidentReportState.directoryPath,
+    lastExportPath: incidentReportState.lastExportPath,
+    lastGeneratedAt: incidentReportState.lastGeneratedAt,
+    exportCount: incidentReportState.exportCount,
+    lastError: incidentReportState.lastError,
+    currentDraft: { ...incidentReportState.currentDraft },
+  };
+}
+
+function sanitizeIncidentReportDraft(
+  draft: Partial<IncidentReportDraft> | undefined,
+): IncidentReportDraft {
+  return {
+    title: draft?.title?.trim() || defaultIncidentReportDraft.title,
+    severity: draft?.severity && ['low', 'medium', 'high', 'critical'].includes(draft.severity)
+      ? draft.severity
+      : defaultIncidentReportDraft.severity,
+    affectedArea: draft?.affectedArea?.trim() || defaultIncidentReportDraft.affectedArea,
+    summary: draft?.summary?.trim() || defaultIncidentReportDraft.summary,
+    stepsToReproduce: draft?.stepsToReproduce?.trim() || defaultIncidentReportDraft.stepsToReproduce,
+    expectedBehavior: draft?.expectedBehavior?.trim() || defaultIncidentReportDraft.expectedBehavior,
+    actualBehavior: draft?.actualBehavior?.trim() || defaultIncidentReportDraft.actualBehavior,
+    recommendedAction: draft?.recommendedAction?.trim() || defaultIncidentReportDraft.recommendedAction,
+    notes: draft?.notes?.trim() || '',
+  };
+}
+
+function createIncidentReportFileName() {
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  return \`${toIdentifier(projectName)}-incident-report-\${stamp}.json\`;
+}
+
+async function exportIncidentReport(draft: Partial<IncidentReportDraft> | undefined) {
+  try {
+    await mkdir(incidentReportState.directoryPath, { recursive: true });
+    const resolvedDraft = sanitizeIncidentReportDraft(draft);
+    const generatedAt = new Date().toISOString();
+    incidentReportState.currentDraft = { ...resolvedDraft };
+
+    const payload = {
+      generatedAt,
+      runtime: {
+        productName: ${JSON.stringify(productName)},
+        appId: ${JSON.stringify(appId)},
+        version: app.getVersion(),
+        platform: process.platform,
+        arch: process.arch,
+        isPackaged: app.isPackaged,
+        logsPath: app.getPath('logs'),
+        downloadsPath: app.getPath('downloads'),
+        userDataPath: app.getPath('userData'),
+      },
+      report: resolvedDraft,
+      artifacts: {
+${useSupportBundle ? '        supportBundle: getSupportBundleState(),\n' : ''}${useLogArchive ? '        logArchive: await getLogArchiveState(),\n' : ''}${useCrashRecovery ? '        crashRecovery: getCrashRecoveryState(),\n' : ''}${useSessionState ? '        sessionState: getSessionStateSnapshot(),\n' : ''}${useNetworkStatus ? '        networkStatus: snapshotNetworkStatus(),\n' : ''}      },
+    };
+
+    const filePath = path.join(incidentReportState.directoryPath, createIncidentReportFileName());
+    await writeFile(filePath, JSON.stringify(payload, null, 2), 'utf-8');
+    incidentReportState.lastExportPath = filePath;
+    incidentReportState.lastGeneratedAt = generatedAt;
+    incidentReportState.exportCount += 1;
+    incidentReportState.lastError = null;
+    return getIncidentReportState();
+  } catch (error) {
+    incidentReportState.lastError = error instanceof Error ? error.message : 'Unknown incident report export error';
+    throw error;
+  }
+}
+
+async function revealIncidentReport() {
+  const targetPath = incidentReportState.lastExportPath ?? incidentReportState.directoryPath;
+  try {
+    shell.showItemInFolder(targetPath);
+    incidentReportState.lastError = null;
+  } catch (error) {
+    incidentReportState.lastError = error instanceof Error ? error.message : 'Unknown incident report reveal error';
+  }
+  return getIncidentReportState();
 }
 ` : ''}${useSupportBundle ? `
 type SupportBundleState = {
@@ -2769,6 +2920,18 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return revealLogArchive();
   });
 
+` : ''}${useIncidentReport ? `  ipcMain.handle(IPC_CHANNELS.INCIDENT_REPORT_GET_STATE, async () => {
+    return getIncidentReportState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.INCIDENT_REPORT_EXPORT, async (_event, draft?: Partial<IncidentReportDraft>) => {
+    return exportIncidentReport(draft);
+  });
+
+  ipcMain.handle(IPC_CHANNELS.INCIDENT_REPORT_REVEAL, async () => {
+    return revealIncidentReport();
+  });
+
 ` : ''}${useNotifications ? `  ipcMain.handle(IPC_CHANNELS.NOTIFY_SHOW, async (_event, title: string, body: string) => {
     const safeTitle = title.trim() || ${JSON.stringify(productName)};
     const safeBody = body.trim() || 'Background work completed successfully.';
@@ -3151,6 +3314,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useSecureStorage = features.includes('secure-storage');
   const useSupportBundle = features.includes('support-bundle');
   const useLogArchive = features.includes('log-archive');
+  const useIncidentReport = features.includes('incident-report');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -3212,6 +3376,11 @@ ${useSettings ? `  settings: {
     getState: () => ipcRenderer.invoke(IPC_CHANNELS.LOG_ARCHIVE_GET_STATE),
     export: () => ipcRenderer.invoke(IPC_CHANNELS.LOG_ARCHIVE_EXPORT),
     reveal: () => ipcRenderer.invoke(IPC_CHANNELS.LOG_ARCHIVE_REVEAL),
+  },
+` : ''}${useIncidentReport ? `  incidentReport: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.INCIDENT_REPORT_GET_STATE),
+    export: (draft?: unknown) => ipcRenderer.invoke(IPC_CHANNELS.INCIDENT_REPORT_EXPORT, draft),
+    reveal: () => ipcRenderer.invoke(IPC_CHANNELS.INCIDENT_REPORT_REVEAL),
   },
 ` : ''}${useNotifications ? `  notifications: {
     show: (title: string, body: string) => ipcRenderer.invoke(IPC_CHANNELS.NOTIFY_SHOW, title, body),
@@ -3333,6 +3502,7 @@ function getFeatureStudioSource(
   const useSecureStorage = features.includes('secure-storage');
   const useSupportBundle = features.includes('support-bundle');
   const useLogArchive = features.includes('log-archive');
+  const useIncidentReport = features.includes('incident-report');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
@@ -3470,6 +3640,29 @@ type LogArchiveState = {
   lastArchivedAt: string | null;
   archiveCount: number;
   lastError: string | null;
+};
+
+type IncidentReportSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+type IncidentReportDraft = {
+  title: string;
+  severity: IncidentReportSeverity;
+  affectedArea: string;
+  summary: string;
+  stepsToReproduce: string;
+  expectedBehavior: string;
+  actualBehavior: string;
+  recommendedAction: string;
+  notes: string;
+};
+
+type IncidentReportState = {
+  directoryPath: string;
+  lastExportPath: string | null;
+  lastGeneratedAt: string | null;
+  exportCount: number;
+  lastError: string | null;
+  currentDraft: IncidentReportDraft;
 };
 
 type WindowStateSummary = {
@@ -3681,6 +3874,11 @@ type ForgeDesktopAPI = {
     export: () => Promise<LogArchiveState>;
     reveal: () => Promise<LogArchiveState>;
   };
+  incidentReport?: {
+    getState: () => Promise<IncidentReportState>;
+    export: (draft?: IncidentReportDraft) => Promise<IncidentReportState>;
+    reveal: () => Promise<IncidentReportState>;
+  };
   notifications?: {
     show: (title: string, body: string) => Promise<{ supported: boolean; delivered: boolean }>;
   };
@@ -3782,6 +3980,18 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
   const [secureStorageValueDraft, setSecureStorageValueDraft] = useState('${displayName} demo secret');
 ` : ''}${useSupportBundle ? `  const [supportBundleState, setSupportBundleState] = useState<SupportBundleState | null>(null);
 ` : ''}${useLogArchive ? `  const [logArchiveState, setLogArchiveState] = useState<LogArchiveState | null>(null);
+` : ''}${useIncidentReport ? `  const [incidentReportState, setIncidentReportState] = useState<IncidentReportState | null>(null);
+  const [incidentReportDraft, setIncidentReportDraft] = useState<IncidentReportDraft>({
+    title: '${displayName} desktop issue',
+    severity: 'medium',
+    affectedArea: 'desktop-shell',
+    summary: 'Customer-facing issue observed in the packaged desktop flow.',
+    stepsToReproduce: '1. Launch the app\\n2. Navigate to the affected workflow\\n3. Capture the incorrect behavior',
+    expectedBehavior: 'The workflow should complete without a shell or runtime issue.',
+    actualBehavior: 'The desktop shell or runtime produced an unexpected result.',
+    recommendedAction: 'Attach support bundle and logs, then triage with product and QA owners.',
+    notes: '',
+  });
 ` : ''}${useNotifications ? `  const [notificationDraft, setNotificationDraft] = useState({ title: 'Forge Ready', body: '${displayName} is ready for customer testing.' });
   const [notificationState, setNotificationState] = useState<'idle' | 'sent' | 'unsupported'>('idle');
 ` : ''}${useWindowing ? `  const [windowState, setWindowState] = useState<WindowStateSummary | null>(null);
@@ -3876,6 +4086,10 @@ ${useSettings ? `  useEffect(() => {
 ` : ''}${useLogArchive ? `
   useEffect(() => {
     refreshLogArchive(api, setLogArchiveState);
+  }, [api]);
+` : ''}${useIncidentReport ? `
+  useEffect(() => {
+    refreshIncidentReport(api, setIncidentReportState, setIncidentReportDraft);
   }, [api]);
 ` : ''}${useSystemInfo ? `
   useEffect(() => {
@@ -4491,6 +4705,85 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             </>
           ) : (
             <p className="mt-3 text-xs text-slate-500">Log archive state is unavailable until the desktop bridge finishes booting.</p>
+          )}
+        </section>
+` : ''}${useIncidentReport ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Incident Report</h3>
+              <p className="mt-1 text-xs text-slate-400">Draft a support-ready desktop escalation with severity, summary, repro steps, and recommended action, then export the handoff JSON into the support folder.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => refreshIncidentReport(api, setIncidentReportState, setIncidentReportDraft)}
+                className="rounded-full border border-cyan-500/40 px-3 py-1 text-xs font-medium text-cyan-300 hover:border-cyan-400 hover:text-cyan-100"
+              >
+                Refresh
+              </button>
+              <button
+                onClick={() => exportIncidentReportFromStudio(api, incidentReportDraft, setIncidentReportState, setIncidentReportDraft)}
+                className="rounded-full border border-amber-500/40 px-3 py-1 text-xs font-medium text-amber-300 hover:border-amber-400 hover:text-amber-100"
+              >
+                Export
+              </button>
+              <button
+                onClick={() => revealIncidentReportFromStudio(api, setIncidentReportState, setIncidentReportDraft)}
+                className="rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-200 hover:border-slate-500"
+              >
+                Reveal
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            <label className="space-y-1 text-xs text-slate-400">
+              <span className="uppercase tracking-[0.18em] text-slate-500">Title</span>
+              <input
+                value={incidentReportDraft.title}
+                onChange={(event) => setIncidentReportDraft((current) => ({ ...current, title: event.target.value }))}
+                className="w-full rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50"
+              />
+            </label>
+            <label className="space-y-1 text-xs text-slate-400">
+              <span className="uppercase tracking-[0.18em] text-slate-500">Severity</span>
+              <select
+                value={incidentReportDraft.severity}
+                onChange={(event) => setIncidentReportDraft((current) => ({ ...current, severity: event.target.value as IncidentReportSeverity }))}
+                className="w-full rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50"
+              >
+                <option value="low">low</option>
+                <option value="medium">medium</option>
+                <option value="high">high</option>
+                <option value="critical">critical</option>
+              </select>
+            </label>
+            <label className="space-y-1 text-xs text-slate-400 md:col-span-2">
+              <span className="uppercase tracking-[0.18em] text-slate-500">Affected Area</span>
+              <input
+                value={incidentReportDraft.affectedArea}
+                onChange={(event) => setIncidentReportDraft((current) => ({ ...current, affectedArea: event.target.value }))}
+                className="w-full rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50"
+              />
+            </label>
+            <TextAreaField label="Summary" value={incidentReportDraft.summary} onChange={(value) => setIncidentReportDraft((current) => ({ ...current, summary: value }))} />
+            <TextAreaField label="Steps To Reproduce" value={incidentReportDraft.stepsToReproduce} onChange={(value) => setIncidentReportDraft((current) => ({ ...current, stepsToReproduce: value }))} />
+            <TextAreaField label="Expected Behavior" value={incidentReportDraft.expectedBehavior} onChange={(value) => setIncidentReportDraft((current) => ({ ...current, expectedBehavior: value }))} />
+            <TextAreaField label="Actual Behavior" value={incidentReportDraft.actualBehavior} onChange={(value) => setIncidentReportDraft((current) => ({ ...current, actualBehavior: value }))} />
+            <TextAreaField label="Recommended Action" value={incidentReportDraft.recommendedAction} onChange={(value) => setIncidentReportDraft((current) => ({ ...current, recommendedAction: value }))} />
+            <TextAreaField label="Notes" value={incidentReportDraft.notes} onChange={(value) => setIncidentReportDraft((current) => ({ ...current, notes: value }))} />
+          </div>
+          {incidentReportState ? (
+            <>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <DiagnosticRow label="Report Folder" value={incidentReportState.directoryPath} />
+                <DiagnosticRow label="Exports" value={String(incidentReportState.exportCount)} />
+                <DiagnosticRow label="Last Export" value={incidentReportState.lastExportPath ?? 'Not exported yet'} />
+                <DiagnosticRow label="Generated" value={incidentReportState.lastGeneratedAt ?? 'Not exported yet'} />
+                <DiagnosticRow label="Last Error" value={incidentReportState.lastError ?? 'none'} />
+                <DiagnosticRow label="Severity" value={incidentReportState.currentDraft.severity} />
+              </div>
+            </>
+          ) : (
+            <p className="mt-3 text-xs text-slate-500">Incident report state is unavailable until the desktop bridge finishes booting.</p>
           )}
         </section>
 ` : ''}${useSystemInfo ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
@@ -6092,7 +6385,57 @@ async function revealLogArchiveFromStudio(
     // Ignore starter log-archive reveal failures.
   }
 }
-` : ''}${useDiagnostics || useSystemInfo || usePermissions || useNetworkStatus || useSecureStorage || useSupportBundle || useLogArchive || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useIdlePresence || useSessionState || useDownloads || useClipboard || useExternalLinks ? `
+` : ''}${useIncidentReport ? `
+
+async function refreshIncidentReport(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: IncidentReportState) => void,
+  setDraft: (next: IncidentReportDraft) => void,
+) {
+  try {
+    const next = await api?.incidentReport?.getState?.();
+    if (next) {
+      setState(next);
+      setDraft(next.currentDraft);
+    }
+  } catch {
+    // Ignore starter incident-report refresh failures.
+  }
+}
+
+async function exportIncidentReportFromStudio(
+  api: ForgeDesktopAPI | undefined,
+  draft: IncidentReportDraft,
+  setState: (next: IncidentReportState) => void,
+  setDraft: (next: IncidentReportDraft) => void,
+) {
+  try {
+    const next = await api?.incidentReport?.export?.(draft);
+    if (next) {
+      setState(next);
+      setDraft(next.currentDraft);
+    }
+  } catch {
+    // Ignore starter incident-report export failures.
+  }
+}
+
+async function revealIncidentReportFromStudio(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: IncidentReportState) => void,
+  setDraft: (next: IncidentReportDraft) => void,
+) {
+  try {
+    const next = await api?.incidentReport?.reveal?.();
+    if (next) {
+      setState(next);
+      setDraft(next.currentDraft);
+    }
+  } catch {
+    // Ignore starter incident-report reveal failures.
+  }
+}
+` : ''}${useDiagnostics || useSystemInfo || usePermissions || useNetworkStatus || useSecureStorage || useSupportBundle || useLogArchive || useIncidentReport || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useIdlePresence || useSessionState || useDownloads || useClipboard || useExternalLinks ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (
@@ -6100,6 +6443,28 @@ function DiagnosticRow({ label, value }: { label: string; value: string }) {
       <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">{label}</p>
       <p className="mt-1 break-all text-xs text-white">{value}</p>
     </div>
+  );
+}
+
+function TextAreaField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="space-y-1 text-xs text-slate-400 md:col-span-2">
+      <span className="uppercase tracking-[0.18em] text-slate-500">{label}</span>
+      <textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        rows={4}
+        className="min-h-[96px] w-full rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50"
+      />
+    </label>
   );
 }
 ` : ''}
