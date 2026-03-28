@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.34 (2026-03-28)
+
+### Diagnostics-Timeline Feature Pack
+
+- Added a `diagnostics-timeline` scaffold feature pack for the `minimal` starter
+- Generated apps now collect a structured desktop event timeline, expose refresh, export, reveal, and clear controls in `FeatureStudio`, and emit JSON timeline handoff files into the support folder
+- Kept `diagnostics-timeline` optional so teams can add support investigation history deliberately without widening the default production preset
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated diagnostics-timeline smoke app before any version bump
+
 ## 0.1.33 (2026-03-26)
 
 ### Incident-Report Feature Pack

@@ -88,6 +88,10 @@ export const IPC_CHANNELS = {
   INCIDENT_REPORT_GET_STATE: 'incident-report:get-state',
   INCIDENT_REPORT_EXPORT: 'incident-report:export',
   INCIDENT_REPORT_REVEAL: 'incident-report:reveal',
+  DIAGNOSTICS_TIMELINE_GET_STATE: 'diagnostics-timeline:get-state',
+  DIAGNOSTICS_TIMELINE_EXPORT: 'diagnostics-timeline:export',
+  DIAGNOSTICS_TIMELINE_REVEAL: 'diagnostics-timeline:reveal',
+  DIAGNOSTICS_TIMELINE_CLEAR_HISTORY: 'diagnostics-timeline:clear-history',
 
   // Updates
   UPDATE_CHECK: 'update:check',

@@ -730,6 +730,7 @@ function getMinimalElectronMainSource(
   const useSupportBundle = features.includes('support-bundle');
   const useLogArchive = features.includes('log-archive');
   const useIncidentReport = features.includes('incident-report');
+  const useDiagnosticsTimeline = features.includes('diagnostics-timeline');
   const productName = resolveProductName(projectName, metadata);
   const appId = resolveAppId(projectName, metadata);
   const supportFolder = `${toIdentifier(projectName)}-support`;
@@ -737,10 +738,10 @@ function getMinimalElectronMainSource(
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
   const dialogFileName = `${toIdentifier(projectName)}-document.txt`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor || useIdlePresence ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useNetworkStatus ? ', net' : ''}${useSecureStorage ? ', safeStorage' : ''}${useFileDialogs || useDownloads || useExternalLinks || useSupportBundle || useLogArchive || useIncidentReport ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor || useIdlePresence ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useNetworkStatus ? ', net' : ''}${useSecureStorage ? ', safeStorage' : ''}${useFileDialogs || useDownloads || useExternalLinks || useSupportBundle || useLogArchive || useIncidentReport || useDiagnosticsTimeline ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
 import path from 'node:path';
 ${useSystemInfo ? "import os from 'node:os';\n" : ''}
-${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage || useSupportBundle || useLogArchive || useIncidentReport ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage ? 'readFile' : '', 'writeFile', ...((useDiagnostics || useSupportBundle || useLogArchive || useIncidentReport) ? ['mkdir'] : []), ...(useLogArchive ? ['readdir', 'stat', 'copyFile'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
+${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage || useSupportBundle || useLogArchive || useIncidentReport || useDiagnosticsTimeline ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage ? 'readFile' : '', 'writeFile', ...((useDiagnostics || useSupportBundle || useLogArchive || useIncidentReport || useDiagnosticsTimeline) ? ['mkdir'] : []), ...(useLogArchive ? ['readdir', 'stat', 'copyFile'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
 import { createLogger } from '@forge/logger';
 import { IPC_CHANNELS, type WorkerRequest } from '@forge/ipc-contract';
@@ -917,6 +918,24 @@ type IncidentReportState = {
   currentDraft: IncidentReportDraft;
 };
 
+type DiagnosticsTimelineEntry = {
+  id: string;
+  category: 'app' | 'window' | 'support';
+  event: string;
+  detail: string | null;
+  timestamp: string;
+};
+
+type DiagnosticsTimelineState = {
+  directoryPath: string;
+  lastExportPath: string | null;
+  lastExportedAt: string | null;
+  eventCount: number;
+  lastEventAt: string | null;
+  lastError: string | null;
+  entries: DiagnosticsTimelineEntry[];
+};
+
 const logArchiveState: LogArchiveState = {
   logsPath: app.getPath('logs'),
   archiveDirectoryPath: path.join(app.getPath('downloads'), ${JSON.stringify(supportFolder)}, 'log-archives'),
@@ -1008,7 +1027,7 @@ async function exportLogArchive() {
     logArchiveState.lastArchivedAt = generatedAt;
     logArchiveState.archiveCount += 1;
     logArchiveState.lastError = null;
-    return getLogArchiveState();
+${useDiagnosticsTimeline ? "    pushDiagnosticsTimelineEvent('support', 'log-archive-exported', archivePath);\n" : ''}    return getLogArchiveState();
   } catch (error) {
     logArchiveState.lastError = error instanceof Error ? error.message : 'Unknown log archive export error';
     throw error;
@@ -1020,7 +1039,7 @@ async function revealLogArchive() {
   try {
     shell.showItemInFolder(targetPath);
     logArchiveState.lastError = null;
-  } catch (error) {
+${useDiagnosticsTimeline ? "    pushDiagnosticsTimelineEvent('support', 'log-archive-revealed', targetPath);\n" : ''}  } catch (error) {
     logArchiveState.lastError = error instanceof Error ? error.message : 'Unknown log archive reveal error';
   }
   return getLogArchiveState();
@@ -1126,7 +1145,7 @@ async function exportIncidentReport(draft: Partial<IncidentReportDraft> | undefi
       },
       report: resolvedDraft,
       artifacts: {
-${useSupportBundle ? '        supportBundle: getSupportBundleState(),\n' : ''}${useLogArchive ? '        logArchive: await getLogArchiveState(),\n' : ''}${useCrashRecovery ? '        crashRecovery: getCrashRecoveryState(),\n' : ''}${useSessionState ? '        sessionState: getSessionStateSnapshot(),\n' : ''}${useNetworkStatus ? '        networkStatus: snapshotNetworkStatus(),\n' : ''}      },
+${useSupportBundle ? '        supportBundle: getSupportBundleState(),\n' : ''}${useLogArchive ? '        logArchive: await getLogArchiveState(),\n' : ''}${useCrashRecovery ? '        crashRecovery: getCrashRecoveryState(),\n' : ''}${useSessionState ? '        sessionState: getSessionStateSnapshot(),\n' : ''}${useNetworkStatus ? '        networkStatus: snapshotNetworkStatus(),\n' : ''}${useDiagnosticsTimeline ? '        diagnosticsTimeline: getDiagnosticsTimelineState(),\n' : ''}      },
     };
 
     const filePath = path.join(incidentReportState.directoryPath, createIncidentReportFileName());
@@ -1135,7 +1154,7 @@ ${useSupportBundle ? '        supportBundle: getSupportBundleState(),\n' : ''}${
     incidentReportState.lastGeneratedAt = generatedAt;
     incidentReportState.exportCount += 1;
     incidentReportState.lastError = null;
-    return getIncidentReportState();
+${useDiagnosticsTimeline ? "    pushDiagnosticsTimelineEvent('support', 'incident-report-exported', filePath);\n" : ''}    return getIncidentReportState();
   } catch (error) {
     incidentReportState.lastError = error instanceof Error ? error.message : 'Unknown incident report export error';
     throw error;
@@ -1147,10 +1166,130 @@ async function revealIncidentReport() {
   try {
     shell.showItemInFolder(targetPath);
     incidentReportState.lastError = null;
-  } catch (error) {
+${useDiagnosticsTimeline ? "    pushDiagnosticsTimelineEvent('support', 'incident-report-revealed', targetPath);\n" : ''}  } catch (error) {
     incidentReportState.lastError = error instanceof Error ? error.message : 'Unknown incident report reveal error';
   }
   return getIncidentReportState();
+}
+` : ''}${useDiagnosticsTimeline ? `
+type DiagnosticsTimelineCategory = 'app' | 'window' | 'support';
+
+type DiagnosticsTimelineEntry = {
+  id: string;
+  category: DiagnosticsTimelineCategory;
+  event: string;
+  detail: string | null;
+  timestamp: string;
+};
+
+type DiagnosticsTimelineState = {
+  directoryPath: string;
+  lastExportPath: string | null;
+  lastExportedAt: string | null;
+  eventCount: number;
+  lastEventAt: string | null;
+  lastError: string | null;
+  entries: DiagnosticsTimelineEntry[];
+};
+
+const diagnosticsTimelineLimit = 60;
+const diagnosticsTimelineState: DiagnosticsTimelineState = {
+  directoryPath: path.join(app.getPath('downloads'), ${JSON.stringify(supportFolder)}, 'diagnostics-timeline'),
+  lastExportPath: null,
+  lastExportedAt: null,
+  eventCount: 0,
+  lastEventAt: null,
+  lastError: null,
+  entries: [],
+};
+
+function getDiagnosticsTimelineState() {
+  return {
+    directoryPath: diagnosticsTimelineState.directoryPath,
+    lastExportPath: diagnosticsTimelineState.lastExportPath,
+    lastExportedAt: diagnosticsTimelineState.lastExportedAt,
+    eventCount: diagnosticsTimelineState.eventCount,
+    lastEventAt: diagnosticsTimelineState.lastEventAt,
+    lastError: diagnosticsTimelineState.lastError,
+    entries: diagnosticsTimelineState.entries.map((entry) => ({ ...entry })),
+  };
+}
+
+function pushDiagnosticsTimelineEvent(
+  category: DiagnosticsTimelineCategory,
+  event: string,
+  detail?: string | null,
+) {
+  const timestamp = new Date().toISOString();
+  diagnosticsTimelineState.lastEventAt = timestamp;
+  diagnosticsTimelineState.eventCount += 1;
+  diagnosticsTimelineState.entries = [
+    {
+      id: \`\${timestamp}-\${Math.random().toString(36).slice(2, 8)}\`,
+      category,
+      event,
+      detail: detail ?? null,
+      timestamp,
+    },
+    ...diagnosticsTimelineState.entries,
+  ].slice(0, diagnosticsTimelineLimit);
+  return getDiagnosticsTimelineState();
+}
+
+function clearDiagnosticsTimelineHistory() {
+  diagnosticsTimelineState.eventCount = 0;
+  diagnosticsTimelineState.lastEventAt = null;
+  diagnosticsTimelineState.lastError = null;
+  diagnosticsTimelineState.entries = [];
+  return getDiagnosticsTimelineState();
+}
+
+function createDiagnosticsTimelineFileName() {
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  return \`${toIdentifier(projectName)}-diagnostics-timeline-\${stamp}.json\`;
+}
+
+async function exportDiagnosticsTimeline() {
+  try {
+    const snapshot = pushDiagnosticsTimelineEvent('support', 'timeline-exported', diagnosticsTimelineState.lastExportPath);
+    await mkdir(diagnosticsTimelineState.directoryPath, { recursive: true });
+    const generatedAt = new Date().toISOString();
+    const payload = {
+      generatedAt,
+      runtime: {
+        productName: ${JSON.stringify(productName)},
+        appId: ${JSON.stringify(appId)},
+        version: app.getVersion(),
+        platform: process.platform,
+        arch: process.arch,
+        isPackaged: app.isPackaged,
+        userDataPath: app.getPath('userData'),
+        logsPath: app.getPath('logs'),
+        downloadsPath: app.getPath('downloads'),
+      },
+      timeline: snapshot,
+    };
+    const filePath = path.join(diagnosticsTimelineState.directoryPath, createDiagnosticsTimelineFileName());
+    await writeFile(filePath, JSON.stringify(payload, null, 2), 'utf-8');
+    diagnosticsTimelineState.lastExportPath = filePath;
+    diagnosticsTimelineState.lastExportedAt = generatedAt;
+    diagnosticsTimelineState.lastError = null;
+    return getDiagnosticsTimelineState();
+  } catch (error) {
+    diagnosticsTimelineState.lastError = error instanceof Error ? error.message : 'Unknown diagnostics timeline export error';
+    throw error;
+  }
+}
+
+async function revealDiagnosticsTimeline() {
+  const targetPath = diagnosticsTimelineState.lastExportPath ?? diagnosticsTimelineState.directoryPath;
+  try {
+    shell.showItemInFolder(targetPath);
+    diagnosticsTimelineState.lastError = null;
+  } catch (error) {
+    diagnosticsTimelineState.lastError = error instanceof Error ? error.message : 'Unknown diagnostics timeline reveal error';
+  }
+  return getDiagnosticsTimelineState();
 }
 ` : ''}${useSupportBundle ? `
 type SupportBundleState = {
@@ -1196,7 +1335,7 @@ async function exportSupportBundle() {
     const generatedAt = new Date().toISOString();
     const includedSections = [
     'runtime',
-${useDiagnostics ? "    'diagnostics',\n" : ''}${useSystemInfo ? "    'systemInfo',\n" : ''}${usePermissions ? "    'permissions',\n" : ''}${useNetworkStatus ? "    'networkStatus',\n" : ''}${useSecureStorage ? "    'secureStorage',\n" : ''}${useLogArchive ? "    'logArchive',\n" : ''}${useWindowing ? "    'windowing',\n" : ''}${useTray ? "    'tray',\n" : ''}${useDeepLink ? "    'deepLink',\n" : ''}${useMenuBar ? "    'menuBar',\n" : ''}${useAutoLaunch ? "    'autoLaunch',\n" : ''}${useGlobalShortcut ? "    'globalShortcut',\n" : ''}${useFileAssociation ? "    'fileAssociation',\n" : ''}${useFileDialogs ? "    'fileDialogs',\n" : ''}${useRecentFiles ? "    'recentFiles',\n" : ''}${useCrashRecovery ? "    'crashRecovery',\n" : ''}${usePowerMonitor ? "    'powerMonitor',\n" : ''}${useIdlePresence ? "    'idlePresence',\n" : ''}${useSessionState ? "    'sessionState',\n" : ''}${useDownloads ? "    'downloads',\n" : ''}${useClipboard ? "    'clipboard',\n" : ''}${useExternalLinks ? "    'externalLinks',\n" : ''}  ] as const;
+${useDiagnostics ? "    'diagnostics',\n" : ''}${useSystemInfo ? "    'systemInfo',\n" : ''}${usePermissions ? "    'permissions',\n" : ''}${useNetworkStatus ? "    'networkStatus',\n" : ''}${useSecureStorage ? "    'secureStorage',\n" : ''}${useLogArchive ? "    'logArchive',\n" : ''}${useDiagnosticsTimeline ? "    'diagnosticsTimeline',\n" : ''}${useWindowing ? "    'windowing',\n" : ''}${useTray ? "    'tray',\n" : ''}${useDeepLink ? "    'deepLink',\n" : ''}${useMenuBar ? "    'menuBar',\n" : ''}${useAutoLaunch ? "    'autoLaunch',\n" : ''}${useGlobalShortcut ? "    'globalShortcut',\n" : ''}${useFileAssociation ? "    'fileAssociation',\n" : ''}${useFileDialogs ? "    'fileDialogs',\n" : ''}${useRecentFiles ? "    'recentFiles',\n" : ''}${useCrashRecovery ? "    'crashRecovery',\n" : ''}${usePowerMonitor ? "    'powerMonitor',\n" : ''}${useIdlePresence ? "    'idlePresence',\n" : ''}${useSessionState ? "    'sessionState',\n" : ''}${useDownloads ? "    'downloads',\n" : ''}${useClipboard ? "    'clipboard',\n" : ''}${useExternalLinks ? "    'externalLinks',\n" : ''}  ] as const;
 
     const payload = {
       generatedAt,
@@ -1218,7 +1357,7 @@ ${useDiagnostics ? "    'diagnostics',\n" : ''}${useSystemInfo ? "    'systemInf
         electronVersion: process.versions.electron,
         enabledFeatures,
       },
-${useDiagnostics ? '    diagnostics: await getDiagnosticsSummary(),\n' : ''}${useSystemInfo ? '    systemInfo: await getSystemInfoState(),\n' : ''}${usePermissions ? '    permissions: getPermissionsState(),\n' : ''}${useNetworkStatus ? '    networkStatus: snapshotNetworkStatus(),\n' : ''}${useSecureStorage ? '    secureStorage: getSecureStorageState(),\n' : ''}${useLogArchive ? '    logArchive: await getLogArchiveState(),\n' : ''}${useWindowing ? '    windowing: getCurrentWindowState(),\n' : ''}${useTray ? '    tray: getTrayStatus(),\n' : ''}${useDeepLink ? '    deepLink: getDeepLinkState(),\n' : ''}${useMenuBar ? '    menuBar: getMenuBarState(),\n' : ''}${useAutoLaunch ? '    autoLaunch: getAutoLaunchState(),\n' : ''}${useGlobalShortcut ? '    globalShortcut: getGlobalShortcutState(),\n' : ''}${useFileAssociation ? '    fileAssociation: getFileAssociationState(),\n' : ''}${useFileDialogs ? '    fileDialogs: getFileDialogState(),\n' : ''}${useRecentFiles ? '    recentFiles: getRecentFilesState(),\n' : ''}${useCrashRecovery ? '    crashRecovery: getCrashRecoveryState(),\n' : ''}${usePowerMonitor ? '    powerMonitor: getPowerMonitorState(),\n' : ''}${useIdlePresence ? '    idlePresence: getIdlePresenceState(),\n' : ''}${useSessionState ? '    sessionState: getSessionStateSnapshot(),\n' : ''}${useDownloads ? '    downloads: getDownloadsState(),\n' : ''}${useClipboard ? '    clipboard: getClipboardState(),\n' : ''}${useExternalLinks ? '    externalLinks: getExternalLinksState(),\n' : ''}  };
+${useDiagnostics ? '    diagnostics: await getDiagnosticsSummary(),\n' : ''}${useSystemInfo ? '    systemInfo: await getSystemInfoState(),\n' : ''}${usePermissions ? '    permissions: getPermissionsState(),\n' : ''}${useNetworkStatus ? '    networkStatus: snapshotNetworkStatus(),\n' : ''}${useSecureStorage ? '    secureStorage: getSecureStorageState(),\n' : ''}${useLogArchive ? '    logArchive: await getLogArchiveState(),\n' : ''}${useDiagnosticsTimeline ? '    diagnosticsTimeline: getDiagnosticsTimelineState(),\n' : ''}${useWindowing ? '    windowing: getCurrentWindowState(),\n' : ''}${useTray ? '    tray: getTrayStatus(),\n' : ''}${useDeepLink ? '    deepLink: getDeepLinkState(),\n' : ''}${useMenuBar ? '    menuBar: getMenuBarState(),\n' : ''}${useAutoLaunch ? '    autoLaunch: getAutoLaunchState(),\n' : ''}${useGlobalShortcut ? '    globalShortcut: getGlobalShortcutState(),\n' : ''}${useFileAssociation ? '    fileAssociation: getFileAssociationState(),\n' : ''}${useFileDialogs ? '    fileDialogs: getFileDialogState(),\n' : ''}${useRecentFiles ? '    recentFiles: getRecentFilesState(),\n' : ''}${useCrashRecovery ? '    crashRecovery: getCrashRecoveryState(),\n' : ''}${usePowerMonitor ? '    powerMonitor: getPowerMonitorState(),\n' : ''}${useIdlePresence ? '    idlePresence: getIdlePresenceState(),\n' : ''}${useSessionState ? '    sessionState: getSessionStateSnapshot(),\n' : ''}${useDownloads ? '    downloads: getDownloadsState(),\n' : ''}${useClipboard ? '    clipboard: getClipboardState(),\n' : ''}${useExternalLinks ? '    externalLinks: getExternalLinksState(),\n' : ''}  };
 
     const filePath = path.join(supportBundleState.directoryPath, createSupportBundleFileName());
     const body = JSON.stringify(payload, null, 2);
@@ -1229,7 +1368,7 @@ ${useDiagnostics ? '    diagnostics: await getDiagnosticsSummary(),\n' : ''}${us
     supportBundleState.exportCount += 1;
     supportBundleState.includedSections = [...includedSections];
     supportBundleState.lastError = null;
-    return getSupportBundleState();
+${useDiagnosticsTimeline ? "    pushDiagnosticsTimelineEvent('support', 'support-bundle-exported', filePath);\n" : ''}    return getSupportBundleState();
   } catch (error) {
     supportBundleState.lastError = error instanceof Error ? error.message : 'Unknown support bundle export error';
     throw error;
@@ -1241,7 +1380,7 @@ async function revealSupportBundle() {
   try {
     shell.showItemInFolder(targetPath);
     supportBundleState.lastError = null;
-  } catch (error) {
+${useDiagnosticsTimeline ? "    pushDiagnosticsTimelineEvent('support', 'support-bundle-revealed', targetPath);\n" : ''}  } catch (error) {
     supportBundleState.lastError = error instanceof Error ? error.message : 'Unknown support bundle reveal error';
   }
   return getSupportBundleState();
@@ -2932,6 +3071,22 @@ ${useSettings ? `  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
     return revealIncidentReport();
   });
 
+` : ''}${useDiagnosticsTimeline ? `  ipcMain.handle(IPC_CHANNELS.DIAGNOSTICS_TIMELINE_GET_STATE, async () => {
+    return getDiagnosticsTimelineState();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.DIAGNOSTICS_TIMELINE_EXPORT, async () => {
+    return exportDiagnosticsTimeline();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.DIAGNOSTICS_TIMELINE_REVEAL, async () => {
+    return revealDiagnosticsTimeline();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.DIAGNOSTICS_TIMELINE_CLEAR_HISTORY, async () => {
+    return clearDiagnosticsTimelineHistory();
+  });
+
 ` : ''}${useNotifications ? `  ipcMain.handle(IPC_CHANNELS.NOTIFY_SHOW, async (_event, title: string, body: string) => {
     const safeTitle = title.trim() || ${JSON.stringify(productName)};
     const safeBody = body.trim() || 'Background work completed successfully.';
@@ -3174,16 +3329,17 @@ ${useWindowing ? `    ...(typeof windowState.x === 'number' && typeof windowStat
     show: false,
   });
 
+${useDiagnosticsTimeline ? "  pushDiagnosticsTimelineEvent('window', 'created', `window:${mainWindow.id}`);\n" : ''}
 ${useJobs ? `  jobEngine.onJobUpdate((job) => {
     mainWindow?.webContents.send(IPC_CHANNELS.JOB_UPDATE, job);
   });
 
 ` : ''}  mainWindow.on('ready-to-show', () => {
-    mainWindow?.show();
+${useDiagnosticsTimeline ? "    pushDiagnosticsTimelineEvent('window', 'ready-to-show', mainWindow ? `window:${mainWindow.id}` : null);\n" : ''}    mainWindow?.show();
   });
 
 ${useSessionState ? '  trackSessionWindow(mainWindow);\n\n' : ''}  mainWindow.on('closed', () => {
-    mainWindow = null;
+${useDiagnosticsTimeline ? "    pushDiagnosticsTimelineEvent('window', 'closed', mainWindow ? `window:${mainWindow.id}` : null);\n" : ''}    mainWindow = null;
   });
 
 ${useWindowing ? `  const persistWindowState = () => {
@@ -3227,7 +3383,7 @@ if (!hasSingleInstanceLock) {
 } else {
   app.on('second-instance', (_event, argv) => {
 ${useDeepLink ? '    captureDeepLink(findProtocolArg(argv));\n' : ''}${useFileAssociation ? "    captureAssociatedFile(findAssociatedFileArg(argv), 'second-instance');\n" : ''}    if (!mainWindow) {
-      createWindow();
+${useDiagnosticsTimeline ? "      pushDiagnosticsTimelineEvent('app', 'second-instance', 'recreated-window');\n" : ''}      createWindow();
       return;
     }
 
@@ -3263,7 +3419,7 @@ ${useWindowing || useDeepLink ? `    if (mainWindow.isMinimized()) {
   logger.info('App starting', { isDev, appRoot });
 ${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}${useRecentFiles ? '  await loadRecentFiles();\n' : ''}${useCrashRecovery ? '  await loadCrashRecoveryState();\n' : ''}${useSecureStorage ? '  await loadSecureStorageRecord();\n' : ''}  registerIpcHandlers();
 ${useDeepLink ? "  captureDeepLink(findProtocolArg(process.argv));\n" : ''}${useFileAssociation ? "  captureAssociatedFile(findAssociatedFileArg(process.argv), 'startup-argv');\n" : ''}  createWindow();
-${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();\n' : ''}${useGlobalShortcut ? '  registerStarterShortcut();\n' : ''}${usePowerMonitor ? '  registerPowerMonitor();\n' : ''}${useSessionState ? '  registerSessionState();\n' : ''}${useDownloads ? '  registerDownloadTracking();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
+${useDiagnosticsTimeline ? "  pushDiagnosticsTimelineEvent('app', 'ready', isDev ? 'development' : 'packaged');\n" : ''}${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();\n' : ''}${useGlobalShortcut ? '  registerStarterShortcut();\n' : ''}${usePowerMonitor ? '  registerPowerMonitor();\n' : ''}${useSessionState ? '  registerSessionState();\n' : ''}${useDownloads ? '  registerDownloadTracking();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
     setTimeout(() => {
       updater.checkForUpdates().catch(() => {
         logger.info('Initial update check skipped');
@@ -3271,18 +3427,18 @@ ${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();
     }, 3000);
   }
 ` : ''}  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
+${useDiagnosticsTimeline ? "    pushDiagnosticsTimelineEvent('app', 'activate');\n" : ''}    if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
     }
   });
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+${useDiagnosticsTimeline ? "  pushDiagnosticsTimelineEvent('app', 'window-all-closed');\n" : ''}  if (process.platform !== 'darwin') app.quit();
 });
 
 app.on('before-quit', () => {
-${useWindowing ? '  if (mainWindow && !mainWindow.isDestroyed()) {\n    void saveWindowState(mainWindow);\n  }\n' : ''}${useTray ? '  appTray?.destroy();\n' : ''}${useGlobalShortcut ? '  globalShortcut.unregister(starterShortcutAccelerator);\n' : ''}${useUpdater ? '  updater.dispose();\n' : ''}${useJobs ? '  jobEngine.dispose();\n' : '  workerClient.dispose();\n'}});
+${useDiagnosticsTimeline ? "  pushDiagnosticsTimelineEvent('app', 'before-quit');\n" : ''}${useWindowing ? '  if (mainWindow && !mainWindow.isDestroyed()) {\n    void saveWindowState(mainWindow);\n  }\n' : ''}${useTray ? '  appTray?.destroy();\n' : ''}${useGlobalShortcut ? '  globalShortcut.unregister(starterShortcutAccelerator);\n' : ''}${useUpdater ? '  updater.dispose();\n' : ''}${useJobs ? '  jobEngine.dispose();\n' : '  workerClient.dispose();\n'}});
 `;
 }
 
@@ -3315,6 +3471,7 @@ function getMinimalPreloadSource(features: ScaffoldFeature[]): string {
   const useSupportBundle = features.includes('support-bundle');
   const useLogArchive = features.includes('log-archive');
   const useIncidentReport = features.includes('incident-report');
+  const useDiagnosticsTimeline = features.includes('diagnostics-timeline');
 
   return `import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type WorkerRequest${useJobs ? ', JobDefinition' : ''}${useSettings ? ', AppSettings' : ''} } from '@forge/ipc-contract';
@@ -3381,6 +3538,12 @@ ${useSettings ? `  settings: {
     getState: () => ipcRenderer.invoke(IPC_CHANNELS.INCIDENT_REPORT_GET_STATE),
     export: (draft?: unknown) => ipcRenderer.invoke(IPC_CHANNELS.INCIDENT_REPORT_EXPORT, draft),
     reveal: () => ipcRenderer.invoke(IPC_CHANNELS.INCIDENT_REPORT_REVEAL),
+  },
+` : ''}${useDiagnosticsTimeline ? `  diagnosticsTimeline: {
+    getState: () => ipcRenderer.invoke(IPC_CHANNELS.DIAGNOSTICS_TIMELINE_GET_STATE),
+    export: () => ipcRenderer.invoke(IPC_CHANNELS.DIAGNOSTICS_TIMELINE_EXPORT),
+    reveal: () => ipcRenderer.invoke(IPC_CHANNELS.DIAGNOSTICS_TIMELINE_REVEAL),
+    clearHistory: () => ipcRenderer.invoke(IPC_CHANNELS.DIAGNOSTICS_TIMELINE_CLEAR_HISTORY),
   },
 ` : ''}${useNotifications ? `  notifications: {
     show: (title: string, body: string) => ipcRenderer.invoke(IPC_CHANNELS.NOTIFY_SHOW, title, body),
@@ -3503,6 +3666,7 @@ function getFeatureStudioSource(
   const useSupportBundle = features.includes('support-bundle');
   const useLogArchive = features.includes('log-archive');
   const useIncidentReport = features.includes('incident-report');
+  const useDiagnosticsTimeline = features.includes('diagnostics-timeline');
   const displayName = resolveProductName(projectName, metadata);
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
@@ -3663,6 +3827,24 @@ type IncidentReportState = {
   exportCount: number;
   lastError: string | null;
   currentDraft: IncidentReportDraft;
+};
+
+type DiagnosticsTimelineEntry = {
+  id: string;
+  category: 'app' | 'window' | 'support';
+  event: string;
+  detail: string | null;
+  timestamp: string;
+};
+
+type DiagnosticsTimelineState = {
+  directoryPath: string;
+  lastExportPath: string | null;
+  lastExportedAt: string | null;
+  eventCount: number;
+  lastEventAt: string | null;
+  lastError: string | null;
+  entries: DiagnosticsTimelineEntry[];
 };
 
 type WindowStateSummary = {
@@ -3879,6 +4061,12 @@ type ForgeDesktopAPI = {
     export: (draft?: IncidentReportDraft) => Promise<IncidentReportState>;
     reveal: () => Promise<IncidentReportState>;
   };
+  diagnosticsTimeline?: {
+    getState: () => Promise<DiagnosticsTimelineState>;
+    export: () => Promise<DiagnosticsTimelineState>;
+    reveal: () => Promise<DiagnosticsTimelineState>;
+    clearHistory: () => Promise<DiagnosticsTimelineState>;
+  };
   notifications?: {
     show: (title: string, body: string) => Promise<{ supported: boolean; delivered: boolean }>;
   };
@@ -3992,6 +4180,7 @@ ${useSettings ? `  const [settings, setSettings] = useState<AppSettings | null>(
     recommendedAction: 'Attach support bundle and logs, then triage with product and QA owners.',
     notes: '',
   });
+` : ''}${useDiagnosticsTimeline ? `  const [diagnosticsTimelineState, setDiagnosticsTimelineState] = useState<DiagnosticsTimelineState | null>(null);
 ` : ''}${useNotifications ? `  const [notificationDraft, setNotificationDraft] = useState({ title: 'Forge Ready', body: '${displayName} is ready for customer testing.' });
   const [notificationState, setNotificationState] = useState<'idle' | 'sent' | 'unsupported'>('idle');
 ` : ''}${useWindowing ? `  const [windowState, setWindowState] = useState<WindowStateSummary | null>(null);
@@ -4090,6 +4279,10 @@ ${useSettings ? `  useEffect(() => {
 ` : ''}${useIncidentReport ? `
   useEffect(() => {
     refreshIncidentReport(api, setIncidentReportState, setIncidentReportDraft);
+  }, [api]);
+` : ''}${useDiagnosticsTimeline ? `
+  useEffect(() => {
+    refreshDiagnosticsTimeline(api, setDiagnosticsTimelineState);
   }, [api]);
 ` : ''}${useSystemInfo ? `
   useEffect(() => {
@@ -4784,6 +4977,68 @@ ${useSettings ? `        <section className="rounded-2xl border border-slate-800
             </>
           ) : (
             <p className="mt-3 text-xs text-slate-500">Incident report state is unavailable until the desktop bridge finishes booting.</p>
+          )}
+        </section>
+` : ''}${useDiagnosticsTimeline ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Diagnostics Timeline</h3>
+              <p className="mt-1 text-xs text-slate-400">Capture a support-ready desktop event history with export, reveal, and clear controls so investigations can start from a structured shell timeline.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => refreshDiagnosticsTimeline(api, setDiagnosticsTimelineState)}
+                className="rounded-full border border-cyan-500/40 px-3 py-1 text-xs font-medium text-cyan-300 hover:border-cyan-400 hover:text-cyan-100"
+              >
+                Refresh
+              </button>
+              <button
+                onClick={() => exportDiagnosticsTimelineFromStudio(api, setDiagnosticsTimelineState)}
+                className="rounded-full border border-amber-500/40 px-3 py-1 text-xs font-medium text-amber-300 hover:border-amber-400 hover:text-amber-100"
+              >
+                Export
+              </button>
+              <button
+                onClick={() => revealDiagnosticsTimelineFromStudio(api, setDiagnosticsTimelineState)}
+                className="rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-200 hover:border-slate-500"
+              >
+                Reveal
+              </button>
+              <button
+                onClick={() => clearDiagnosticsTimelineFromStudio(api, setDiagnosticsTimelineState)}
+                className="rounded-full border border-rose-500/40 px-3 py-1 text-xs font-medium text-rose-300 hover:border-rose-400 hover:text-rose-100"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+          {diagnosticsTimelineState ? (
+            <>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <DiagnosticRow label="Timeline Folder" value={diagnosticsTimelineState.directoryPath} />
+                <DiagnosticRow label="Events" value={String(diagnosticsTimelineState.eventCount)} />
+                <DiagnosticRow label="Last Event" value={diagnosticsTimelineState.lastEventAt ?? 'not recorded yet'} />
+                <DiagnosticRow label="Last Export" value={diagnosticsTimelineState.lastExportPath ?? 'not exported yet'} />
+                <DiagnosticRow label="Exported At" value={diagnosticsTimelineState.lastExportedAt ?? 'not exported yet'} />
+                <DiagnosticRow label="Last Error" value={diagnosticsTimelineState.lastError ?? 'none'} />
+              </div>
+              <div className="mt-3 space-y-2">
+                {diagnosticsTimelineState.entries.length ? diagnosticsTimelineState.entries.map((entry) => (
+                  <div key={entry.id} className="rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-300">{entry.category}</span>
+                      <span className="text-xs text-slate-500">{entry.timestamp}</span>
+                    </div>
+                    <p className="mt-2 text-sm text-white">{entry.event}</p>
+                    <p className="mt-1 break-all text-xs text-slate-500">{entry.detail ?? 'no detail'}</p>
+                  </div>
+                )) : (
+                  <p className="text-xs text-slate-500">No timeline events yet. Launch, focus, export support data, or reopen the window to seed the starter diagnostics timeline.</p>
+                )}
+              </div>
+            </>
+          ) : (
+            <p className="mt-3 text-xs text-slate-500">Diagnostics timeline state is unavailable until the desktop bridge finishes booting.</p>
           )}
         </section>
 ` : ''}${useSystemInfo ? `        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ${features.length <= 2 ? 'md:col-span-2' : ''}">
@@ -6435,7 +6690,64 @@ async function revealIncidentReportFromStudio(
     // Ignore starter incident-report reveal failures.
   }
 }
-` : ''}${useDiagnostics || useSystemInfo || usePermissions || useNetworkStatus || useSecureStorage || useSupportBundle || useLogArchive || useIncidentReport || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useIdlePresence || useSessionState || useDownloads || useClipboard || useExternalLinks ? `
+` : ''}${useDiagnosticsTimeline ? `
+
+async function refreshDiagnosticsTimeline(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: DiagnosticsTimelineState) => void,
+) {
+  try {
+    const next = await api?.diagnosticsTimeline?.getState?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter diagnostics-timeline refresh failures.
+  }
+}
+
+async function exportDiagnosticsTimelineFromStudio(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: DiagnosticsTimelineState) => void,
+) {
+  try {
+    const next = await api?.diagnosticsTimeline?.export?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter diagnostics-timeline export failures.
+  }
+}
+
+async function revealDiagnosticsTimelineFromStudio(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: DiagnosticsTimelineState) => void,
+) {
+  try {
+    const next = await api?.diagnosticsTimeline?.reveal?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter diagnostics-timeline reveal failures.
+  }
+}
+
+async function clearDiagnosticsTimelineFromStudio(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: DiagnosticsTimelineState) => void,
+) {
+  try {
+    const next = await api?.diagnosticsTimeline?.clearHistory?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter diagnostics-timeline clear failures.
+  }
+}
+` : ''}${useDiagnostics || useSystemInfo || usePermissions || useNetworkStatus || useSecureStorage || useSupportBundle || useLogArchive || useIncidentReport || useDiagnosticsTimeline || useWindowing || useTray || useDeepLink || useMenuBar || useAutoLaunch || useGlobalShortcut || useFileAssociation || useFileDialogs || useRecentFiles || useCrashRecovery || usePowerMonitor || useIdlePresence || useSessionState || useDownloads || useClipboard || useExternalLinks ? `
 
 function DiagnosticRow({ label, value }: { label: string; value: string }) {
   return (

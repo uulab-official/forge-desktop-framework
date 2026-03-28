@@ -109,7 +109,8 @@ node dist/index.js create my-forge-app --template minimal \
   --feature secure-storage \
   --feature support-bundle \
   --feature log-archive \
-  --feature incident-report
+  --feature incident-report \
+  --feature diagnostics-timeline
 ```
 
 Or use the bundled production starter preset:
@@ -170,6 +171,7 @@ Feature packs available on the `minimal` starter today:
 - `support-bundle` for structured JSON support handoff exports with reveal-in-folder controls and included-section tracking
 - `log-archive` for timestamped runtime log snapshot exports with manifest generation and reveal-in-folder controls
 - `incident-report` for structured desktop escalation drafts with severity, repro steps, export, and reveal-in-folder controls
+- `diagnostics-timeline` for structured desktop event history exports with reveal, clear, and support investigation controls
 
 Starter presets available today:
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`

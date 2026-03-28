@@ -51,6 +51,7 @@ describe('IPC_CHANNELS', () => {
     expect(IPC_CHANNELS.SUPPORT_BUNDLE_GET_STATE).toBe('support-bundle:get-state');
     expect(IPC_CHANNELS.LOG_ARCHIVE_GET_STATE).toBe('log-archive:get-state');
     expect(IPC_CHANNELS.INCIDENT_REPORT_GET_STATE).toBe('incident-report:get-state');
+    expect(IPC_CHANNELS.DIAGNOSTICS_TIMELINE_GET_STATE).toBe('diagnostics-timeline:get-state');
     expect(IPC_CHANNELS.UPDATE_CHECK).toBe('update:check');
   });
 });

@@ -1,4 +1,4 @@
-export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'idle-presence' | 'session-state' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions' | 'network-status' | 'secure-storage' | 'support-bundle' | 'log-archive' | 'incident-report';
+export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'idle-presence' | 'session-state' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions' | 'network-status' | 'secure-storage' | 'support-bundle' | 'log-archive' | 'incident-report' | 'diagnostics-timeline';
 export type ScaffoldPreset = 'launch-ready';
 
 export interface FeatureDefinition {
@@ -188,6 +188,12 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
     id: 'incident-report',
     label: 'Incident Report',
     description: 'Seed a structured desktop incident handoff draft with export and reveal controls for support escalations',
+    minimalOnly: true,
+  },
+  {
+    id: 'diagnostics-timeline',
+    label: 'Diagnostics Timeline',
+    description: 'Seed a structured desktop event timeline with export, reveal, and clear controls for support investigations',
     minimalOnly: true,
   },
 ];

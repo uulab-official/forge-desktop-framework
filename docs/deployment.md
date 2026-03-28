@@ -59,7 +59,7 @@ Scaffolded apps also include:
 The `minimal` starter also supports feature packs during scaffolding:
 
 ```bash
-forge create my-app --template minimal --feature settings --feature updater --feature diagnostics --feature notifications --feature windowing --feature tray --feature deep-link --feature menu-bar --feature auto-launch --feature global-shortcut --feature file-association --feature file-dialogs --feature recent-files --feature crash-recovery --feature power-monitor --feature idle-presence --feature session-state --feature downloads --feature clipboard --feature external-links --feature system-info --feature permissions --feature network-status --feature secure-storage --feature support-bundle --feature log-archive --feature incident-report
+forge create my-app --template minimal --feature settings --feature updater --feature diagnostics --feature notifications --feature windowing --feature tray --feature deep-link --feature menu-bar --feature auto-launch --feature global-shortcut --feature file-association --feature file-dialogs --feature recent-files --feature crash-recovery --feature power-monitor --feature idle-presence --feature session-state --feature downloads --feature clipboard --feature external-links --feature system-info --feature permissions --feature network-status --feature secure-storage --feature support-bundle --feature log-archive --feature incident-report --feature diagnostics-timeline
 ```
 
 For the fastest production baseline, use the preset:
@@ -101,6 +101,8 @@ Use `--feature support-bundle` when your desktop product needs a structured JSON
 Use `--feature log-archive` when your desktop product needs timestamped snapshots of the runtime logs directory and wants a generated shell panel that exports copied log evidence plus a manifest for bug reports.
 
 Use `--feature incident-report` when your desktop product needs a structured escalation draft with severity, summary, repro steps, recommended action, and a support-ready JSON export path.
+
+Use `--feature diagnostics-timeline` when your desktop product needs a structured event history that support or QA can export, clear, and inspect during incident investigations.
 
 You can also seed release metadata up front:
 
