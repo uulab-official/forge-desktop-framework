@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.37 (2026-03-29)
+
+### Ops-Ready Preset
+
+- Added an `ops-ready` scaffold preset for the `minimal` starter
+- Generated apps can now seed `diagnostics`, `support-bundle`, `crash-recovery`, `system-info`, `network-status`, `power-monitor`, `idle-presence`, and `session-state` in one preset for runtime operations and observability workflows
+- Kept `ops-ready` focused on live shell diagnostics so it complements `launch-ready` and `support-ready` instead of duplicating their release or escalation surfaces
+
+### Release Verification
+
+- Extended both in-repo and external scaffold verification to generate, install, typecheck, and build a dedicated ops-ready smoke app before any version bump
+
 ## 0.1.36 (2026-03-29)
 
 ### External Scaffold Verification

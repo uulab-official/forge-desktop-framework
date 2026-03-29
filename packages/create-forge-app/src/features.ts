@@ -1,5 +1,5 @@
 export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'idle-presence' | 'session-state' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions' | 'network-status' | 'secure-storage' | 'support-bundle' | 'log-archive' | 'incident-report' | 'diagnostics-timeline';
-export type ScaffoldPreset = 'launch-ready' | 'support-ready';
+export type ScaffoldPreset = 'launch-ready' | 'support-ready' | 'ops-ready';
 
 export interface FeatureDefinition {
   id: ScaffoldFeature;
@@ -210,6 +210,12 @@ export const PRESET_DEFINITIONS: PresetDefinition[] = [
     label: 'Support Ready',
     description: 'Bundle support-bundle, log-archive, incident-report, and diagnostics-timeline for support and QA investigation workflows',
     features: ['support-bundle', 'log-archive', 'incident-report', 'diagnostics-timeline'],
+  },
+  {
+    id: 'ops-ready',
+    label: 'Ops Ready',
+    description: 'Bundle diagnostics, support-bundle, crash-recovery, system-info, network-status, power-monitor, idle-presence, and session-state for runtime operations',
+    features: ['diagnostics', 'support-bundle', 'crash-recovery', 'system-info', 'network-status', 'power-monitor', 'idle-presence', 'session-state'],
   },
 ];
 

@@ -74,6 +74,12 @@ For the fastest support and QA investigation baseline, use:
 forge create my-app --template minimal --preset support-ready
 ```
 
+For the fastest runtime operations baseline, use:
+
+```bash
+forge create my-app --template minimal --preset ops-ready
+```
+
 Use `--feature file-association` when your desktop product needs starter file-open handling and sample `electron-builder` `fileAssociations` metadata for packaged document types.
 
 Use `--feature file-dialogs` when your desktop product needs first-party open and save dialogs plus a starter reveal-in-folder flow without wiring native Electron shell APIs by hand.

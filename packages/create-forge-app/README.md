@@ -113,6 +113,14 @@ node dist/index.js create my-forge-app --template minimal \
   --preset support-ready
 ```
 
+Preset creation for the runtime operations starter:
+
+```bash
+cd packages/create-forge-app
+node dist/index.js create my-forge-app --template minimal \
+  --preset ops-ready
+```
+
 Release identity overrides:
 
 ```bash
@@ -182,6 +190,7 @@ Feature packs currently target the `minimal` template and add:
 Starter presets currently target the `minimal` template:
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`
 - `support-ready` bundles `support-bundle`, `log-archive`, `incident-report`, and `diagnostics-timeline`
+- `ops-ready` bundles `diagnostics`, `support-bundle`, `crash-recovery`, `system-info`, `network-status`, `power-monitor`, `idle-presence`, and `session-state`
 
 ## Templates
 

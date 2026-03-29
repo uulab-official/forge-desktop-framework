@@ -1,6 +1,6 @@
 {
   "name": "create-forge-desktop",
-  "version": "0.1.36",
+  "version": "0.1.37",
   "description": "Create Forge Desktop apps — Electron + Python Worker framework",
   "type": "module",
   "bin": {

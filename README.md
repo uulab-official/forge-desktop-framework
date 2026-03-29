@@ -127,6 +127,13 @@ node dist/index.js create my-forge-app --template minimal \
   --preset support-ready
 ```
 
+Or seed the runtime operations baseline in one step:
+
+```bash
+node dist/index.js create my-forge-app --template minimal \
+  --preset ops-ready
+```
+
 Release metadata can also be seeded during creation:
 
 ```bash
@@ -183,6 +190,7 @@ Feature packs available on the `minimal` starter today:
 Starter presets available today:
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`
 - `support-ready` bundles `support-bundle`, `log-archive`, `incident-report`, and `diagnostics-timeline`
+- `ops-ready` bundles `diagnostics`, `support-bundle`, `crash-recovery`, `system-info`, `network-status`, `power-monitor`, `idle-presence`, and `session-state`
 
 ## How It Works
 

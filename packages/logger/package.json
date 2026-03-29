@@ -1,6 +1,6 @@
 {
   "name": "@forge/logger",
-  "version": "0.1.36",
+  "version": "0.1.37",
   "description": "Structured logger with in-memory history for Forge Desktop apps",
   "type": "module",
   "main": "./dist/index.js",
