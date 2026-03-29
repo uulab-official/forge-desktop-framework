@@ -11,6 +11,7 @@ Forge should feel like a productized framework:
 - onboarding still centers on cloning the monorepo instead of the scaffold CLI
 - template behavior is split between `examples/` and copied templates
 - release and publish code can drift from actual workspace paths
+- repo-outside scaffold install and build flows still need explicit release verification
 - docs sometimes describe packaging output paths incorrectly
 
 ## Change Standard
@@ -30,5 +31,5 @@ When a task touches one of these surfaces, check the others before finishing:
 ## Near-Term Priorities
 1. Make `create-forge-desktop` the clean entry point for new users.
 2. Reduce mismatch between "reference example" and "official template".
-3. Harden release and publish commands against real workspace structure.
+3. Harden release and publish commands against real workspace structure and repo-outside installs.
 4. Add project-specific Codex playbooks so repeated framework work is consistent.

@@ -16,6 +16,10 @@ echo "Running scaffold build verification before version bump..."
 bash scripts/test-scaffold-builds.sh
 echo ""
 
+echo "Running external scaffold verification before version bump..."
+bash scripts/test-external-scaffold.sh
+echo ""
+
 # Get current version
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "Current version: $CURRENT_VERSION"

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.36 (2026-03-29)
+
+### External Scaffold Verification
+
+- Added `scripts/test-external-scaffold.sh` to validate repo-outside Forge app creation with packed `create-forge-desktop` and local tarballed `@forge/*` packages
+- External verification now scaffolds `launch-ready` and `support-ready` starters outside the monorepo, installs without workspace links, and verifies release preflight, typecheck, and build flows
+- Extended the `launch-ready` external smoke to run `setup:python` and `build:worker` so the vendored worker runtime is exercised outside the workspace as part of the release path
+
+### Release Verification
+
+- The release workflow now runs both in-repo scaffold verification and external scaffold verification before any version bump
+
 ## 0.1.35 (2026-03-29)
 
 ### Support-Ready Preset

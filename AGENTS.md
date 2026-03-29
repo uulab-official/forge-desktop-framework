@@ -24,12 +24,13 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Keep terms consistent. If docs say a package or workflow is "official", the code should already support it.
 - When touching build, release, or publish flows, verify actual paths under `apps/`, `packages/`, and `examples/` rather than assuming old monorepo layouts.
 - Framework-facing work should bump the repo version. Default to `./scripts/release.sh patch` unless the change clearly needs `minor` or `major`.
-- Never bump the framework version before running scaffold build verification. Use `bash scripts/test-scaffold-builds.sh` or the release script, which now runs it automatically.
+- Never bump the framework version before running scaffold build verification. Use `bash scripts/test-scaffold-builds.sh`, `bash scripts/test-external-scaffold.sh`, or the release script, which now runs both automatically.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`
 - CLI package: `pnpm --filter create-forge-desktop build`
 - Scaffold verification: `bash scripts/test-scaffold-builds.sh`
+- External scaffold verification: `bash scripts/test-external-scaffold.sh`
 - Reference app: `pnpm --filter @forge/app build`
 - Python worker smoke test: `bash scripts/test-workers.sh`
 
