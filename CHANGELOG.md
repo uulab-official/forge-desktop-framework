@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.45 (2026-03-29)
+
+### Release Artifact Inventory
+
+- Added `scripts/summarize-release-artifacts.sh` so Forge can produce markdown and JSON inventories from a populated `release/` directory
+- Updated `.github/workflows/release.yml` to append packaged-artifact summaries to the workflow summary and upload `artifact-summary.md`, `artifact-summary.json`, and `latest*.yml` per matrix job
+- Documented the new release artifact inventory path in the repo README, deployment guide, and CLI package README
+
 ## 0.1.44 (2026-03-29)
 
 ### Release Readiness CI

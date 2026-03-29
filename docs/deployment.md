@@ -206,6 +206,11 @@ The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pul
 - `pnpm scaffold:external:test`
 - `pnpm release:audit`
 
+The tagged `Release` workflow now also:
+- writes a markdown and JSON inventory of packaged artifacts for each matrix job
+- appends that inventory to the workflow summary
+- uploads `artifact-summary.md`, `artifact-summary.json`, and `latest*.yml` as GitHub Actions artifacts for manual inspection
+
 For framework maintainers working in this monorepo, the official one-command ship flow is:
 
 ```bash

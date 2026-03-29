@@ -70,6 +70,19 @@ jobs:
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
         run: pnpm --filter @forge/app package -- --publish always
 
+      - name: Summarize packaged artifacts
+        shell: bash
+        run: bash scripts/summarize-release-artifacts.sh apps/app/release "${{ matrix.platform }}" "${{ matrix.arch || 'default' }}"
+
+      - name: Upload artifact inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-inventory-${{ matrix.platform }}-${{ matrix.arch || 'default' }}
+          path: |
+            apps/app/release/artifact-summary.md
+            apps/app/release/artifact-summary.json
+            apps/app/release/latest*.yml
+
       - name: Upload to S3/R2
         if: ${{ vars.S3_ENABLED == 'true' }}
         env:

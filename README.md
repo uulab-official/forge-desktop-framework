@@ -167,6 +167,8 @@ Framework CI now checks three release-readiness layers on Ubuntu before changes 
 - repo-outside scaffold install and build verification via `pnpm scaffold:external:test`
 - official preset release-surface audit via `pnpm release:audit`
 
+Tagged release runs now also upload per-matrix release inventory artifacts with `artifact-summary.md`, `artifact-summary.json`, and `latest*.yml` so maintainers can inspect packaged output without pulling raw runner files.
+
 Feature packs available on the `minimal` starter today:
 - `settings` for persisted preferences and runtime controls
 - `updater` for packaged-build update checks via Forge updater IPC
