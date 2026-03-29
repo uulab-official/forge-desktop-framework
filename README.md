@@ -134,6 +134,13 @@ node dist/index.js create my-forge-app --template minimal \
   --preset ops-ready
 ```
 
+Or seed the document workflow baseline in one step:
+
+```bash
+node dist/index.js create my-forge-app --template minimal \
+  --preset document-ready
+```
+
 Release metadata can also be seeded during creation:
 
 ```bash
@@ -191,6 +198,7 @@ Starter presets available today:
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`
 - `support-ready` bundles `support-bundle`, `log-archive`, `incident-report`, and `diagnostics-timeline`
 - `ops-ready` bundles `diagnostics`, `support-bundle`, `crash-recovery`, `system-info`, `network-status`, `power-monitor`, `idle-presence`, and `session-state`
+- `document-ready` bundles `file-association`, `file-dialogs`, `recent-files`, `windowing`, and `menu-bar`
 
 ## How It Works
 

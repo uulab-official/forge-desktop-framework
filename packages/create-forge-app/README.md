@@ -121,6 +121,14 @@ node dist/index.js create my-forge-app --template minimal \
   --preset ops-ready
 ```
 
+Preset creation for the document workflow starter:
+
+```bash
+cd packages/create-forge-app
+node dist/index.js create my-forge-app --template minimal \
+  --preset document-ready
+```
+
 Release identity overrides:
 
 ```bash
@@ -191,6 +199,7 @@ Starter presets currently target the `minimal` template:
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`
 - `support-ready` bundles `support-bundle`, `log-archive`, `incident-report`, and `diagnostics-timeline`
 - `ops-ready` bundles `diagnostics`, `support-bundle`, `crash-recovery`, `system-info`, `network-status`, `power-monitor`, `idle-presence`, and `session-state`
+- `document-ready` bundles `file-association`, `file-dialogs`, `recent-files`, `windowing`, and `menu-bar`
 
 ## Templates
 

@@ -1,5 +1,5 @@
 export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'idle-presence' | 'session-state' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions' | 'network-status' | 'secure-storage' | 'support-bundle' | 'log-archive' | 'incident-report' | 'diagnostics-timeline';
-export type ScaffoldPreset = 'launch-ready' | 'support-ready' | 'ops-ready';
+export type ScaffoldPreset = 'launch-ready' | 'support-ready' | 'ops-ready' | 'document-ready';
 
 export interface FeatureDefinition {
   id: ScaffoldFeature;
@@ -216,6 +216,12 @@ export const PRESET_DEFINITIONS: PresetDefinition[] = [
     label: 'Ops Ready',
     description: 'Bundle diagnostics, support-bundle, crash-recovery, system-info, network-status, power-monitor, idle-presence, and session-state for runtime operations',
     features: ['diagnostics', 'support-bundle', 'crash-recovery', 'system-info', 'network-status', 'power-monitor', 'idle-presence', 'session-state'],
+  },
+  {
+    id: 'document-ready',
+    label: 'Document Ready',
+    description: 'Bundle file-association, file-dialogs, recent-files, windowing, and menu-bar for document-based desktop apps',
+    features: ['file-association', 'file-dialogs', 'recent-files', 'windowing', 'menu-bar'],
   },
 ];
 

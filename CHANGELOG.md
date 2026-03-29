@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.38 (2026-03-29)
+
+### Document-Ready Preset
+
+- Added a `document-ready` scaffold preset for the `minimal` starter
+- Generated apps can now seed `file-association`, `file-dialogs`, `recent-files`, `windowing`, and `menu-bar` in one preset for document-based desktop workflows
+- Kept `document-ready` focused on file-centric shell behavior so it complements the release, support, and ops presets without widening those default surfaces
+
+### Release Verification
+
+- Extended both in-repo and external scaffold verification to generate, install, typecheck, and build a dedicated document-ready smoke app before any version bump
+
 ## 0.1.37 (2026-03-29)
 
 ### Ops-Ready Preset

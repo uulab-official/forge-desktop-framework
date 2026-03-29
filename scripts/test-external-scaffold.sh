@@ -150,5 +150,6 @@ CLI_TARBALL="$PACK_DIR/$CLI_TARBALL_NAME"
 verify_external_app "launch-ready" "launch-ready"
 verify_external_app "support-ready" "support-ready"
 verify_external_app "ops-ready" "ops-ready"
+verify_external_app "document-ready" "document-ready"
 
 echo "External scaffold verification passed."
