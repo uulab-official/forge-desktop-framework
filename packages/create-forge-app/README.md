@@ -18,6 +18,7 @@ Today:
 - generated apps now get a vendored Python worker runtime and a default electron-builder release preset
 - generated apps now also get GitHub Actions release workflows, `.env.example`, release preflight, and publish-target preflight scripts
 - generated apps now also get packaged-artifact verification and audit scripts so local packaging can fail fast when release outputs or manifests are incomplete
+- official presets are now covered by a maintainer release-surface audit before the framework version can move
 
 ## Why This Matters
 

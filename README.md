@@ -322,6 +322,7 @@ pnpm build                                # Build all packages
 pnpm typecheck                            # Type check
 pnpm test                                 # Unit tests (vitest)
 pnpm scaffold:test                        # Scaffold minimal apps and verify install/typecheck/build
+pnpm release:audit                        # Audit official preset release files and scripts
 pnpm version:check                        # Verify aligned workspace versions
 bash scripts/test-workers.sh              # Test all Python workers
 
@@ -334,6 +335,7 @@ bash scripts/test-workers.sh              # Test all Python workers
 pnpm release:ship patch                   # Verify, bump, commit, tag, and push
 
 # Manual split flow
+pnpm release:audit                        # Audit official preset release surface first
 pnpm release:bump patch                   # Verify and bump only
 git add -A
 git commit -m "release: v0.1.x"

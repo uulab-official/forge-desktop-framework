@@ -20,6 +20,10 @@ echo "Running external scaffold verification before version bump..."
 bash scripts/test-external-scaffold.sh
 echo ""
 
+echo "Running official preset release surface audit before version bump..."
+bash scripts/audit-release-surfaces.sh
+echo ""
+
 # Get current version
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "Current version: $CURRENT_VERSION"

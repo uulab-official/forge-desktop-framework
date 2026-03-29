@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.43 (2026-03-29)
+
+### Release Surface Audit
+
+- Added `scripts/audit-release-surfaces.sh` and `pnpm release:audit` so maintainers can scaffold the official presets and verify their release files, workflows, env templates, and package scripts before shipping
+- Wired official preset release-surface auditing into `scripts/release.sh` so `release:ship` now blocks version bumps when `launch-ready`, `support-ready`, `ops-ready`, or `document-ready` lose required packaging or publish surface
+- Documented the new maintainer audit step in the repo README, deployment guide, Codex notes, and CLI package README
+
 ## 0.1.42 (2026-03-29)
 
 ### Package Audit

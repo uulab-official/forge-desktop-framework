@@ -27,6 +27,7 @@ When a task touches one of these surfaces, check the others before finishing:
 - Default bump: `patch`
 - Use `minor` for new user-facing capabilities and `major` for breaking changes.
 - Prefer `scripts/ship-release.sh` when a framework change is ready to validate, version, commit, tag, and push as one release unit.
+- Use `pnpm release:audit` when you need a quick maintainer check that the official presets still scaffold the expected release files, scripts, and workflow surface.
 - Keep `examples/*`, `apps/*`, and `packages/*` on the same version line.
 
 ## Near-Term Priorities

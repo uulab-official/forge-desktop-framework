@@ -197,6 +197,7 @@ The repo release script now runs scaffold verification before the version bump. 
 
 ```bash
 pnpm scaffold:test
+pnpm release:audit
 ```
 
 For framework maintainers working in this monorepo, the official one-command ship flow is:
@@ -205,7 +206,7 @@ For framework maintainers working in this monorepo, the official one-command shi
 pnpm release:ship patch
 ```
 
-That command runs internal and external scaffold verification, bumps the shared framework version, creates `release: vX.Y.Z`, creates an annotated `vX.Y.Z` tag, and pushes both `main` and the tag to `origin`.
+That command runs internal scaffold verification, external scaffold verification, official preset release-surface audit, bumps the shared framework version, creates `release: vX.Y.Z`, creates an annotated `vX.Y.Z` tag, and pushes both `main` and the tag to `origin`.
 
 ### Build and Publish Locally
 

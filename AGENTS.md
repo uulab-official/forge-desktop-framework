@@ -26,6 +26,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Framework-facing work should bump the repo version. Default to `./scripts/release.sh patch` unless the change clearly needs `minor` or `major`.
 - Use `./scripts/ship-release.sh patch` when the framework change is ready to validate, version, commit, tag, and push in one pass from `main`.
 - Never bump the framework version before running scaffold build verification. Use `bash scripts/test-scaffold-builds.sh`, `bash scripts/test-external-scaffold.sh`, or the release script, which now runs both automatically.
+- Before shipping from `main`, prefer `pnpm release:ship patch`; it now includes internal scaffold smoke, external scaffold smoke, and official preset release-surface audit.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`
