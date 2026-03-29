@@ -1,6 +1,6 @@
 {
   "name": "@forge/project-core",
-  "version": "0.1.40",
+  "version": "0.1.41",
   "description": "Project directory helpers and metadata management for Forge Desktop apps",
   "type": "module",
   "main": "./dist/index.js",

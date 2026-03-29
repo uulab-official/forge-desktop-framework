@@ -50,6 +50,13 @@ cleanup() {
 
 trap cleanup EXIT
 
+seed_release_output() {
+  local target_dir="$1"
+  mkdir -p "$target_dir/release"
+  touch "$target_dir/release/Forge-Test-0.0.0.dmg"
+  touch "$target_dir/release/latest.yml"
+}
+
 echo "==> Building Forge packages required for scaffold verification"
 pnpm build --filter='./packages/*'
 
@@ -65,6 +72,8 @@ pnpm install --dir "$MINIMAL_APP" --link-workspace-packages >/dev/null
 echo "==> Verifying minimal smoke app"
 pnpm --dir "$MINIMAL_APP" release:check
 env GH_TOKEN=forge-smoke-token pnpm --dir "$MINIMAL_APP" publish:check:github
+seed_release_output "$MINIMAL_APP"
+pnpm --dir "$MINIMAL_APP" package:verify
 pnpm --dir "$MINIMAL_APP" setup:python
 pnpm --dir "$MINIMAL_APP" build:worker
 pnpm --dir "$MINIMAL_APP" typecheck
@@ -118,6 +127,8 @@ pnpm install --dir "$DOCUMENT_READY_APP" --link-workspace-packages >/dev/null
 echo "==> Verifying document-ready smoke app"
 pnpm --dir "$DOCUMENT_READY_APP" release:check
 env AWS_ACCESS_KEY_ID=forge-smoke-key AWS_SECRET_ACCESS_KEY=forge-smoke-secret S3_BUCKET=forge-smoke-bucket S3_ENDPOINT=https://example.com S3_UPDATE_URL=https://downloads.example.com/releases pnpm --dir "$DOCUMENT_READY_APP" publish:check:s3
+seed_release_output "$DOCUMENT_READY_APP"
+pnpm --dir "$DOCUMENT_READY_APP" package:verify:s3
 pnpm --dir "$DOCUMENT_READY_APP" typecheck
 pnpm --dir "$DOCUMENT_READY_APP" build
 

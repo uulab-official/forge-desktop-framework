@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.41 (2026-03-29)
+
+### Package Verification
+
+- Added generated-app package artifact verification with `scripts/verify-package-output.sh`, `pnpm package:verify`, and `pnpm package:verify:s3`
+- Updated generated release guidance so local packaging flows explicitly check installer and `latest*.yml` outputs after `electron-builder`
+- Extended in-repo and external scaffold verification to exercise package-output verification on generated apps
+
 ## 0.1.40 (2026-03-29)
 
 ### Publish Preflight

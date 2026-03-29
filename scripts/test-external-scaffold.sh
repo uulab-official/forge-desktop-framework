@@ -16,6 +16,13 @@ cleanup() {
 
 trap cleanup EXIT
 
+seed_release_output() {
+  local target_dir="$1"
+  mkdir -p "$target_dir/release"
+  touch "$target_dir/release/Forge-Test-0.0.0.dmg"
+  touch "$target_dir/release/latest.yml"
+}
+
 compute_tarball_name() {
   local package_dir="$1"
 
@@ -98,9 +105,13 @@ verify_external_app() {
   pnpm --dir "$target_dir" release:check
   if [[ "$preset_id" == "launch-ready" ]]; then
     env GH_TOKEN=forge-smoke-token pnpm --dir "$target_dir" publish:check:github
+    seed_release_output "$target_dir"
+    pnpm --dir "$target_dir" package:verify
   fi
   if [[ "$preset_id" == "document-ready" ]]; then
     env AWS_ACCESS_KEY_ID=forge-smoke-key AWS_SECRET_ACCESS_KEY=forge-smoke-secret S3_BUCKET=forge-smoke-bucket S3_ENDPOINT=https://example.com S3_UPDATE_URL=https://downloads.example.com/releases pnpm --dir "$target_dir" publish:check:s3
+    seed_release_output "$target_dir"
+    pnpm --dir "$target_dir" package:verify:s3
   fi
   if [[ "$preset_id" == "launch-ready" ]]; then
     pnpm --dir "$target_dir" setup:python

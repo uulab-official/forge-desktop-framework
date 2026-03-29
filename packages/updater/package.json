@@ -1,6 +1,6 @@
 {
   "name": "@forge/updater",
-  "version": "0.1.40",
+  "version": "0.1.41",
   "description": "Auto-update wrapper for Forge Desktop apps using electron-updater",
   "type": "module",
   "main": "./dist/index.js",
