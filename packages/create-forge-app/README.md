@@ -105,6 +105,14 @@ node dist/index.js create my-forge-app --template minimal \
   --preset launch-ready
 ```
 
+Preset creation for the support and QA investigation starter:
+
+```bash
+cd packages/create-forge-app
+node dist/index.js create my-forge-app --template minimal \
+  --preset support-ready
+```
+
 Release identity overrides:
 
 ```bash
@@ -173,6 +181,7 @@ Feature packs currently target the `minimal` template and add:
 
 Starter presets currently target the `minimal` template:
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`
+- `support-ready` bundles `support-bundle`, `log-archive`, `incident-report`, and `diagnostics-timeline`
 
 ## Templates
 

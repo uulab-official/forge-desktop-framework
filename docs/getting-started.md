@@ -93,6 +93,13 @@ node dist/index.js create my-forge-app --template minimal \
   --preset launch-ready
 ```
 
+Or scaffold the support and QA investigation baseline:
+
+```bash
+node dist/index.js create my-forge-app --template minimal \
+  --preset support-ready
+```
+
 That generates a starter app from one of the template snapshots under `packages/create-forge-app/templates/`.
 
 The generated project includes:

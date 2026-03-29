@@ -895,47 +895,6 @@ type LogArchiveState = {
   lastError: string | null;
 };
 
-type IncidentReportSeverity = 'low' | 'medium' | 'high' | 'critical';
-
-type IncidentReportDraft = {
-  title: string;
-  severity: IncidentReportSeverity;
-  affectedArea: string;
-  summary: string;
-  stepsToReproduce: string;
-  expectedBehavior: string;
-  actualBehavior: string;
-  recommendedAction: string;
-  notes: string;
-};
-
-type IncidentReportState = {
-  directoryPath: string;
-  lastExportPath: string | null;
-  lastGeneratedAt: string | null;
-  exportCount: number;
-  lastError: string | null;
-  currentDraft: IncidentReportDraft;
-};
-
-type DiagnosticsTimelineEntry = {
-  id: string;
-  category: 'app' | 'window' | 'support';
-  event: string;
-  detail: string | null;
-  timestamp: string;
-};
-
-type DiagnosticsTimelineState = {
-  directoryPath: string;
-  lastExportPath: string | null;
-  lastExportedAt: string | null;
-  eventCount: number;
-  lastEventAt: string | null;
-  lastError: string | null;
-  entries: DiagnosticsTimelineEntry[];
-};
-
 const logArchiveState: LogArchiveState = {
   logsPath: app.getPath('logs'),
   archiveDirectoryPath: path.join(app.getPath('downloads'), ${JSON.stringify(supportFolder)}, 'log-archives'),

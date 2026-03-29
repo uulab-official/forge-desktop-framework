@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.35 (2026-03-29)
+
+### Support-Ready Preset
+
+- Added a `support-ready` scaffold preset for the `minimal` starter
+- Generated apps can now seed `support-bundle`, `log-archive`, `incident-report`, and `diagnostics-timeline` in one preset for support and QA investigation workflows
+- Kept the preset focused on operations and escalation tooling so teams can start with a coherent support surface instead of stitching those packs together by hand
+
+### Release Verification
+
+- Extended scaffold verification to generate, install, typecheck, and build a dedicated support-ready smoke app before any version bump
+
 ## 0.1.34 (2026-03-28)
 
 ### Diagnostics-Timeline Feature Pack

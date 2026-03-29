@@ -1,5 +1,5 @@
 export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'idle-presence' | 'session-state' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions' | 'network-status' | 'secure-storage' | 'support-bundle' | 'log-archive' | 'incident-report' | 'diagnostics-timeline';
-export type ScaffoldPreset = 'launch-ready';
+export type ScaffoldPreset = 'launch-ready' | 'support-ready';
 
 export interface FeatureDefinition {
   id: ScaffoldFeature;
@@ -204,6 +204,12 @@ export const PRESET_DEFINITIONS: PresetDefinition[] = [
     label: 'Launch Ready',
     description: 'Bundle settings, updater, jobs, plugins, diagnostics, notifications, windowing, and menu-bar for a production starter',
     features: ['settings', 'updater', 'jobs', 'plugins', 'diagnostics', 'notifications', 'windowing', 'menu-bar'],
+  },
+  {
+    id: 'support-ready',
+    label: 'Support Ready',
+    description: 'Bundle support-bundle, log-archive, incident-report, and diagnostics-timeline for support and QA investigation workflows',
+    features: ['support-bundle', 'log-archive', 'incident-report', 'diagnostics-timeline'],
   },
 ];
 

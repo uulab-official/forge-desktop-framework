@@ -120,6 +120,13 @@ node dist/index.js create my-forge-app --template minimal \
   --preset launch-ready
 ```
 
+Or seed the support and QA investigation baseline in one step:
+
+```bash
+node dist/index.js create my-forge-app --template minimal \
+  --preset support-ready
+```
+
 Release metadata can also be seeded during creation:
 
 ```bash
@@ -175,6 +182,7 @@ Feature packs available on the `minimal` starter today:
 
 Starter presets available today:
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`
+- `support-ready` bundles `support-bundle`, `log-archive`, `incident-report`, and `diagnostics-timeline`
 
 ## How It Works
 
