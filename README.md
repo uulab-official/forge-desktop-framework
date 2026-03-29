@@ -162,6 +162,11 @@ What the scaffold now adds by default:
 - GitHub Actions workflows for validation and tagged releases
 - renderer safety/diagnostics baseline with an error boundary and runtime log dock
 
+Framework CI now checks three release-readiness layers on Ubuntu before changes land:
+- in-repo scaffold smoke via `pnpm scaffold:test`
+- repo-outside scaffold install and build verification via `pnpm scaffold:external:test`
+- official preset release-surface audit via `pnpm release:audit`
+
 Feature packs available on the `minimal` starter today:
 - `settings` for persisted preferences and runtime controls
 - `updater` for packaged-build update checks via Forge updater IPC

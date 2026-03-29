@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.44 (2026-03-29)
+
+### Release Readiness CI
+
+- Added a dedicated Ubuntu `release-readiness` job to `.github/workflows/ci.yml` so pull requests now run repo-outside scaffold verification with `pnpm scaffold:external:test`
+- Added `pnpm release:audit` to CI so official preset release files, scripts, and workflows are checked before merge instead of only during maintainer release
+- Documented the CI release-readiness guard in the repo README, deployment guide, Codex notes, and CLI package README
+
 ## 0.1.43 (2026-03-29)
 
 ### Release Surface Audit

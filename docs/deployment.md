@@ -197,8 +197,14 @@ The repo release script now runs scaffold verification before the version bump. 
 
 ```bash
 pnpm scaffold:test
+pnpm scaffold:external:test
 pnpm release:audit
 ```
+
+The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pull requests:
+- `pnpm scaffold:test`
+- `pnpm scaffold:external:test`
+- `pnpm release:audit`
 
 For framework maintainers working in this monorepo, the official one-command ship flow is:
 

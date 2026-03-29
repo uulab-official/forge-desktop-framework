@@ -19,6 +19,7 @@ Today:
 - generated apps now also get GitHub Actions release workflows, `.env.example`, release preflight, and publish-target preflight scripts
 - generated apps now also get packaged-artifact verification and audit scripts so local packaging can fail fast when release outputs or manifests are incomplete
 - official presets are now covered by a maintainer release-surface audit before the framework version can move
+- the repo CI now also exercises repo-outside scaffold installs and official preset release-surface audit on Ubuntu before changes merge
 
 ## Why This Matters
 
