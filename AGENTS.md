@@ -28,6 +28,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Never bump the framework version before running scaffold build verification. Use `bash scripts/test-scaffold-builds.sh`, `bash scripts/test-external-scaffold.sh`, or the release script, which now runs both automatically.
 - Before shipping from `main`, prefer `pnpm release:ship patch`; it now includes internal scaffold smoke, external scaffold smoke, and official preset release-surface audit.
 - Keep `.github/workflows/ci.yml` aligned with those guards so PRs catch release regressions before maintainers run `release:ship`.
+- Keep `.github/workflows/release.yml` aligned too: packaged release jobs should emit human-readable inventories and fail when platform-specific installers or `latest*.yml` manifests are missing.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`

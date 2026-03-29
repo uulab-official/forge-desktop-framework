@@ -21,6 +21,7 @@ Today:
 - official presets are now covered by a maintainer release-surface audit before the framework version can move
 - the repo CI now also exercises repo-outside scaffold installs and official preset release-surface audit on Ubuntu before changes merge
 - the repo release workflow now uploads per-platform packaged-artifact inventories so maintainers can inspect release output without opening runner files directly
+- the repo release workflow now also fails if a matrix job misses its platform installer or `latest*.yml` manifest after packaging
 
 ## Why This Matters
 

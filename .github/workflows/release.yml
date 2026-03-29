@@ -74,6 +74,10 @@ jobs:
         shell: bash
         run: bash scripts/summarize-release-artifacts.sh apps/app/release "${{ matrix.platform }}" "${{ matrix.arch || 'default' }}"
 
+      - name: Audit packaged artifacts
+        shell: bash
+        run: bash scripts/audit-published-artifacts.sh apps/app/release "${{ matrix.platform }}" "${{ matrix.arch || 'default' }}"
+
       - name: Upload artifact inventory
         uses: actions/upload-artifact@v4
         with:
@@ -81,6 +85,8 @@ jobs:
           path: |
             apps/app/release/artifact-summary.md
             apps/app/release/artifact-summary.json
+            apps/app/release/publish-audit.md
+            apps/app/release/publish-audit.json
             apps/app/release/latest*.yml
 
       - name: Upload to S3/R2

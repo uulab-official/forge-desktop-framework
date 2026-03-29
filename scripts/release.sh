@@ -24,6 +24,10 @@ echo "Running official preset release surface audit before version bump..."
 bash scripts/audit-release-surfaces.sh
 echo ""
 
+echo "Running published artifact audit smoke test before version bump..."
+bash scripts/test-release-artifact-audit.sh
+echo ""
+
 # Get current version
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "Current version: $CURRENT_VERSION"

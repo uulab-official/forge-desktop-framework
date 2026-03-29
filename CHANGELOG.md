@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.46 (2026-03-29)
+
+### Publish Artifact Audit
+
+- Added `scripts/audit-published-artifacts.sh` and `scripts/test-release-artifact-audit.sh` so Forge can validate platform-specific release output expectations before and during tagged publishing
+- Updated `scripts/release.sh` and root package scripts so maintainers now smoke-test publish artifact auditing before any version bump
+- Updated `.github/workflows/release.yml` to fail when packaged outputs miss their platform installer or `latest*.yml` manifest, and to upload `publish-audit.md` plus `publish-audit.json` alongside the release inventory files
+- Documented the publish artifact audit path in the repo README, deployment guide, AGENTS notes, Codex notes, and CLI package README
+
 ## 0.1.45 (2026-03-29)
 
 ### Release Artifact Inventory
