@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.42 (2026-03-29)
+
+### Package Audit
+
+- Added generated-app package manifest auditing with `scripts/audit-package-output.sh`, `pnpm package:audit`, and `pnpm package:audit:s3`
+- Extended local release guidance so packaged outputs are checked for installer presence and manifest/version/path consistency
+- Extended in-repo and external scaffold verification to exercise package auditing on generated apps
+
 ## 0.1.41 (2026-03-29)
 
 ### Package Verification

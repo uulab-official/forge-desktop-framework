@@ -52,9 +52,16 @@ trap cleanup EXIT
 
 seed_release_output() {
   local target_dir="$1"
+  local version
+  version=$(node -e "const path = require('node:path'); console.log(require(path.resolve(process.argv[1])).version)" "$target_dir/package.json")
   mkdir -p "$target_dir/release"
-  touch "$target_dir/release/Forge-Test-0.0.0.dmg"
-  touch "$target_dir/release/latest.yml"
+  touch "$target_dir/release/Forge-Test-$version.dmg"
+  cat > "$target_dir/release/latest.yml" <<EOF
+version: $version
+path: Forge-Test-$version.dmg
+sha512: smoke-sha512
+releaseDate: '2026-03-29T00:00:00.000Z'
+EOF
 }
 
 echo "==> Building Forge packages required for scaffold verification"
@@ -74,6 +81,7 @@ pnpm --dir "$MINIMAL_APP" release:check
 env GH_TOKEN=forge-smoke-token pnpm --dir "$MINIMAL_APP" publish:check:github
 seed_release_output "$MINIMAL_APP"
 pnpm --dir "$MINIMAL_APP" package:verify
+pnpm --dir "$MINIMAL_APP" package:audit
 pnpm --dir "$MINIMAL_APP" setup:python
 pnpm --dir "$MINIMAL_APP" build:worker
 pnpm --dir "$MINIMAL_APP" typecheck
@@ -129,6 +137,7 @@ pnpm --dir "$DOCUMENT_READY_APP" release:check
 env AWS_ACCESS_KEY_ID=forge-smoke-key AWS_SECRET_ACCESS_KEY=forge-smoke-secret S3_BUCKET=forge-smoke-bucket S3_ENDPOINT=https://example.com S3_UPDATE_URL=https://downloads.example.com/releases pnpm --dir "$DOCUMENT_READY_APP" publish:check:s3
 seed_release_output "$DOCUMENT_READY_APP"
 pnpm --dir "$DOCUMENT_READY_APP" package:verify:s3
+pnpm --dir "$DOCUMENT_READY_APP" package:audit:s3
 pnpm --dir "$DOCUMENT_READY_APP" typecheck
 pnpm --dir "$DOCUMENT_READY_APP" build
 

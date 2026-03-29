@@ -56,6 +56,7 @@ Scaffolded apps also include:
 - `pnpm release:check` for local release preflight
 - `pnpm publish:check:github` and `pnpm publish:check:s3` for publish-target preflight
 - `pnpm package:verify` and `pnpm package:verify:s3` for packaged artifact verification
+- `pnpm package:audit` and `pnpm package:audit:s3` for manifest-to-artifact audit checks
 - tagged GitHub Actions publishing via `.github/workflows/release.yml`
 
 The `minimal` starter also supports feature packs during scaffolding:
@@ -213,6 +214,7 @@ That command runs internal and external scaffold verification, bumps the shared 
 pnpm release:check
 pnpm publish:check:github
 pnpm package:verify
+pnpm package:audit
 
 # Generated app shortcut
 pnpm publish:github
@@ -229,6 +231,7 @@ export S3_ENDPOINT="https://abc.r2.cloudflarestorage.com"
 export S3_UPDATE_URL="https://releases.example.com"
 pnpm publish:check:s3
 pnpm package:verify:s3
+pnpm package:audit:s3
 pnpm publish:s3
 forge publish --s3
 
