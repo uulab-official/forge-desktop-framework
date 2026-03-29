@@ -158,7 +158,7 @@ What the scaffold now adds by default:
 - generated project README with setup and release steps
 - `electron-builder` config files for GitHub and S3/R2 publishing
 - local scripts for Python setup, worker bundling, and app packaging
-- `.env.example`, release preflight script, and a release playbook
+- `.env.example`, release preflight, publish-target preflight, and a release playbook
 - GitHub Actions workflows for validation and tagged releases
 - renderer safety/diagnostics baseline with an error boundary and runtime log dock
 

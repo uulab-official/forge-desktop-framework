@@ -120,7 +120,7 @@ The generated project includes:
 - vendored `worker/forge_worker` runtime code
 - a standalone `README.md`
 - default `electron-builder` config
-- `.env.example`, `docs/release-playbook.md`, and `pnpm release:check`
+- `.env.example`, `docs/release-playbook.md`, `pnpm release:check`, and `pnpm publish:check:*`
 - GitHub Actions workflows for validation and tagged releases
 - packaging scripts for the worker and the desktop app
 - a renderer baseline with `ForgeErrorBoundary` and a floating log dock

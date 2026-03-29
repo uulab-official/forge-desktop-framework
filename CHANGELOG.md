@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.40 (2026-03-29)
+
+### Publish Preflight
+
+- Added generated-app publish preflight support with `scripts/check-publish-env.sh`, `pnpm publish:check:github`, and `pnpm publish:check:s3`
+- Wired publish preflight into generated release guidance and the generated GitHub release workflow so missing publish credentials fail before packaging
+- Extended in-repo and external scaffold verification to exercise publish-target preflight on generated apps
+
 ## 0.1.39 (2026-03-29)
 
 ### Release Automation

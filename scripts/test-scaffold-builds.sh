@@ -64,6 +64,7 @@ pnpm install --dir "$MINIMAL_APP" --link-workspace-packages >/dev/null
 
 echo "==> Verifying minimal smoke app"
 pnpm --dir "$MINIMAL_APP" release:check
+env GH_TOKEN=forge-smoke-token pnpm --dir "$MINIMAL_APP" publish:check:github
 pnpm --dir "$MINIMAL_APP" setup:python
 pnpm --dir "$MINIMAL_APP" build:worker
 pnpm --dir "$MINIMAL_APP" typecheck
@@ -82,6 +83,7 @@ pnpm install --dir "$LAUNCH_READY_APP" --link-workspace-packages >/dev/null
 
 echo "==> Verifying launch-ready smoke app"
 pnpm --dir "$LAUNCH_READY_APP" release:check
+env GH_TOKEN=forge-smoke-token pnpm --dir "$LAUNCH_READY_APP" publish:check:github
 pnpm --dir "$LAUNCH_READY_APP" typecheck
 pnpm --dir "$LAUNCH_READY_APP" build
 
@@ -115,6 +117,7 @@ pnpm install --dir "$DOCUMENT_READY_APP" --link-workspace-packages >/dev/null
 
 echo "==> Verifying document-ready smoke app"
 pnpm --dir "$DOCUMENT_READY_APP" release:check
+env AWS_ACCESS_KEY_ID=forge-smoke-key AWS_SECRET_ACCESS_KEY=forge-smoke-secret S3_BUCKET=forge-smoke-bucket S3_ENDPOINT=https://example.com S3_UPDATE_URL=https://downloads.example.com/releases pnpm --dir "$DOCUMENT_READY_APP" publish:check:s3
 pnpm --dir "$DOCUMENT_READY_APP" typecheck
 pnpm --dir "$DOCUMENT_READY_APP" build
 

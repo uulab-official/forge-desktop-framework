@@ -16,7 +16,7 @@ Today:
 - core `@forge/*` packages now have publish-ready package metadata
 - the safest workflow is still repo-local development while package publishing is being formalized
 - generated apps now get a vendored Python worker runtime and a default electron-builder release preset
-- generated apps now also get GitHub Actions release workflows, `.env.example`, and a release preflight script
+- generated apps now also get GitHub Actions release workflows, `.env.example`, release preflight, and publish-target preflight scripts
 
 ## Why This Matters
 
@@ -159,8 +159,8 @@ Generated projects now include:
 - `electron-builder.yml` and `electron-builder.s3.yml`
 - `.github/workflows/validate.yml` and `.github/workflows/release.yml`
 - `.env.example` and `docs/release-playbook.md`
-- `scripts/setup-python.sh`, `scripts/build-worker.sh`, `scripts/build-app.sh`, `scripts/preflight-release.sh`
-- package scripts for `pnpm release:check`, `pnpm setup:python`, `pnpm build:worker`, and `pnpm package`
+- `scripts/setup-python.sh`, `scripts/build-worker.sh`, `scripts/build-app.sh`, `scripts/preflight-release.sh`, `scripts/check-publish-env.sh`
+- package scripts for `pnpm release:check`, `pnpm publish:check:github`, `pnpm publish:check:s3`, `pnpm publish:github`, `pnpm publish:s3`, `pnpm setup:python`, `pnpm build:worker`, and `pnpm package`
 - renderer baseline with `ForgeErrorBoundary` and a floating runtime log dock
 
 Feature packs currently target the `minimal` template and add:

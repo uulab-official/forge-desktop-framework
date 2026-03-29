@@ -54,6 +54,7 @@ Scaffolded apps now include baseline packaging files:
 
 Scaffolded apps also include:
 - `pnpm release:check` for local release preflight
+- `pnpm publish:check:github` and `pnpm publish:check:s3` for publish-target preflight
 - tagged GitHub Actions publishing via `.github/workflows/release.yml`
 
 The `minimal` starter also supports feature packs during scaffolding:
@@ -209,8 +210,12 @@ That command runs internal and external scaffold verification, bumps the shared 
 ```bash
 # Verify local release prerequisites
 pnpm release:check
+pnpm publish:check:github
 
-# GitHub Releases
+# Generated app shortcut
+pnpm publish:github
+
+# CLI path
 export GH_TOKEN="your-github-token"
 forge publish
 
@@ -220,6 +225,8 @@ export AWS_SECRET_ACCESS_KEY="..."
 export S3_BUCKET="my-releases"
 export S3_ENDPOINT="https://abc.r2.cloudflarestorage.com"
 export S3_UPDATE_URL="https://releases.example.com"
+pnpm publish:check:s3
+pnpm publish:s3
 forge publish --s3
 
 # Both
