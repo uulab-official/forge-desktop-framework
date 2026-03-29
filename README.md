@@ -331,8 +331,15 @@ bash scripts/test-workers.sh              # Test all Python workers
 ./scripts/build-app.sh                    # Full build + package
 
 # Release
-./scripts/release.sh patch                # Bump version
-git push && git push --tags               # Triggers CI → build → publish
+pnpm release:ship patch                   # Verify, bump, commit, tag, and push
+
+# Manual split flow
+pnpm release:bump patch                   # Verify and bump only
+git add -A
+git commit -m "release: v0.1.x"
+git tag -a v0.1.x -m "release: v0.1.x"
+git push origin main
+git push origin v0.1.x
 ```
 
 ## Documentation

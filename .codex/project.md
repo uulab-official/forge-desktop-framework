@@ -26,6 +26,7 @@ When a task touches one of these surfaces, check the others before finishing:
 - Every completed framework enhancement bumps the version.
 - Default bump: `patch`
 - Use `minor` for new user-facing capabilities and `major` for breaking changes.
+- Prefer `scripts/ship-release.sh` when a framework change is ready to validate, version, commit, tag, and push as one release unit.
 - Keep `examples/*`, `apps/*`, and `packages/*` on the same version line.
 
 ## Near-Term Priorities

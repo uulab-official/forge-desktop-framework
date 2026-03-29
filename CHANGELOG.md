@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.39 (2026-03-29)
+
+### Release Automation
+
+- Added `scripts/ship-release.sh` to run framework verification, version bumping, commit creation, annotated tagging, and `origin` push as one clean maintainer flow
+- Added `pnpm release:bump` and `pnpm release:ship` so the framework repo has official manual and one-command shipping entry points
+- Documented the maintainer release path in the repo README, deployment guide, and Codex operating notes
+
 ## 0.1.38 (2026-03-29)
 
 ### Document-Ready Preset
