@@ -29,7 +29,7 @@ When a task touches one of these surfaces, check the others before finishing:
 - Prefer `scripts/ship-release.sh` when a framework change is ready to validate, version, commit, tag, and push as one release unit.
 - Use `pnpm release:audit` when you need a quick maintainer check that the official presets still scaffold the expected release files, scripts, and workflow surface.
 - Treat the Ubuntu `release-readiness` CI path as the pre-merge mirror of `release:ship`: external scaffold installs and official preset release-surface audit should stay green there too.
-- Treat tagged release jobs as auditable surfaces too: summary and publish-audit artifacts should stay aligned with the actual installer and manifest outputs.
+- Treat tagged release jobs as auditable surfaces too: signing-readiness, summary, and publish-audit artifacts should stay aligned with the actual installer and manifest outputs.
 - Keep `examples/*`, `apps/*`, and `packages/*` on the same version line.
 
 ## Near-Term Priorities

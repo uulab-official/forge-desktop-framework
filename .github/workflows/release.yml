@@ -58,6 +58,19 @@ jobs:
       - name: Build Electron app
         run: pnpm --filter @forge/app build
 
+      - name: Audit signing readiness
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        run: bash scripts/audit-signing-readiness.sh "${{ matrix.platform }}" "${{ matrix.arch || 'default' }}" ".release-audit/${{ matrix.platform }}-${{ matrix.arch || 'default' }}"
+
       - name: Package Electron app (GitHub Releases)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -83,6 +96,8 @@ jobs:
         with:
           name: release-inventory-${{ matrix.platform }}-${{ matrix.arch || 'default' }}
           path: |
+            .release-audit/${{ matrix.platform }}-${{ matrix.arch || 'default' }}/signing-readiness.md
+            .release-audit/${{ matrix.platform }}-${{ matrix.arch || 'default' }}/signing-readiness.json
             apps/app/release/artifact-summary.md
             apps/app/release/artifact-summary.json
             apps/app/release/publish-audit.md

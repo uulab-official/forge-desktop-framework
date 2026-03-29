@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.47 (2026-03-29)
+
+### Signing Readiness Audit
+
+- Added `scripts/audit-signing-readiness.sh` and `scripts/test-signing-readiness-audit.sh` so Forge can validate mac notarization and Windows signing env requirements before packaging starts
+- Wired signing readiness smoke into `scripts/release.sh`, added root `pnpm release:signing:test`, and made the tagged release workflow upload `signing-readiness.md` plus `signing-readiness.json`
+- Documented the new signing readiness gate in the repo README, deployment guide, AGENTS notes, Codex notes, and CLI package README
+
 ## 0.1.46 (2026-03-29)
 
 ### Publish Artifact Audit
