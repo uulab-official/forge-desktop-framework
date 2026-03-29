@@ -1,6 +1,6 @@
 {
   "name": "@forge-example/dashboard",
-  "version": "0.1.46",
+  "version": "0.1.47",
   "private": true,
   "main": "./dist-electron/main.js",
   "type": "module",

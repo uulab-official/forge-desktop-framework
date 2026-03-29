@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.48 (2026-03-30)
+
+### Release Matrix Summary
+
+- Added `scripts/summarize-release-matrix.sh` and `scripts/test-release-matrix-summary.sh` so Forge can aggregate per-platform release inventories into one matrix-level summary
+- Wired release matrix summary smoke into `scripts/release.sh`, added root `pnpm release:matrix:test`, and added a tagged workflow follow-up job that uploads `release-matrix-summary.md` plus `release-matrix-summary.json`
+- Documented the new matrix summary layer in the repo README, deployment guide, AGENTS notes, Codex notes, and CLI package README
+
 ## 0.1.47 (2026-03-29)
 
 ### Signing Readiness Audit

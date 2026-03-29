@@ -212,6 +212,7 @@ The tagged `Release` workflow now also:
 - uploads `artifact-summary.md`, `artifact-summary.json`, and `latest*.yml` as GitHub Actions artifacts for manual inspection
 - audits platform-specific publish output so missing `.dmg`, `.exe`, `.AppImage`, or `latest*.yml` files fail the release job immediately
 - audits signing readiness before packaging so missing mac notarization or Windows signing secrets fail before the packaging step starts
+- runs a follow-up matrix summary job that downloads every per-platform inventory and uploads `release-matrix-summary.md/json`
 
 For framework maintainers working in this monorepo, the official one-command ship flow is:
 

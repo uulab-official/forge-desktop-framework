@@ -32,6 +32,10 @@ echo "Running signing readiness audit smoke test before version bump..."
 bash scripts/test-signing-readiness-audit.sh
 echo ""
 
+echo "Running release matrix summary smoke test before version bump..."
+bash scripts/test-release-matrix-summary.sh
+echo ""
+
 # Get current version
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "Current version: $CURRENT_VERSION"

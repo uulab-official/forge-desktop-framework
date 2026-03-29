@@ -129,3 +129,32 @@ jobs:
             [ -f "$f" ] && aws s3 cp "$f" s3://$S3_BUCKET/releases/latest/ \
               --endpoint-url $S3_ENDPOINT
           done
+
+  release-matrix-summary:
+    runs-on: ubuntu-latest
+    needs: build-and-release
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Download release inventories
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-inventory-*
+          path: .release-matrix-artifacts
+
+      - name: Summarize release matrix
+        shell: bash
+        run: bash scripts/summarize-release-matrix.sh .release-matrix-artifacts .release-matrix
+
+      - name: Upload release matrix summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-matrix-summary
+          path: |
+            .release-matrix/release-matrix-summary.md
+            .release-matrix/release-matrix-summary.json

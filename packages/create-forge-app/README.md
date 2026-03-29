@@ -23,6 +23,7 @@ Today:
 - the repo release workflow now uploads per-platform packaged-artifact inventories so maintainers can inspect release output without opening runner files directly
 - the repo release workflow now also fails if a matrix job misses its platform installer or `latest*.yml` manifest after packaging
 - the repo release workflow now also fails early if a matrix job is missing mac notarization or Windows signing secrets before packaging starts
+- the repo release workflow now also uploads a final `release-matrix-summary.md/json` artifact that aggregates all platform inventories
 
 ## Why This Matters
 
