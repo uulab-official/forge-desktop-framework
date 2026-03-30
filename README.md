@@ -174,6 +174,7 @@ The same tagged release flow now also audits platform-specific publish output so
 It also audits manifest consistency so every `latest*.yml` must point at a real packaged file, include `sha512`, and match the tagged release version.
 It now also audits signing readiness before packaging so missing mac notarization or Windows signing secrets fail early with a readable summary.
 It now also audits rollback readiness so each platform inventory must keep versioned installer names plus the audit metadata needed to repoint a `latest` channel back to a known-good tagged build.
+When S3 publishing is enabled, the tagged release flow now also audits publish channel parity so the GitHub and S3 release outputs must keep the same installer filenames and updater manifest targets for the tagged version.
 After the matrix finishes, the workflow now emits a top-level `release-matrix-summary.md/json` so maintainers can review every platform in one place.
 The same follow-up job now also emits `release-provenance.md/json` so tag, commit, version, and platform outputs stay traceable as one release record.
 

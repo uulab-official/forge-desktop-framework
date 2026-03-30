@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.53 (2026-03-30)
+
+### Publish Channel Parity
+
+- Added `scripts/audit-publish-channel-parity.sh` and `scripts/test-publish-channel-parity.sh` so Forge can fail when GitHub and S3 release outputs disagree on installer filenames or updater manifest target paths for the tagged version
+- Wired publish channel parity into `scripts/release.sh`, added root `pnpm release:channels:test`, and made the tagged release workflow snapshot GitHub output, compare it against the S3 packaging pass, and upload `channel-parity.md/json` when `S3_ENABLED=true`
+- Documented the new parity layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, and the new `v0.1.53` release checklist
+
 ## 0.1.52 (2026-03-30)
 
 ### Versioned Release Checklists

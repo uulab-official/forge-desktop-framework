@@ -116,8 +116,18 @@ jobs:
             apps/app/release/rollback-readiness.json
             apps/app/release/latest*.yml
 
+      - name: Snapshot GitHub release output for channel parity
+        if: ${{ vars.S3_ENABLED == 'true' }}
+        shell: bash
+        run: |
+          target=".release-audit/${{ matrix.platform }}-${{ matrix.arch || 'default' }}/github-release"
+          rm -rf "$target"
+          mkdir -p "$(dirname "$target")"
+          cp -R apps/app/release "$target"
+
       - name: Upload to S3/R2
         if: ${{ vars.S3_ENABLED == 'true' }}
+        shell: bash
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -126,21 +136,43 @@ jobs:
           S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
           S3_UPDATE_URL: ${{ secrets.S3_UPDATE_URL }}
         run: |
+          TARGET_DIR=".release-audit/${{ matrix.platform }}-${{ matrix.arch || 'default' }}"
+          RELEASE_DIR="apps/app/release"
+
           # Build with S3 publish config
           cd apps/app
           pnpm package -- -c electron-builder.s3.yml
+          cd ../..
+
+          rm -rf "$TARGET_DIR/s3-release"
+          cp -R "$RELEASE_DIR" "$TARGET_DIR/s3-release"
+          bash scripts/audit-publish-channel-parity.sh \
+            "$TARGET_DIR/github-release" \
+            "$TARGET_DIR/s3-release" \
+            "${{ matrix.platform }}" \
+            "${{ matrix.arch || 'default' }}" \
+            "${{ github.ref_name }}"
 
           # Upload all release artifacts
-          aws s3 sync release/ s3://$S3_BUCKET/releases/${{ github.ref_name }}/ \
+          aws s3 sync "$RELEASE_DIR/" s3://$S3_BUCKET/releases/${{ github.ref_name }}/ \
             --endpoint-url $S3_ENDPOINT \
             --exclude "*.blockmap" \
             --exclude "builder-debug.yml"
 
           # Copy latest*.yml for auto-update discovery
-          for f in release/latest*.yml; do
+          for f in "$RELEASE_DIR"/latest*.yml; do
             [ -f "$f" ] && aws s3 cp "$f" s3://$S3_BUCKET/releases/latest/ \
               --endpoint-url $S3_ENDPOINT
           done
+
+      - name: Upload channel parity audit
+        if: ${{ vars.S3_ENABLED == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-channel-parity-${{ matrix.platform }}-${{ matrix.arch || 'default' }}
+          path: |
+            .release-audit/${{ matrix.platform }}-${{ matrix.arch || 'default' }}/s3-release/channel-parity.md
+            .release-audit/${{ matrix.platform }}-${{ matrix.arch || 'default' }}/s3-release/channel-parity.json
 
   release-matrix-summary:
     runs-on: ubuntu-latest
