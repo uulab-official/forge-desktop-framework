@@ -196,11 +196,15 @@ git push && git push --tags
 The repo release script now runs scaffold verification before the version bump. If you want to run the same check manually first, use:
 
 ```bash
+pnpm release:checklist:prepare patch
+pnpm release:checklist:verify patch
 pnpm scaffold:test
 pnpm scaffold:external:test
 pnpm release:audit
 pnpm release:rollback:test
 ```
+
+Every shipped version should also leave a checklist file under `docs/release-checklists/vX.Y.Z.md`. `pnpm release:ship patch` now fails early if that checklist is missing or not marked `ready`.
 
 The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pull requests:
 - `pnpm scaffold:test`

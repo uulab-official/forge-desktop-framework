@@ -27,6 +27,7 @@ Today:
 - the repo release workflow now also fails early if a matrix job is missing mac notarization or Windows signing secrets before packaging starts
 - the repo release workflow now also uploads a final `release-matrix-summary.md/json` artifact that aggregates all platform inventories
 - the repo release workflow now also uploads `release-provenance.md/json` so maintainers can map tag, commit, version, and platform outputs back to one release record
+- framework releases now also require a versioned checklist under `docs/release-checklists/vX.Y.Z.md` before `release:ship` can move the version
 
 ## Why This Matters
 

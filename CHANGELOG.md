@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.52 (2026-03-30)
+
+### Versioned Release Checklists
+
+- Added `scripts/create-release-checklist.sh` and `scripts/verify-release-checklist.sh` so maintainers can bootstrap the next `docs/release-checklists/vX.Y.Z.md` file and block shipping until it is marked `ready`
+- Wired checklist verification into `scripts/release.sh`, added root `pnpm release:checklist:prepare` plus `pnpm release:checklist:verify`, and committed the first tracked checklist at `docs/release-checklists/v0.1.52.md`
+- Documented the versioned checklist workflow in the repo README, deployment guide, CLI package README, AGENTS notes, and Codex project notes
+
 ## 0.1.51 (2026-03-30)
 
 ### Rollback Readiness

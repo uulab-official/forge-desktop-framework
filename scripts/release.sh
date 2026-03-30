@@ -12,6 +12,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$SCRIPT_DIR/.."
 cd "$ROOT_DIR"
 
+echo "Verifying versioned release checklist before release gates..."
+bash scripts/verify-release-checklist.sh "$BUMP_TYPE"
+echo ""
+
 echo "Running scaffold build verification before version bump..."
 bash scripts/test-scaffold-builds.sh
 echo ""

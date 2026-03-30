@@ -1,7 +1,7 @@
 {
   "name": "forge-desktop-framework",
   "private": true,
-  "version": "0.1.51",
+  "version": "0.1.52",
   "description": "Open source local-engine desktop app framework — Electron + Python Worker",
   "license": "MIT",
   "repository": {
@@ -36,6 +36,8 @@
     "test": "turbo run test",
     "scaffold:test": "bash scripts/test-scaffold-builds.sh",
     "scaffold:external:test": "bash scripts/test-external-scaffold.sh",
+    "release:checklist:prepare": "bash scripts/create-release-checklist.sh",
+    "release:checklist:verify": "bash scripts/verify-release-checklist.sh",
     "release:audit": "pnpm --filter create-forge-desktop build && bash scripts/audit-release-surfaces.sh",
     "release:artifacts:test": "bash scripts/test-release-artifact-audit.sh",
     "release:manifests:test": "bash scripts/test-release-manifest-audit.sh",
