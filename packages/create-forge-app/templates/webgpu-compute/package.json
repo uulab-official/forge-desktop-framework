@@ -1,6 +1,6 @@
 {
   "name": "@forge-example/webgpu-compute",
-  "version": "0.1.49",
+  "version": "0.1.50",
   "private": true,
   "main": "./dist-electron/main.js",
   "type": "module",

@@ -35,6 +35,16 @@ cat > "$TMP_DIR/release-matrix-summary.json" <<'EOF'
         "allVersionsMatch": true,
         "allPathsExist": true,
         "allShaPresent": true
+      },
+      "rollbackStatus": "passed",
+      "rollbackChecks": {
+        "versionMatchesRelease": true,
+        "installersPresent": true,
+        "manifestsPresent": true,
+        "installerNamesVersioned": true,
+        "publishAuditPassed": true,
+        "manifestAuditPassed": true,
+        "metadataPresent": true
       }
     },
     {
@@ -54,6 +64,16 @@ cat > "$TMP_DIR/release-matrix-summary.json" <<'EOF'
         "allVersionsMatch": true,
         "allPathsExist": true,
         "allShaPresent": true
+      },
+      "rollbackStatus": "passed",
+      "rollbackChecks": {
+        "versionMatchesRelease": true,
+        "installersPresent": true,
+        "manifestsPresent": true,
+        "installerNamesVersioned": true,
+        "publishAuditPassed": true,
+        "manifestAuditPassed": true,
+        "metadataPresent": true
       }
     }
   ]

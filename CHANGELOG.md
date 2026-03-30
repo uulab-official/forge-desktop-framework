@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.51 (2026-03-30)
+
+### Rollback Readiness
+
+- Added `scripts/audit-rollback-readiness.sh` and `scripts/test-rollback-readiness-audit.sh` so tagged releases fail if platform inventories do not carry versioned installers, updater manifests, and the audit metadata needed to roll a `latest` channel back to a known-good version
+- Wired rollback readiness into `scripts/release.sh`, added root `pnpm release:rollback:test`, and made the tagged workflow upload `rollback-readiness.md` plus `rollback-readiness.json`
+- Extended matrix summary and provenance layers so rollback readiness now participates in aggregated release health reporting
+
 ## 0.1.50 (2026-03-30)
 
 ### Release Manifest Consistency

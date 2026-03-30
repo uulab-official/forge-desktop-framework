@@ -42,6 +42,7 @@ const entries = artifactDirs.map((artifactDir) => {
   const summary = JSON.parse(fs.readFileSync(path.join(artifactDir, 'artifact-summary.json'), 'utf8'));
   const publish = JSON.parse(fs.readFileSync(path.join(artifactDir, 'publish-audit.json'), 'utf8'));
   const manifest = JSON.parse(fs.readFileSync(path.join(artifactDir, 'manifest-audit.json'), 'utf8'));
+  const rollback = JSON.parse(fs.readFileSync(path.join(artifactDir, 'rollback-readiness.json'), 'utf8'));
 
   return {
     artifactDir: path.basename(artifactDir),
@@ -54,6 +55,8 @@ const entries = artifactDirs.map((artifactDir) => {
     manifests: summary.totals.manifests,
     publishChecks: publish.checks,
     manifestChecks: manifest.checks,
+    rollbackStatus: rollback.status,
+    rollbackChecks: rollback.checks,
   };
 });
 
@@ -85,6 +88,10 @@ for (const entry of entries) {
     console.error(`Manifest audit failed for ${entry.platform}/${entry.arch}`);
     process.exit(1);
   }
+  if (entry.rollbackStatus !== 'passed') {
+    console.error(`Rollback readiness failed for ${entry.platform}/${entry.arch}`);
+    process.exit(1);
+  }
 }
 
 const markdown = [
@@ -93,14 +100,15 @@ const markdown = [
   `- Version: \`${versions[0]}\``,
   `- Source: \`${inputDir}\``,
   '',
-  '| Target | Signing | Installers | Manifests | Publish Audit | Manifest Audit | Missing Env |',
-  '| --- | --- | ---: | ---: | --- | --- | --- |',
+  '| Target | Signing | Installers | Manifests | Publish Audit | Manifest Audit | Rollback | Missing Env |',
+  '| --- | --- | ---: | ---: | --- | --- | --- | --- |',
   ...entries.map((entry) => {
     const target = `\`${entry.platform}/${entry.arch}\``;
     const publishState = entry.publishChecks.hasExpectedInstaller && entry.publishChecks.hasManifest ? 'passed' : 'failed';
     const manifestState = entry.manifestChecks.allVersionsMatch && entry.manifestChecks.allPathsExist && entry.manifestChecks.allShaPresent ? 'passed' : 'failed';
+    const rollbackState = entry.rollbackStatus;
     const missingEnv = entry.signingMissingEnv.length === 0 ? 'none' : entry.signingMissingEnv.join(', ');
-    return `| ${target} | ${entry.signingStatus} | ${entry.installers} | ${entry.manifests} | ${publishState} | ${manifestState} | ${missingEnv} |`;
+    return `| ${target} | ${entry.signingStatus} | ${entry.installers} | ${entry.manifests} | ${publishState} | ${manifestState} | ${rollbackState} | ${missingEnv} |`;
   }),
   '',
   '## Artifacts',

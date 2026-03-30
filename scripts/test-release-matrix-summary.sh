@@ -84,6 +84,24 @@ EOF
   }
 }
 EOF
+
+  cat > "$dir_path/rollback-readiness.json" <<EOF
+{
+  "platform": "$platform",
+  "arch": "$arch",
+  "expectedVersion": "0.1.47",
+  "status": "passed",
+  "checks": {
+    "versionMatchesRelease": true,
+    "installersPresent": true,
+    "manifestsPresent": true,
+    "installerNamesVersioned": true,
+    "publishAuditPassed": true,
+    "manifestAuditPassed": true,
+    "metadataPresent": true
+  }
+}
+EOF
 }
 
 create_inventory_dir "release-inventory-mac-arm64" "mac" "arm64" ".dmg"

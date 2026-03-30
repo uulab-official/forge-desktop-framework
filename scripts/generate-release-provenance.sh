@@ -56,12 +56,12 @@ const markdown = [
   `- Generated At: \`${generatedAt}\``,
   `- Targets: ${targets.map((target) => `\`${target}\``).join(', ')}`,
   '',
-  '| Target | Artifact Dir | Signing | Publish Audit | Manifest Audit | Installers | Manifests |',
-  '| --- | --- | --- | --- | --- | ---: | ---: |',
+  '| Target | Artifact Dir | Signing | Publish Audit | Manifest Audit | Rollback | Installers | Manifests |',
+  '| --- | --- | --- | --- | --- | --- | ---: | ---: |',
   ...entries.map((entry) => {
     const publishState = entry.publishChecks.hasExpectedInstaller && entry.publishChecks.hasManifest ? 'passed' : 'failed';
     const manifestState = entry.manifestChecks.allVersionsMatch && entry.manifestChecks.allPathsExist && entry.manifestChecks.allShaPresent ? 'passed' : 'failed';
-    return `| \`${entry.platform}/${entry.arch}\` | \`${entry.artifactDir}\` | ${entry.signingStatus} | ${publishState} | ${manifestState} | ${entry.installers} | ${entry.manifests} |`;
+    return `| \`${entry.platform}/${entry.arch}\` | \`${entry.artifactDir}\` | ${entry.signingStatus} | ${publishState} | ${manifestState} | ${entry.rollbackStatus} | ${entry.installers} | ${entry.manifests} |`;
   }),
   '',
 ].join('\n');
