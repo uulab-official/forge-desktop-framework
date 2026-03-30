@@ -26,6 +26,7 @@ Today:
 - the repo release workflow now also fails if a platform inventory is not rollback-ready, including non-versioned installer names or missing audit metadata required to repoint a `latest` channel
 - the repo release workflow now also uploads `rollback-playbook.md/json` so maintainers get a generated rollback execution checklist per platform and publish channel
 - when S3 publishing is enabled, the repo release workflow now also fails if GitHub and S3 package outputs disagree on installer filenames or updater manifest targets for the tagged version
+- the repo release workflow now also fails if rollback playbooks and publish-channel metadata disagree about whether a platform is GitHub-only or GitHub plus S3 recoverable
 - the repo release workflow now also fails early if a matrix job is missing mac notarization or Windows signing secrets before packaging starts
 - the repo release workflow now also uploads a final `release-matrix-summary.md/json` artifact that aggregates all platform inventories
 - the repo release workflow now also uploads `release-provenance.md/json` so maintainers can map tag, commit, version, and platform outputs back to one release record

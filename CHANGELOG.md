@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.55 (2026-03-31)
+
+### Release Channel Recovery Audit
+
+- Added `scripts/audit-release-channel-recovery.sh` and `scripts/test-release-channel-recovery.sh` so Forge can fail when rollback playbooks, release metadata, and publish-channel expectations drift between GitHub-only and GitHub+S3 recovery modes
+- Wired channel recovery smoke into `scripts/release.sh`, added root `pnpm release:recovery:test`, and made the tagged release workflow upload `channel-recovery.md/json` for both the GitHub release output and the S3 parity output when enabled
+- Documented the new recovery audit layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, and the new `v0.1.55` release checklist
+
 ## 0.1.54 (2026-03-30)
 
 ### Rollback Execution Playbook

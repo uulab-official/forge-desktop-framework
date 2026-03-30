@@ -48,6 +48,10 @@ echo "Running publish channel parity smoke test before version bump..."
 bash scripts/test-publish-channel-parity.sh
 echo ""
 
+echo "Running release channel recovery audit smoke test before version bump..."
+bash scripts/test-release-channel-recovery.sh
+echo ""
+
 echo "Running signing readiness audit smoke test before version bump..."
 bash scripts/test-signing-readiness-audit.sh
 echo ""

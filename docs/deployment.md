@@ -202,6 +202,7 @@ pnpm scaffold:test
 pnpm scaffold:external:test
 pnpm release:audit
 pnpm release:channels:test
+pnpm release:recovery:test
 pnpm release:rollback:test
 pnpm release:playbook:test
 ```
@@ -222,6 +223,7 @@ The tagged `Release` workflow now also:
 - audits rollback readiness so every platform inventory keeps versioned installers plus the audit metadata needed to repoint `latest` to a known-good tagged release
 - emits `rollback-playbook.md/json` for every platform so maintainers can follow a generated rollback execution checklist instead of reconstructing asset names by hand
 - when `S3_ENABLED=true`, audits publish channel parity so the GitHub and S3 release outputs keep the same installer names and updater manifest targets for the tagged version
+- audits release channel recovery so GitHub-only and GitHub+S3 rollback paths fail when the generated playbook, channel metadata, or parity outputs drift apart
 - audits signing readiness before packaging so missing mac notarization or Windows signing secrets fail before the packaging step starts
 - runs a follow-up matrix summary job that downloads every per-platform inventory and uploads `release-matrix-summary.md/json`
 - generates `release-provenance.md/json` from the tag, commit SHA, and matrix summary so shipped artifacts stay traceable to one release record
