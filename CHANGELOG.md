@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.50 (2026-03-30)
+
+### Release Manifest Consistency
+
+- Added `scripts/audit-release-manifests.sh` and `scripts/test-release-manifest-audit.sh` so Forge can validate `latest*.yml` version, target path, and `sha512` consistency against packaged files
+- Wired manifest audit smoke into `scripts/release.sh`, added root `pnpm release:manifests:test`, and made the tagged workflow upload `manifest-audit.md` plus `manifest-audit.json`
+- Extended matrix summary and provenance layers so manifest consistency now participates in aggregated release health reporting
+
 ## 0.1.49 (2026-03-30)
 
 ### Release Provenance

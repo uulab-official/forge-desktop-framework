@@ -28,6 +28,10 @@ echo "Running published artifact audit smoke test before version bump..."
 bash scripts/test-release-artifact-audit.sh
 echo ""
 
+echo "Running release manifest audit smoke test before version bump..."
+bash scripts/test-release-manifest-audit.sh
+echo ""
+
 echo "Running signing readiness audit smoke test before version bump..."
 bash scripts/test-signing-readiness-audit.sh
 echo ""

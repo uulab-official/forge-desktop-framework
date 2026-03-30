@@ -91,6 +91,10 @@ jobs:
         shell: bash
         run: bash scripts/audit-published-artifacts.sh apps/app/release "${{ matrix.platform }}" "${{ matrix.arch || 'default' }}"
 
+      - name: Audit release manifests
+        shell: bash
+        run: bash scripts/audit-release-manifests.sh apps/app/release "${{ matrix.platform }}" "${{ matrix.arch || 'default' }}" "${{ github.ref_name }}" 
+
       - name: Upload artifact inventory
         uses: actions/upload-artifact@v4
         with:
@@ -100,6 +104,8 @@ jobs:
             .release-audit/${{ matrix.platform }}-${{ matrix.arch || 'default' }}/signing-readiness.json
             apps/app/release/artifact-summary.md
             apps/app/release/artifact-summary.json
+            apps/app/release/manifest-audit.md
+            apps/app/release/manifest-audit.json
             apps/app/release/publish-audit.md
             apps/app/release/publish-audit.json
             apps/app/release/latest*.yml

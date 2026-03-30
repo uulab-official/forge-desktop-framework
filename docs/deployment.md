@@ -211,6 +211,7 @@ The tagged `Release` workflow now also:
 - appends that inventory to the workflow summary
 - uploads `artifact-summary.md`, `artifact-summary.json`, and `latest*.yml` as GitHub Actions artifacts for manual inspection
 - audits platform-specific publish output so missing `.dmg`, `.exe`, `.AppImage`, or `latest*.yml` files fail the release job immediately
+- audits manifest consistency so every `latest*.yml` points at a real artifact, carries `sha512`, and matches the tagged release version
 - audits signing readiness before packaging so missing mac notarization or Windows signing secrets fail before the packaging step starts
 - runs a follow-up matrix summary job that downloads every per-platform inventory and uploads `release-matrix-summary.md/json`
 - generates `release-provenance.md/json` from the tag, commit SHA, and matrix summary so shipped artifacts stay traceable to one release record

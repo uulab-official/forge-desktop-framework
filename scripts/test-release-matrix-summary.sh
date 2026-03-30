@@ -61,6 +61,29 @@ EOF
   }
 }
 EOF
+
+  cat > "$dir_path/manifest-audit.json" <<EOF
+{
+  "platform": "$platform",
+  "arch": "$arch",
+  "expectedVersion": "0.1.47",
+  "manifests": [
+    {
+      "file": "latest.yml",
+      "version": "0.1.47",
+      "path": "Forge$expected_suffix",
+      "sha512Present": true,
+      "versionMatches": true,
+      "pathExists": true
+    }
+  ],
+  "checks": {
+    "allVersionsMatch": true,
+    "allPathsExist": true,
+    "allShaPresent": true
+  }
+}
+EOF
 }
 
 create_inventory_dir "release-inventory-mac-arm64" "mac" "arm64" ".dmg"

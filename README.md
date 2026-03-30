@@ -169,6 +169,7 @@ Framework CI now checks three release-readiness layers on Ubuntu before changes 
 
 Tagged release runs now also upload per-matrix release inventory artifacts with `artifact-summary.md`, `artifact-summary.json`, and `latest*.yml` so maintainers can inspect packaged output without pulling raw runner files.
 The same tagged release flow now also audits platform-specific publish output so mac builds must emit `.dmg`, Windows builds must emit `.exe`, Linux builds must emit `.AppImage`, and all of them must keep a `latest*.yml` manifest.
+It also audits manifest consistency so every `latest*.yml` must point at a real packaged file, include `sha512`, and match the tagged release version.
 It now also audits signing readiness before packaging so missing mac notarization or Windows signing secrets fail early with a readable summary.
 After the matrix finishes, the workflow now emits a top-level `release-matrix-summary.md/json` so maintainers can review every platform in one place.
 The same follow-up job now also emits `release-provenance.md/json` so tag, commit, version, and platform outputs stay traceable as one release record.

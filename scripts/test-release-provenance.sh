@@ -30,6 +30,11 @@ cat > "$TMP_DIR/release-matrix-summary.json" <<'EOF'
       "publishChecks": {
         "hasExpectedInstaller": true,
         "hasManifest": true
+      },
+      "manifestChecks": {
+        "allVersionsMatch": true,
+        "allPathsExist": true,
+        "allShaPresent": true
       }
     },
     {
@@ -44,6 +49,11 @@ cat > "$TMP_DIR/release-matrix-summary.json" <<'EOF'
       "publishChecks": {
         "hasExpectedInstaller": true,
         "hasManifest": true
+      },
+      "manifestChecks": {
+        "allVersionsMatch": true,
+        "allPathsExist": true,
+        "allShaPresent": true
       }
     }
   ]
