@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.49 (2026-03-30)
+
+### Release Provenance
+
+- Added `scripts/generate-release-provenance.sh` and `scripts/test-release-provenance.sh` so Forge can derive a traceable release record from tag, commit SHA, version, and matrix outputs
+- Wired provenance smoke into `scripts/release.sh`, added root `pnpm release:provenance:test`, and made the tagged workflow upload `release-provenance.md` plus `release-provenance.json`
+- Documented the new provenance layer in the repo README, deployment guide, AGENTS notes, Codex notes, and CLI package README
+
 ## 0.1.48 (2026-03-30)
 
 ### Release Matrix Summary
