@@ -1,7 +1,7 @@
 {
   "name": "forge-desktop-framework",
   "private": true,
-  "version": "0.1.53",
+  "version": "0.1.54",
   "description": "Open source local-engine desktop app framework — Electron + Python Worker",
   "license": "MIT",
   "repository": {
@@ -43,6 +43,7 @@
     "release:channels:test": "bash scripts/test-publish-channel-parity.sh",
     "release:manifests:test": "bash scripts/test-release-manifest-audit.sh",
     "release:rollback:test": "bash scripts/test-rollback-readiness-audit.sh",
+    "release:playbook:test": "bash scripts/test-rollback-playbook.sh",
     "release:signing:test": "bash scripts/test-signing-readiness-audit.sh",
     "release:matrix:test": "bash scripts/test-release-matrix-summary.sh",
     "release:provenance:test": "bash scripts/test-release-provenance.sh",

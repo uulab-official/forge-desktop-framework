@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.54 (2026-03-30)
+
+### Rollback Execution Playbook
+
+- Added `scripts/generate-rollback-playbook.sh` and `scripts/test-rollback-playbook.sh` so Forge can generate a per-platform rollback execution checklist from packaged installers, updater manifests, rollback readiness data, and optional S3 channel parity metadata
+- Wired rollback playbook smoke into `scripts/release.sh`, added root `pnpm release:playbook:test`, and made the tagged release workflow upload `rollback-playbook.md/json` for GitHub release output plus S3 parity output when enabled
+- Documented the new rollback playbook layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, and the new `v0.1.54` release checklist
+
 ## 0.1.53 (2026-03-30)
 
 ### Publish Channel Parity

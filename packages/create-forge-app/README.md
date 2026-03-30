@@ -24,6 +24,7 @@ Today:
 - the repo release workflow now also fails if a matrix job misses its platform installer or `latest*.yml` manifest after packaging
 - the repo release workflow now also fails if a matrix job writes a `latest*.yml` manifest with the wrong version, a missing target file, or no `sha512`
 - the repo release workflow now also fails if a platform inventory is not rollback-ready, including non-versioned installer names or missing audit metadata required to repoint a `latest` channel
+- the repo release workflow now also uploads `rollback-playbook.md/json` so maintainers get a generated rollback execution checklist per platform and publish channel
 - when S3 publishing is enabled, the repo release workflow now also fails if GitHub and S3 package outputs disagree on installer filenames or updater manifest targets for the tagged version
 - the repo release workflow now also fails early if a matrix job is missing mac notarization or Windows signing secrets before packaging starts
 - the repo release workflow now also uploads a final `release-matrix-summary.md/json` artifact that aggregates all platform inventories

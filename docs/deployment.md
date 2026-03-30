@@ -203,6 +203,7 @@ pnpm scaffold:external:test
 pnpm release:audit
 pnpm release:channels:test
 pnpm release:rollback:test
+pnpm release:playbook:test
 ```
 
 Every shipped version should also leave a checklist file under `docs/release-checklists/vX.Y.Z.md`. `pnpm release:ship patch` now fails early if that checklist is missing or not marked `ready`.
@@ -219,6 +220,7 @@ The tagged `Release` workflow now also:
 - audits platform-specific publish output so missing `.dmg`, `.exe`, `.AppImage`, or `latest*.yml` files fail the release job immediately
 - audits manifest consistency so every `latest*.yml` points at a real artifact, carries `sha512`, and matches the tagged release version
 - audits rollback readiness so every platform inventory keeps versioned installers plus the audit metadata needed to repoint `latest` to a known-good tagged release
+- emits `rollback-playbook.md/json` for every platform so maintainers can follow a generated rollback execution checklist instead of reconstructing asset names by hand
 - when `S3_ENABLED=true`, audits publish channel parity so the GitHub and S3 release outputs keep the same installer names and updater manifest targets for the tagged version
 - audits signing readiness before packaging so missing mac notarization or Windows signing secrets fail before the packaging step starts
 - runs a follow-up matrix summary job that downloads every per-platform inventory and uploads `release-matrix-summary.md/json`

@@ -99,6 +99,10 @@ jobs:
         shell: bash
         run: bash scripts/audit-rollback-readiness.sh apps/app/release "${{ matrix.platform }}" "${{ matrix.arch || 'default' }}" "${{ github.ref_name }}"
 
+      - name: Generate rollback playbook
+        shell: bash
+        run: bash scripts/generate-rollback-playbook.sh apps/app/release "${{ matrix.platform }}" "${{ matrix.arch || 'default' }}" "${{ github.ref_name }}"
+
       - name: Upload artifact inventory
         uses: actions/upload-artifact@v4
         with:
@@ -114,6 +118,8 @@ jobs:
             apps/app/release/publish-audit.json
             apps/app/release/rollback-readiness.md
             apps/app/release/rollback-readiness.json
+            apps/app/release/rollback-playbook.md
+            apps/app/release/rollback-playbook.json
             apps/app/release/latest*.yml
 
       - name: Snapshot GitHub release output for channel parity
@@ -152,6 +158,11 @@ jobs:
             "${{ matrix.platform }}" \
             "${{ matrix.arch || 'default' }}" \
             "${{ github.ref_name }}"
+          bash scripts/generate-rollback-playbook.sh \
+            "$TARGET_DIR/s3-release" \
+            "${{ matrix.platform }}" \
+            "${{ matrix.arch || 'default' }}" \
+            "${{ github.ref_name }}"
 
           # Upload all release artifacts
           aws s3 sync "$RELEASE_DIR/" s3://$S3_BUCKET/releases/${{ github.ref_name }}/ \
@@ -173,6 +184,8 @@ jobs:
           path: |
             .release-audit/${{ matrix.platform }}-${{ matrix.arch || 'default' }}/s3-release/channel-parity.md
             .release-audit/${{ matrix.platform }}-${{ matrix.arch || 'default' }}/s3-release/channel-parity.json
+            .release-audit/${{ matrix.platform }}-${{ matrix.arch || 'default' }}/s3-release/rollback-playbook.md
+            .release-audit/${{ matrix.platform }}-${{ matrix.arch || 'default' }}/s3-release/rollback-playbook.json
 
   release-matrix-summary:
     runs-on: ubuntu-latest

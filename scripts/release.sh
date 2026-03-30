@@ -40,6 +40,10 @@ echo "Running rollback readiness audit smoke test before version bump..."
 bash scripts/test-rollback-readiness-audit.sh
 echo ""
 
+echo "Running rollback playbook smoke test before version bump..."
+bash scripts/test-rollback-playbook.sh
+echo ""
+
 echo "Running publish channel parity smoke test before version bump..."
 bash scripts/test-publish-channel-parity.sh
 echo ""
