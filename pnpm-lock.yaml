@@ -106,37 +106,891 @@ importers:
         specifier: ^0.14.0
         version: 0.14.6
 
-  examples/__scaffold_test_publish_check__5305:
+  examples/__scaffold_test_auto_launch__79141:
     dependencies:
       '@forge/error-handler':
-        specifier: ^0.1.39
+        specifier: ^0.1.56
         version: link:../../packages/error-handler
       '@forge/ipc-contract':
-        specifier: ^0.1.39
+        specifier: ^0.1.56
+        version: link:../../packages/ipc-contract
+      '@forge/logger':
+        specifier: ^0.1.56
+        version: link:../../packages/logger
+      '@forge/resource-manager':
+        specifier: ^0.1.56
+        version: link:../../packages/resource-manager
+      '@forge/ui-kit':
+        specifier: ^0.1.56
+        version: link:../../packages/ui-kit
+      '@forge/worker-client':
+        specifier: ^0.1.56
+        version: link:../../packages/worker-client
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.2(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^4.4.0
+        version: 4.7.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      electron:
+        specifier: ^35.0.0
+        version: 35.7.5
+      electron-builder:
+        specifier: ^26.0.0
+        version: 26.8.1(electron-builder-squirrel-windows@26.8.1)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.2
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)
+      vite-plugin-electron:
+        specifier: ^0.29.0
+        version: 0.29.1(vite-plugin-electron-renderer@0.14.6)
+      vite-plugin-electron-renderer:
+        specifier: ^0.14.0
+        version: 0.14.6
+
+  examples/__scaffold_test_crash_recovery__79141:
+    dependencies:
+      '@forge/error-handler':
+        specifier: ^0.1.56
+        version: link:../../packages/error-handler
+      '@forge/ipc-contract':
+        specifier: ^0.1.56
+        version: link:../../packages/ipc-contract
+      '@forge/logger':
+        specifier: ^0.1.56
+        version: link:../../packages/logger
+      '@forge/resource-manager':
+        specifier: ^0.1.56
+        version: link:../../packages/resource-manager
+      '@forge/ui-kit':
+        specifier: ^0.1.56
+        version: link:../../packages/ui-kit
+      '@forge/worker-client':
+        specifier: ^0.1.56
+        version: link:../../packages/worker-client
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.2(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^4.4.0
+        version: 4.7.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      electron:
+        specifier: ^35.0.0
+        version: 35.7.5
+      electron-builder:
+        specifier: ^26.0.0
+        version: 26.8.1(electron-builder-squirrel-windows@26.8.1)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.2
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)
+      vite-plugin-electron:
+        specifier: ^0.29.0
+        version: 0.29.1(vite-plugin-electron-renderer@0.14.6)
+      vite-plugin-electron-renderer:
+        specifier: ^0.14.0
+        version: 0.14.6
+
+  examples/__scaffold_test_deep_link__79141:
+    dependencies:
+      '@forge/error-handler':
+        specifier: ^0.1.56
+        version: link:../../packages/error-handler
+      '@forge/ipc-contract':
+        specifier: ^0.1.56
+        version: link:../../packages/ipc-contract
+      '@forge/logger':
+        specifier: ^0.1.56
+        version: link:../../packages/logger
+      '@forge/resource-manager':
+        specifier: ^0.1.56
+        version: link:../../packages/resource-manager
+      '@forge/ui-kit':
+        specifier: ^0.1.56
+        version: link:../../packages/ui-kit
+      '@forge/worker-client':
+        specifier: ^0.1.56
+        version: link:../../packages/worker-client
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.2(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^4.4.0
+        version: 4.7.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      electron:
+        specifier: ^35.0.0
+        version: 35.7.5
+      electron-builder:
+        specifier: ^26.0.0
+        version: 26.8.1(electron-builder-squirrel-windows@26.8.1)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.2
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)
+      vite-plugin-electron:
+        specifier: ^0.29.0
+        version: 0.29.1(vite-plugin-electron-renderer@0.14.6)
+      vite-plugin-electron-renderer:
+        specifier: ^0.14.0
+        version: 0.14.6
+
+  examples/__scaffold_test_document_ready__79141:
+    dependencies:
+      '@forge/error-handler':
+        specifier: ^0.1.56
+        version: link:../../packages/error-handler
+      '@forge/ipc-contract':
+        specifier: ^0.1.56
+        version: link:../../packages/ipc-contract
+      '@forge/logger':
+        specifier: ^0.1.56
+        version: link:../../packages/logger
+      '@forge/resource-manager':
+        specifier: ^0.1.56
+        version: link:../../packages/resource-manager
+      '@forge/ui-kit':
+        specifier: ^0.1.56
+        version: link:../../packages/ui-kit
+      '@forge/worker-client':
+        specifier: ^0.1.56
+        version: link:../../packages/worker-client
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.2(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^4.4.0
+        version: 4.7.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      electron:
+        specifier: ^35.0.0
+        version: 35.7.5
+      electron-builder:
+        specifier: ^26.0.0
+        version: 26.8.1(electron-builder-squirrel-windows@26.8.1)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.2
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)
+      vite-plugin-electron:
+        specifier: ^0.29.0
+        version: 0.29.1(vite-plugin-electron-renderer@0.14.6)
+      vite-plugin-electron-renderer:
+        specifier: ^0.14.0
+        version: 0.14.6
+
+  examples/__scaffold_test_file_association__79141:
+    dependencies:
+      '@forge/error-handler':
+        specifier: ^0.1.56
+        version: link:../../packages/error-handler
+      '@forge/ipc-contract':
+        specifier: ^0.1.56
+        version: link:../../packages/ipc-contract
+      '@forge/logger':
+        specifier: ^0.1.56
+        version: link:../../packages/logger
+      '@forge/resource-manager':
+        specifier: ^0.1.56
+        version: link:../../packages/resource-manager
+      '@forge/ui-kit':
+        specifier: ^0.1.56
+        version: link:../../packages/ui-kit
+      '@forge/worker-client':
+        specifier: ^0.1.56
+        version: link:../../packages/worker-client
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.2(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^4.4.0
+        version: 4.7.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      electron:
+        specifier: ^35.0.0
+        version: 35.7.5
+      electron-builder:
+        specifier: ^26.0.0
+        version: 26.8.1(electron-builder-squirrel-windows@26.8.1)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.2
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)
+      vite-plugin-electron:
+        specifier: ^0.29.0
+        version: 0.29.1(vite-plugin-electron-renderer@0.14.6)
+      vite-plugin-electron-renderer:
+        specifier: ^0.14.0
+        version: 0.14.6
+
+  examples/__scaffold_test_file_dialogs__79141:
+    dependencies:
+      '@forge/error-handler':
+        specifier: ^0.1.56
+        version: link:../../packages/error-handler
+      '@forge/ipc-contract':
+        specifier: ^0.1.56
+        version: link:../../packages/ipc-contract
+      '@forge/logger':
+        specifier: ^0.1.56
+        version: link:../../packages/logger
+      '@forge/resource-manager':
+        specifier: ^0.1.56
+        version: link:../../packages/resource-manager
+      '@forge/ui-kit':
+        specifier: ^0.1.56
+        version: link:../../packages/ui-kit
+      '@forge/worker-client':
+        specifier: ^0.1.56
+        version: link:../../packages/worker-client
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.2(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^4.4.0
+        version: 4.7.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      electron:
+        specifier: ^35.0.0
+        version: 35.7.5
+      electron-builder:
+        specifier: ^26.0.0
+        version: 26.8.1(electron-builder-squirrel-windows@26.8.1)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.2
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)
+      vite-plugin-electron:
+        specifier: ^0.29.0
+        version: 0.29.1(vite-plugin-electron-renderer@0.14.6)
+      vite-plugin-electron-renderer:
+        specifier: ^0.14.0
+        version: 0.14.6
+
+  examples/__scaffold_test_global_shortcut__79141:
+    dependencies:
+      '@forge/error-handler':
+        specifier: ^0.1.56
+        version: link:../../packages/error-handler
+      '@forge/ipc-contract':
+        specifier: ^0.1.56
+        version: link:../../packages/ipc-contract
+      '@forge/logger':
+        specifier: ^0.1.56
+        version: link:../../packages/logger
+      '@forge/resource-manager':
+        specifier: ^0.1.56
+        version: link:../../packages/resource-manager
+      '@forge/ui-kit':
+        specifier: ^0.1.56
+        version: link:../../packages/ui-kit
+      '@forge/worker-client':
+        specifier: ^0.1.56
+        version: link:../../packages/worker-client
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.2(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^4.4.0
+        version: 4.7.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      electron:
+        specifier: ^35.0.0
+        version: 35.7.5
+      electron-builder:
+        specifier: ^26.0.0
+        version: 26.8.1(electron-builder-squirrel-windows@26.8.1)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.2
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)
+      vite-plugin-electron:
+        specifier: ^0.29.0
+        version: 0.29.1(vite-plugin-electron-renderer@0.14.6)
+      vite-plugin-electron-renderer:
+        specifier: ^0.14.0
+        version: 0.14.6
+
+  examples/__scaffold_test_launch_ready__79141:
+    dependencies:
+      '@forge/error-handler':
+        specifier: ^0.1.56
+        version: link:../../packages/error-handler
+      '@forge/ipc-contract':
+        specifier: ^0.1.56
         version: link:../../packages/ipc-contract
       '@forge/job-engine':
-        specifier: ^0.1.39
+        specifier: ^0.1.56
         version: link:../../packages/job-engine
       '@forge/logger':
-        specifier: ^0.1.39
+        specifier: ^0.1.56
         version: link:../../packages/logger
       '@forge/plugin-system':
-        specifier: ^0.1.39
+        specifier: ^0.1.56
         version: link:../../packages/plugin-system
       '@forge/resource-manager':
-        specifier: ^0.1.39
+        specifier: ^0.1.56
         version: link:../../packages/resource-manager
       '@forge/settings-core':
-        specifier: ^0.1.39
+        specifier: ^0.1.56
         version: link:../../packages/settings-core
       '@forge/ui-kit':
-        specifier: ^0.1.39
+        specifier: ^0.1.56
         version: link:../../packages/ui-kit
       '@forge/updater':
-        specifier: ^0.1.39
+        specifier: ^0.1.56
         version: link:../../packages/updater
       '@forge/worker-client':
-        specifier: ^0.1.39
+        specifier: ^0.1.56
+        version: link:../../packages/worker-client
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.2(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^4.4.0
+        version: 4.7.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      electron:
+        specifier: ^35.0.0
+        version: 35.7.5
+      electron-builder:
+        specifier: ^26.0.0
+        version: 26.8.1(electron-builder-squirrel-windows@26.8.1)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.2
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)
+      vite-plugin-electron:
+        specifier: ^0.29.0
+        version: 0.29.1(vite-plugin-electron-renderer@0.14.6)
+      vite-plugin-electron-renderer:
+        specifier: ^0.14.0
+        version: 0.14.6
+
+  examples/__scaffold_test_menu_bar__79141:
+    dependencies:
+      '@forge/error-handler':
+        specifier: ^0.1.56
+        version: link:../../packages/error-handler
+      '@forge/ipc-contract':
+        specifier: ^0.1.56
+        version: link:../../packages/ipc-contract
+      '@forge/logger':
+        specifier: ^0.1.56
+        version: link:../../packages/logger
+      '@forge/resource-manager':
+        specifier: ^0.1.56
+        version: link:../../packages/resource-manager
+      '@forge/ui-kit':
+        specifier: ^0.1.56
+        version: link:../../packages/ui-kit
+      '@forge/worker-client':
+        specifier: ^0.1.56
+        version: link:../../packages/worker-client
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.2(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^4.4.0
+        version: 4.7.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      electron:
+        specifier: ^35.0.0
+        version: 35.7.5
+      electron-builder:
+        specifier: ^26.0.0
+        version: 26.8.1(electron-builder-squirrel-windows@26.8.1)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.2
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)
+      vite-plugin-electron:
+        specifier: ^0.29.0
+        version: 0.29.1(vite-plugin-electron-renderer@0.14.6)
+      vite-plugin-electron-renderer:
+        specifier: ^0.14.0
+        version: 0.14.6
+
+  examples/__scaffold_test_minimal__79141:
+    dependencies:
+      '@forge/error-handler':
+        specifier: ^0.1.56
+        version: link:../../packages/error-handler
+      '@forge/ipc-contract':
+        specifier: ^0.1.56
+        version: link:../../packages/ipc-contract
+      '@forge/logger':
+        specifier: ^0.1.56
+        version: link:../../packages/logger
+      '@forge/resource-manager':
+        specifier: ^0.1.56
+        version: link:../../packages/resource-manager
+      '@forge/ui-kit':
+        specifier: ^0.1.56
+        version: link:../../packages/ui-kit
+      '@forge/worker-client':
+        specifier: ^0.1.56
+        version: link:../../packages/worker-client
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.2(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^4.4.0
+        version: 4.7.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      electron:
+        specifier: ^35.0.0
+        version: 35.7.5
+      electron-builder:
+        specifier: ^26.0.0
+        version: 26.8.1(electron-builder-squirrel-windows@26.8.1)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.2
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)
+      vite-plugin-electron:
+        specifier: ^0.29.0
+        version: 0.29.1(vite-plugin-electron-renderer@0.14.6)
+      vite-plugin-electron-renderer:
+        specifier: ^0.14.0
+        version: 0.14.6
+
+  examples/__scaffold_test_ops_ready__79141:
+    dependencies:
+      '@forge/error-handler':
+        specifier: ^0.1.56
+        version: link:../../packages/error-handler
+      '@forge/ipc-contract':
+        specifier: ^0.1.56
+        version: link:../../packages/ipc-contract
+      '@forge/logger':
+        specifier: ^0.1.56
+        version: link:../../packages/logger
+      '@forge/resource-manager':
+        specifier: ^0.1.56
+        version: link:../../packages/resource-manager
+      '@forge/ui-kit':
+        specifier: ^0.1.56
+        version: link:../../packages/ui-kit
+      '@forge/worker-client':
+        specifier: ^0.1.56
+        version: link:../../packages/worker-client
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.2(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^4.4.0
+        version: 4.7.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      electron:
+        specifier: ^35.0.0
+        version: 35.7.5
+      electron-builder:
+        specifier: ^26.0.0
+        version: 26.8.1(electron-builder-squirrel-windows@26.8.1)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.2
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)
+      vite-plugin-electron:
+        specifier: ^0.29.0
+        version: 0.29.1(vite-plugin-electron-renderer@0.14.6)
+      vite-plugin-electron-renderer:
+        specifier: ^0.14.0
+        version: 0.14.6
+
+  examples/__scaffold_test_power_monitor__79141:
+    dependencies:
+      '@forge/error-handler':
+        specifier: ^0.1.56
+        version: link:../../packages/error-handler
+      '@forge/ipc-contract':
+        specifier: ^0.1.56
+        version: link:../../packages/ipc-contract
+      '@forge/logger':
+        specifier: ^0.1.56
+        version: link:../../packages/logger
+      '@forge/resource-manager':
+        specifier: ^0.1.56
+        version: link:../../packages/resource-manager
+      '@forge/ui-kit':
+        specifier: ^0.1.56
+        version: link:../../packages/ui-kit
+      '@forge/worker-client':
+        specifier: ^0.1.56
+        version: link:../../packages/worker-client
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.2(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^4.4.0
+        version: 4.7.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      electron:
+        specifier: ^35.0.0
+        version: 35.7.5
+      electron-builder:
+        specifier: ^26.0.0
+        version: 26.8.1(electron-builder-squirrel-windows@26.8.1)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.2
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)
+      vite-plugin-electron:
+        specifier: ^0.29.0
+        version: 0.29.1(vite-plugin-electron-renderer@0.14.6)
+      vite-plugin-electron-renderer:
+        specifier: ^0.14.0
+        version: 0.14.6
+
+  examples/__scaffold_test_recent_files__79141:
+    dependencies:
+      '@forge/error-handler':
+        specifier: ^0.1.56
+        version: link:../../packages/error-handler
+      '@forge/ipc-contract':
+        specifier: ^0.1.56
+        version: link:../../packages/ipc-contract
+      '@forge/logger':
+        specifier: ^0.1.56
+        version: link:../../packages/logger
+      '@forge/resource-manager':
+        specifier: ^0.1.56
+        version: link:../../packages/resource-manager
+      '@forge/ui-kit':
+        specifier: ^0.1.56
+        version: link:../../packages/ui-kit
+      '@forge/worker-client':
+        specifier: ^0.1.56
+        version: link:../../packages/worker-client
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.2(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^4.4.0
+        version: 4.7.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      electron:
+        specifier: ^35.0.0
+        version: 35.7.5
+      electron-builder:
+        specifier: ^26.0.0
+        version: 26.8.1(electron-builder-squirrel-windows@26.8.1)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.2
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)
+      vite-plugin-electron:
+        specifier: ^0.29.0
+        version: 0.29.1(vite-plugin-electron-renderer@0.14.6)
+      vite-plugin-electron-renderer:
+        specifier: ^0.14.0
+        version: 0.14.6
+
+  examples/__scaffold_test_support_ready__79141:
+    dependencies:
+      '@forge/error-handler':
+        specifier: ^0.1.56
+        version: link:../../packages/error-handler
+      '@forge/ipc-contract':
+        specifier: ^0.1.56
+        version: link:../../packages/ipc-contract
+      '@forge/logger':
+        specifier: ^0.1.56
+        version: link:../../packages/logger
+      '@forge/resource-manager':
+        specifier: ^0.1.56
+        version: link:../../packages/resource-manager
+      '@forge/ui-kit':
+        specifier: ^0.1.56
+        version: link:../../packages/ui-kit
+      '@forge/worker-client':
+        specifier: ^0.1.56
+        version: link:../../packages/worker-client
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.0.0
+        version: 4.2.2(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^4.4.0
+        version: 4.7.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0))
+      electron:
+        specifier: ^35.0.0
+        version: 35.7.5
+      electron-builder:
+        specifier: ^26.0.0
+        version: 26.8.1(electron-builder-squirrel-windows@26.8.1)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.2.2
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)
+      vite-plugin-electron:
+        specifier: ^0.29.0
+        version: 0.29.1(vite-plugin-electron-renderer@0.14.6)
+      vite-plugin-electron-renderer:
+        specifier: ^0.14.0
+        version: 0.14.6
+
+  examples/__scaffold_test_tray__79141:
+    dependencies:
+      '@forge/error-handler':
+        specifier: ^0.1.56
+        version: link:../../packages/error-handler
+      '@forge/ipc-contract':
+        specifier: ^0.1.56
+        version: link:../../packages/ipc-contract
+      '@forge/logger':
+        specifier: ^0.1.56
+        version: link:../../packages/logger
+      '@forge/resource-manager':
+        specifier: ^0.1.56
+        version: link:../../packages/resource-manager
+      '@forge/ui-kit':
+        specifier: ^0.1.56
+        version: link:../../packages/ui-kit
+      '@forge/worker-client':
+        specifier: ^0.1.56
         version: link:../../packages/worker-client
       react:
         specifier: ^19.0.0

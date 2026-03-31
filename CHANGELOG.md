@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.57 (2026-03-31)
+
+### Archived Release Inventory Bundles
+
+- Added `scripts/bundle-release-inventory.sh` and `scripts/test-release-inventory-bundle.sh` so Forge can package release audit metadata, updater manifests, and rollback outputs into one reusable archived inventory bundle per platform
+- Wired release inventory bundle smoke into `scripts/release.sh`, added root `pnpm release:bundle:test`, and made the tagged release workflow upload bundle summaries for both GitHub release output and S3 release output when enabled
+- Documented the standardized archived bundle workflow in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, and the new `v0.1.57` release checklist
+
 ## 0.1.56 (2026-03-31)
 
 ### Rollback Drill Automation

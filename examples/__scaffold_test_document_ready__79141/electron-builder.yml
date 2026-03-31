@@ -1,0 +1,47 @@
+appId: com.forge.scaffoldtestdocumentready79141
+productName: Scaffold Test Document Ready 79141
+directories:
+  output: release
+files:
+  - dist/**/*
+  - dist-electron/**/*
+extraResources:
+  - from: resources/
+    to: resources/
+  - from: worker/dist/
+    to: resources/worker/
+
+fileAssociations:
+  - ext: scaffoldtestdocumentready79141doc
+    name: Scaffold Test Document Ready 79141 Document
+    description: Open Scaffold Test Document Ready 79141 project documents
+    role: Editor
+
+publish:
+  - provider: github
+    owner: ${env.GH_OWNER:-your-github-org-or-user}
+    repo: ${env.GH_REPO:-scaffoldtestdocumentready79141}
+    private: true
+    token: ${env.GH_TOKEN}
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+  category: public.app-category.developer-tools
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  notarize:
+    teamId: ${env.APPLE_TEAM_ID}
+
+win:
+  target: nsis
+  signingHashAlgorithms:
+    - sha256
+
+linux:
+  target: AppImage

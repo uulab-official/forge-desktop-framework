@@ -56,6 +56,10 @@ echo "Running rollback drill smoke test before version bump..."
 bash scripts/test-rollback-drill.sh
 echo ""
 
+echo "Running release inventory bundle smoke test before version bump..."
+bash scripts/test-release-inventory-bundle.sh
+echo ""
+
 echo "Running signing readiness audit smoke test before version bump..."
 bash scripts/test-signing-readiness-audit.sh
 echo ""

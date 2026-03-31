@@ -1,0 +1,790 @@
+import { useEffect, useState } from 'react';
+
+type DiagnosticsSummary = {
+  productName: string;
+  appId: string;
+  version: string;
+  platform: string;
+  arch: string;
+  isPackaged: boolean;
+  appPath: string;
+  userDataPath: string;
+  logsPath: string;
+  workerPath: string;
+  pythonPath: string;
+  nodeVersion: string;
+  chromeVersion: string;
+  electronVersion: string;
+  enabledFeatures: string[];
+};
+
+type SystemInfoState = {
+  refreshedAt: string;
+  runtime: {
+    appName: string;
+    appVersion: string;
+    isPackaged: boolean;
+    electronVersion: string;
+    chromeVersion: string;
+    nodeVersion: string;
+  };
+  os: {
+    platform: string;
+    arch: string;
+    hostname: string;
+    release: string;
+    uptimeMinutes: number;
+    cpuModel: string;
+    cpuCores: number;
+    loadAverage: number[];
+    totalMemoryMb: number;
+    freeMemoryMb: number;
+  };
+  process: {
+    pid: number;
+    processCount: number;
+    rssMb: number;
+    heapUsedMb: number;
+    heapTotalMb: number;
+  };
+  paths: {
+    appPath: string;
+    userDataPath: string;
+    tempPath: string;
+    downloadsPath: string;
+    logsPath: string;
+  };
+};
+
+type PermissionsState = {
+  platform: string;
+  camera: {
+    status: string;
+    supported: boolean;
+    canRequest: boolean;
+  };
+  microphone: {
+    status: string;
+    supported: boolean;
+    canRequest: boolean;
+  };
+  screen: {
+    status: string;
+    supported: boolean;
+    canRequest: boolean;
+  };
+  lastRequest: {
+    kind: 'camera' | 'microphone' | null;
+    granted: boolean | null;
+    timestamp: string | null;
+    error: string | null;
+  };
+};
+
+type NetworkStatusState = {
+  supported: boolean;
+  online: boolean;
+  status: 'online' | 'offline';
+  checkCount: number;
+  lastCheckedAt: string | null;
+  history: Array<{
+    online: boolean;
+    status: 'online' | 'offline';
+    timestamp: string;
+  }>;
+};
+
+type SecureStorageState = {
+  supported: boolean;
+  label: string | null;
+  hasStoredValue: boolean;
+  lastUpdatedAt: string | null;
+  lastLoadedValue: string | null;
+  lastError: string | null;
+};
+
+type SupportBundleState = {
+  directoryPath: string;
+  lastExportPath: string | null;
+  lastGeneratedAt: string | null;
+  lastSizeBytes: number | null;
+  exportCount: number;
+  includedSections: string[];
+  lastError: string | null;
+};
+
+type LogArchiveFileEntry = {
+  name: string;
+  sourcePath: string;
+  sizeBytes: number;
+  modifiedAt: string;
+};
+
+type LogArchiveState = {
+  logsPath: string;
+  archiveDirectoryPath: string;
+  fileCount: number;
+  totalBytes: number;
+  files: LogArchiveFileEntry[];
+  lastArchivePath: string | null;
+  lastArchivedAt: string | null;
+  archiveCount: number;
+  lastError: string | null;
+};
+
+type IncidentReportSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+type IncidentReportDraft = {
+  title: string;
+  severity: IncidentReportSeverity;
+  affectedArea: string;
+  summary: string;
+  stepsToReproduce: string;
+  expectedBehavior: string;
+  actualBehavior: string;
+  recommendedAction: string;
+  notes: string;
+};
+
+type IncidentReportState = {
+  directoryPath: string;
+  lastExportPath: string | null;
+  lastGeneratedAt: string | null;
+  exportCount: number;
+  lastError: string | null;
+  currentDraft: IncidentReportDraft;
+};
+
+type DiagnosticsTimelineEntry = {
+  id: string;
+  category: 'app' | 'window' | 'support';
+  event: string;
+  detail: string | null;
+  timestamp: string;
+};
+
+type DiagnosticsTimelineState = {
+  directoryPath: string;
+  lastExportPath: string | null;
+  lastExportedAt: string | null;
+  eventCount: number;
+  lastEventAt: string | null;
+  lastError: string | null;
+  entries: DiagnosticsTimelineEntry[];
+};
+
+type WindowStateSummary = {
+  width: number;
+  height: number;
+  x: number | null;
+  y: number | null;
+  maximized: boolean;
+  focused: boolean;
+};
+
+type TrayStatus = {
+  enabled: boolean;
+  windowVisible: boolean;
+};
+
+type DeepLinkState = {
+  scheme: string;
+  lastUrl: string | null;
+};
+
+type MenuBarState = {
+  enabled: boolean;
+  itemLabels: string[];
+};
+
+type AutoLaunchState = {
+  supported: boolean;
+  enabled: boolean;
+  openAsHidden: boolean;
+};
+
+type GlobalShortcutState = {
+  accelerator: string;
+  enabled: boolean;
+  registered: boolean;
+  lastTriggeredAt: string | null;
+  error: string | null;
+};
+
+type FileAssociationState = {
+  extension: string;
+  lastPath: string | null;
+  source: string | null;
+};
+
+type FileDialogState = {
+  suggestedName: string;
+  lastOpenPath: string | null;
+  lastSavePath: string | null;
+  lastRevealPath: string | null;
+  lastAction: 'open' | 'save' | 'reveal' | null;
+};
+
+type RecentFilesState = {
+  limit: number;
+  items: string[];
+  lastOpenedPath: string | null;
+};
+
+type CrashRecoveryState = {
+  hasIncident: boolean;
+  lastIncident: {
+    scope: 'renderer' | 'window' | 'child-process';
+    reason: string;
+    details: string | null;
+    timestamp: string;
+  } | null;
+};
+
+type PowerMonitorState = {
+  supported: boolean;
+  powerSource: 'ac' | 'battery' | 'unknown';
+  idleState: 'active' | 'idle' | 'locked' | 'unknown';
+  idleTimeSeconds: number;
+  lastEvent: 'suspend' | 'resume' | 'lock-screen' | 'unlock-screen' | 'on-ac' | 'on-battery' | null;
+  lastEventAt: string | null;
+  eventCount: number;
+  history: Array<{
+    name: 'suspend' | 'resume' | 'lock-screen' | 'unlock-screen' | 'on-ac' | 'on-battery';
+    timestamp: string;
+  }>;
+};
+
+type IdlePresenceState = {
+  supported: boolean;
+  idleState: 'active' | 'idle' | 'locked' | 'unknown';
+  idleTimeSeconds: number;
+  thresholdSeconds: number;
+  attention: 'focused' | 'visible' | 'hidden' | 'no-window';
+  lastSampledAt: string | null;
+  lastChangedAt: string | null;
+  sampleCount: number;
+  history: Array<{
+    idleState: 'active' | 'idle' | 'locked' | 'unknown';
+    idleTimeSeconds: number;
+    attention: 'focused' | 'visible' | 'hidden' | 'no-window';
+    timestamp: string;
+  }>;
+};
+
+type SessionStateSnapshot = {
+  startedAt: string;
+  lifecycle: 'ready' | 'active' | 'background' | 'hidden' | 'quitting';
+  attention: 'focused' | 'visible' | 'hidden' | 'no-window';
+  windowCount: number;
+  visibleWindowCount: number;
+  focusedWindowCount: number;
+  lastEvent: 'ready' | 'activate' | 'browser-window-focus' | 'browser-window-blur' | 'show' | 'hide' | 'before-quit' | 'window-all-closed' | null;
+  lastEventAt: string | null;
+  eventCount: number;
+  history: Array<{
+    name: 'ready' | 'activate' | 'browser-window-focus' | 'browser-window-blur' | 'show' | 'hide' | 'before-quit' | 'window-all-closed';
+    timestamp: string;
+    detail: string | null;
+  }>;
+};
+
+type DownloadsState = {
+  sampleUrl: string;
+  activeCount: number;
+  lastDownloadPath: string | null;
+  items: Array<{
+    id: string;
+    url: string;
+    fileName: string;
+    savePath: string | null;
+    state: 'idle' | 'progressing' | 'completed' | 'cancelled' | 'interrupted';
+    receivedBytes: number;
+    totalBytes: number;
+    startedAt: string;
+    finishedAt: string | null;
+  }>;
+};
+
+type ClipboardState = {
+  currentText: string;
+  lastAction: 'read' | 'write' | 'clear' | null;
+  history: Array<{
+    action: 'read' | 'write' | 'clear';
+    text: string;
+    timestamp: string;
+  }>;
+};
+
+type ExternalLinksState = {
+  defaultUrl: string;
+  lastUrl: string | null;
+  lastOpenedAt: string | null;
+  openCount: number;
+  lastError: string | null;
+  history: Array<{
+    url: string;
+    status: 'opened' | 'failed';
+    error: string | null;
+    timestamp: string;
+  }>;
+};
+
+type ForgeDesktopAPI = {
+  settings?: {
+    get: () => Promise<unknown>;
+    set: (key: string, value: unknown) => Promise<void>;
+  };
+  job?: {
+    submit: (action: string, payload: Record<string, unknown>) => Promise<string> | string;
+    list: () => Promise<unknown[]>;
+    onUpdate: (cb: (job: unknown) => void) => () => void;
+  };
+  updater?: {
+    check: () => Promise<unknown>;
+    download: () => Promise<void>;
+    install: () => Promise<void>;
+    getStatus: () => Promise<{
+      status: string;
+      version?: string;
+      progress?: { percent: number };
+      error?: string;
+    }>;
+  };
+  diagnostics?: {
+    getSummary: () => Promise<DiagnosticsSummary>;
+    exportBundle: () => Promise<{ filePath: string; generatedAt: string }>;
+  };
+  systemInfo?: {
+    getState: () => Promise<SystemInfoState>;
+  };
+  permissions?: {
+    getState: () => Promise<PermissionsState>;
+    request: (kind: 'camera' | 'microphone') => Promise<PermissionsState>;
+  };
+  networkStatus?: {
+    getState: () => Promise<NetworkStatusState>;
+    clearHistory: () => Promise<NetworkStatusState>;
+  };
+  secureStorage?: {
+    getState: () => Promise<SecureStorageState>;
+    save: (label?: string, value?: string) => Promise<SecureStorageState>;
+    load: () => Promise<SecureStorageState>;
+    clear: () => Promise<SecureStorageState>;
+  };
+  supportBundle?: {
+    getState: () => Promise<SupportBundleState>;
+    export: () => Promise<SupportBundleState>;
+    reveal: () => Promise<SupportBundleState>;
+  };
+  logArchive?: {
+    getState: () => Promise<LogArchiveState>;
+    export: () => Promise<LogArchiveState>;
+    reveal: () => Promise<LogArchiveState>;
+  };
+  incidentReport?: {
+    getState: () => Promise<IncidentReportState>;
+    export: (draft?: IncidentReportDraft) => Promise<IncidentReportState>;
+    reveal: () => Promise<IncidentReportState>;
+  };
+  diagnosticsTimeline?: {
+    getState: () => Promise<DiagnosticsTimelineState>;
+    export: () => Promise<DiagnosticsTimelineState>;
+    reveal: () => Promise<DiagnosticsTimelineState>;
+    clearHistory: () => Promise<DiagnosticsTimelineState>;
+  };
+  notifications?: {
+    show: (title: string, body: string) => Promise<{ supported: boolean; delivered: boolean }>;
+  };
+  windowing?: {
+    getState: () => Promise<WindowStateSummary>;
+    focus: () => Promise<WindowStateSummary>;
+    reset: () => Promise<WindowStateSummary>;
+  };
+  tray?: {
+    getStatus: () => Promise<TrayStatus>;
+    toggleWindow: () => Promise<TrayStatus>;
+  };
+  deepLink?: {
+    getLast: () => Promise<DeepLinkState>;
+    open: (url: string) => Promise<DeepLinkState>;
+  };
+  menuBar?: {
+    getState: () => Promise<MenuBarState>;
+    rebuild: () => Promise<MenuBarState>;
+  };
+  autoLaunch?: {
+    getStatus: () => Promise<AutoLaunchState>;
+    setEnabled: (enabled: boolean) => Promise<AutoLaunchState>;
+  };
+  globalShortcut?: {
+    getStatus: () => Promise<GlobalShortcutState>;
+    setEnabled: (enabled: boolean) => Promise<GlobalShortcutState>;
+    trigger: () => Promise<GlobalShortcutState>;
+  };
+  fileAssociation?: {
+    getState: () => Promise<FileAssociationState>;
+    open: (filePath: string) => Promise<FileAssociationState>;
+  };
+  fileDialogs?: {
+    getState: () => Promise<FileDialogState>;
+    open: (defaultPath?: string) => Promise<FileDialogState>;
+    save: (defaultPath?: string) => Promise<FileDialogState>;
+    reveal: (targetPath?: string) => Promise<FileDialogState>;
+  };
+  recentFiles?: {
+    getState: () => Promise<RecentFilesState>;
+    add: (filePath: string) => Promise<RecentFilesState>;
+    open: (filePath: string) => Promise<RecentFilesState>;
+    clear: () => Promise<RecentFilesState>;
+  };
+  crashRecovery?: {
+    getState: () => Promise<CrashRecoveryState>;
+    clear: () => Promise<CrashRecoveryState>;
+    relaunch: () => Promise<CrashRecoveryState & { relaunching?: boolean }>;
+  };
+  powerMonitor?: {
+    getState: () => Promise<PowerMonitorState>;
+    clearHistory: () => Promise<PowerMonitorState>;
+  };
+  idlePresence?: {
+    getState: () => Promise<IdlePresenceState>;
+    clearHistory: () => Promise<IdlePresenceState>;
+  };
+  sessionState?: {
+    getState: () => Promise<SessionStateSnapshot>;
+    clearHistory: () => Promise<SessionStateSnapshot>;
+  };
+  downloads?: {
+    getState: () => Promise<DownloadsState>;
+    start: (url?: string) => Promise<DownloadsState>;
+    clearHistory: () => Promise<DownloadsState>;
+    reveal: (targetPath?: string) => Promise<DownloadsState>;
+  };
+  clipboard?: {
+    getState: () => Promise<ClipboardState>;
+    readText: () => Promise<ClipboardState>;
+    writeText: (text?: string) => Promise<ClipboardState>;
+    clear: () => Promise<ClipboardState>;
+  };
+  externalLinks?: {
+    getState: () => Promise<ExternalLinksState>;
+    open: (url?: string) => Promise<ExternalLinksState>;
+    clearHistory: () => Promise<ExternalLinksState>;
+  };
+};
+
+function getDesktopApi(): ForgeDesktopAPI | undefined {
+  const value = (window as unknown as Record<string, unknown>).api;
+  return value as ForgeDesktopAPI | undefined;
+}
+
+export function FeatureStudio() {
+  const api = getDesktopApi();
+  const [fileAssociationState, setFileAssociationState] = useState<FileAssociationState | null>(null);
+  const [fileAssociationDraft, setFileAssociationDraft] = useState('sample.scaffoldtestrecentfiles79141doc');
+  const [fileDialogState, setFileDialogState] = useState<FileDialogState | null>(null);
+  const [fileDialogDraft, setFileDialogDraft] = useState('scaffoldtestrecentfiles79141-document.txt');
+  const [recentFilesState, setRecentFilesState] = useState<RecentFilesState | null>(null);
+  const [recentFileDraft, setRecentFileDraft] = useState('scaffoldtestrecentfiles79141-document.txt');
+  const featureNames = ["recent-files","file-association","file-dialogs"];
+
+
+  useEffect(() => {
+    api?.fileAssociation?.getState?.().then((next) => {
+      setFileAssociationState(next);
+    }).catch(() => {});
+  }, [api]);
+
+  useEffect(() => {
+    api?.fileDialogs?.getState?.().then((next) => {
+      setFileDialogState(next);
+      if (next?.suggestedName) {
+        setFileDialogDraft(next.suggestedName);
+      }
+    }).catch(() => {});
+  }, [api]);
+
+  useEffect(() => {
+    if (!api?.recentFiles?.getState) {
+      return undefined;
+    }
+
+    let active = true;
+    const sync = async () => {
+      try {
+        const next = await api.recentFiles?.getState?.();
+        if (active && next) {
+          setRecentFilesState(next);
+          if (next.items[0]) {
+            setRecentFileDraft(next.items[0]);
+          }
+        }
+      } catch {
+        // Ignore starter recent-files polling failures.
+      }
+    };
+
+    sync();
+    const timer = window.setInterval(sync, 3000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [api]);
+  return (
+    <div className="border-t border-slate-800 bg-slate-950/80 px-4 py-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Scaffold Test Recent Files 79141 Feature Packs</p>
+        {featureNames.map((feature) => (
+          <span key={feature} className="rounded-full border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-200">
+            {feature}
+          </span>
+        ))}
+      </div>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">File Association</h3>
+              <p className="mt-1 text-xs text-slate-400">Capture starter document opens from the operating system and inspect the last received file path in the desktop shell.</p>
+            </div>
+            <button
+              onClick={() => openAssociatedFile(api, fileAssociationDraft, setFileAssociationState)}
+              className="rounded-full border border-amber-500/40 px-3 py-1 text-xs font-medium text-amber-300 hover:border-amber-400 hover:text-amber-100"
+            >
+              Open sample file
+            </button>
+          </div>
+          <div className="mt-3 space-y-3">
+            <label className="block text-xs text-slate-400">
+              Sample file path
+              <input
+                type="text"
+                value={fileAssociationDraft}
+                onChange={(event) => setFileAssociationDraft(event.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+            </label>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <DiagnosticRow label="Extension" value={fileAssociationState?.extension ?? 'scaffoldtestrecentfiles79141doc'} />
+              <DiagnosticRow label="Source" value={fileAssociationState?.source ?? 'not opened yet'} />
+              <DiagnosticRow label="Last Path" value={fileAssociationState?.lastPath ?? 'none captured yet'} />
+              <DiagnosticRow label="Packaging" value="electron-builder fileAssociations preset" />
+            </div>
+          </div>
+        </section>
+        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">File Dialogs</h3>
+              <p className="mt-1 text-xs text-slate-400">Open files, choose save destinations, and reveal generated paths with the native desktop dialogs users already understand.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => runFileDialogAction(api, 'open', fileDialogDraft, setFileDialogState)}
+                className="rounded-full border border-cyan-500/40 px-3 py-1 text-xs font-medium text-cyan-300 hover:border-cyan-400 hover:text-cyan-100"
+              >
+                Open file
+              </button>
+              <button
+                onClick={() => runFileDialogAction(api, 'save', fileDialogDraft, setFileDialogState)}
+                className="rounded-full border border-emerald-500/40 px-3 py-1 text-xs font-medium text-emerald-300 hover:border-emerald-400 hover:text-emerald-100"
+              >
+                Save as
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 space-y-3">
+            <label className="block text-xs text-slate-400">
+              Default path or file name
+              <input
+                type="text"
+                value={fileDialogDraft}
+                onChange={(event) => setFileDialogDraft(event.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+            </label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => runFileDialogAction(api, 'reveal', fileDialogState?.lastSavePath ?? fileDialogState?.lastOpenPath ?? fileDialogDraft, setFileDialogState)}
+                className="rounded-full border border-amber-500/40 px-3 py-1 text-xs font-medium text-amber-300 hover:border-amber-400 hover:text-amber-100"
+              >
+                Reveal latest path
+              </button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <DiagnosticRow label="Suggested Name" value={fileDialogState?.suggestedName ?? 'scaffoldtestrecentfiles79141-document.txt'} />
+              <DiagnosticRow label="Last Action" value={fileDialogState?.lastAction ?? 'idle'} />
+              <DiagnosticRow label="Opened File" value={fileDialogState?.lastOpenPath ?? 'none selected yet'} />
+              <DiagnosticRow label="Saved File" value={fileDialogState?.lastSavePath ?? 'none saved yet'} />
+              <DiagnosticRow label="Revealed Path" value={fileDialogState?.lastRevealPath ?? 'nothing revealed yet'} />
+              <DiagnosticRow label="Shell Surface" value="dialog + shell.showItemInFolder" />
+            </div>
+          </div>
+        </section>
+        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 ">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Recent Files</h3>
+              <p className="mt-1 text-xs text-slate-400">Persist the last documents a user touched and make reopen flows part of the starter desktop shell by default.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => mutateRecentFiles(api, 'add', recentFileDraft, setRecentFilesState)}
+                className="rounded-full border border-sky-500/40 px-3 py-1 text-xs font-medium text-sky-300 hover:border-sky-400 hover:text-sky-100"
+              >
+                Add file
+              </button>
+              <button
+                onClick={() => clearRecentFilesState(api, setRecentFilesState)}
+                className="rounded-full border border-rose-500/40 px-3 py-1 text-xs font-medium text-rose-300 hover:border-rose-400 hover:text-rose-100"
+              >
+                Clear list
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 space-y-3">
+            <label className="block text-xs text-slate-400">
+              Recent file path
+              <input
+                type="text"
+                value={recentFileDraft}
+                onChange={(event) => setRecentFileDraft(event.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+            </label>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <DiagnosticRow label="Tracked Items" value={String(recentFilesState?.items.length ?? 0)} />
+              <DiagnosticRow label="Limit" value={String(recentFilesState?.limit ?? 8)} />
+              <DiagnosticRow label="Last Opened" value={recentFilesState?.lastOpenedPath ?? 'no documents tracked yet'} />
+              <DiagnosticRow label="Auto Sources" value="file-association + file-dialogs when enabled together" />
+            </div>
+            <div className="space-y-2">
+              {recentFilesState?.items.length ? recentFilesState.items.map((item) => (
+                <div key={item} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2">
+                  <span className="break-all text-xs text-white">{item}</span>
+                  <button
+                    onClick={() => mutateRecentFiles(api, 'open', item, setRecentFilesState)}
+                    className="rounded-full border border-slate-700 px-3 py-1 text-[11px] font-medium text-slate-200 hover:border-slate-500"
+                  >
+                    Reopen
+                  </button>
+                </div>
+              )) : (
+                <p className="text-xs text-slate-500">No recent files yet. Add one manually or combine this pack with file dialogs and file associations to populate the list automatically.</p>
+              )}
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+
+
+async function openAssociatedFile(
+  api: ForgeDesktopAPI | undefined,
+  filePath: string,
+  setState: (next: FileAssociationState) => void,
+) {
+  try {
+    const next = await api?.fileAssociation?.open?.(filePath);
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter file-association failures.
+  }
+}
+
+
+async function runFileDialogAction(
+  api: ForgeDesktopAPI | undefined,
+  action: 'open' | 'save' | 'reveal',
+  value: string,
+  setState: (next: FileDialogState) => void,
+) {
+  try {
+    const next = action === 'open'
+      ? await api?.fileDialogs?.open?.(value)
+      : action === 'save'
+        ? await api?.fileDialogs?.save?.(value)
+        : await api?.fileDialogs?.reveal?.(value);
+
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter file-dialog failures.
+  }
+}
+
+
+async function mutateRecentFiles(
+  api: ForgeDesktopAPI | undefined,
+  action: 'add' | 'open',
+  filePath: string,
+  setState: (next: RecentFilesState) => void,
+) {
+  try {
+    const next = action === 'open'
+      ? await api?.recentFiles?.open?.(filePath)
+      : await api?.recentFiles?.add?.(filePath);
+
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter recent-files failures.
+  }
+}
+
+async function clearRecentFilesState(
+  api: ForgeDesktopAPI | undefined,
+  setState: (next: RecentFilesState) => void,
+) {
+  try {
+    const next = await api?.recentFiles?.clear?.();
+    if (next) {
+      setState(next);
+    }
+  } catch {
+    // Ignore starter recent-files failures.
+  }
+}
+
+
+function DiagnosticRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      <p className="mt-1 break-all text-xs text-white">{value}</p>
+    </div>
+  );
+}
+
+function TextAreaField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="space-y-1 text-xs text-slate-400 md:col-span-2">
+      <span className="uppercase tracking-[0.18em] text-slate-500">{label}</span>
+      <textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        rows={4}
+        className="min-h-[96px] w-full rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-sm text-white outline-none focus:border-cyan-500/50"
+      />
+    </label>
+  );
+}
+
