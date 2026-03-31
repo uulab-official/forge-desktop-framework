@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.60 (2026-03-31)
+
+### Archived Bundle Index
+
+- added `scripts/generate-release-bundle-index.sh` and `scripts/test-release-bundle-index.sh` so maintainers can build a versioned index of archived release bundles by platform and arch
+- updated `scripts/retrieve-release-inventory-bundle.sh` to use `release-bundle-index.json` when present before falling back to raw bundle scanning
+- wired bundle-index smoke into `scripts/release.sh`, exposed it as `pnpm release:bundle:index:test`, and made the release-matrix summary job upload `release-bundle-index.md/json`
+
 ## 0.1.59 (2026-03-31)
 
 ### Archived Bundle Retrieval

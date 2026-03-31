@@ -234,6 +234,10 @@ jobs:
         shell: bash
         run: bash scripts/summarize-release-matrix.sh .release-matrix-artifacts .release-matrix
 
+      - name: Generate release bundle index
+        shell: bash
+        run: bash scripts/generate-release-bundle-index.sh .release-matrix-artifacts .release-matrix
+
       - name: Generate release provenance
         shell: bash
         run: bash scripts/generate-release-provenance.sh .release-matrix/release-matrix-summary.json .release-matrix "${{ github.ref_name }}" "${{ github.sha }}"
@@ -245,5 +249,7 @@ jobs:
           path: |
             .release-matrix/release-matrix-summary.md
             .release-matrix/release-matrix-summary.json
+            .release-matrix/release-bundle-index.md
+            .release-matrix/release-bundle-index.json
             .release-matrix/release-provenance.md
             .release-matrix/release-provenance.json

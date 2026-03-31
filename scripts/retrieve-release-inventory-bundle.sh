@@ -25,10 +25,37 @@ if [[ -z "$OUTPUT_DIR" ]]; then
   OUTPUT_DIR=".retrieved-release-bundles/${PLATFORM_LABEL}-${ARCH_LABEL}-v${EXPECTED_VERSION}"
 fi
 
-MATCH_FILE="$(mktemp)"
+MATCHES=()
+INDEX_JSON="$ARCHIVE_ROOT/release-bundle-index.json"
+if [[ -f "$INDEX_JSON" ]]; then
+  INDEX_MATCHES="$(
+    node - "$INDEX_JSON" "$PLATFORM_LABEL" "$ARCH_LABEL" "$EXPECTED_VERSION" "$ARCHIVE_ROOT" <<'NODE'
+const fs = require('node:fs');
+const path = require('node:path');
 
-while IFS= read -r summary_json; do
-  node - "$summary_json" "$PLATFORM_LABEL" "$ARCH_LABEL" "$EXPECTED_VERSION" >> "$MATCH_FILE" <<'NODE'
+const [indexPath, platform, arch, version, archiveRoot] = process.argv.slice(2);
+const index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
+for (const bundle of index.bundles || []) {
+  if (
+    bundle.platform === platform &&
+    bundle.arch === arch &&
+    bundle.version === version &&
+    bundle.status === 'passed'
+  ) {
+    process.stdout.write(`${path.join(archiveRoot, bundle.bundleDir)}\n`);
+  }
+}
+NODE
+  )"
+  while IFS= read -r match_path; do
+    [[ -n "$match_path" ]] && MATCHES+=("$match_path")
+  done <<< "$INDEX_MATCHES"
+fi
+
+if [[ "${#MATCHES[@]}" -eq 0 ]]; then
+  MATCH_FILE="$(mktemp)"
+  while IFS= read -r summary_json; do
+    node - "$summary_json" "$PLATFORM_LABEL" "$ARCH_LABEL" "$EXPECTED_VERSION" >> "$MATCH_FILE" <<'NODE'
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -44,13 +71,12 @@ if (
   process.stdout.write(`${path.dirname(summaryPath)}\n`);
 }
 NODE
-done < <(find "$ARCHIVE_ROOT" -type f -name 'bundle-summary.json' | sort)
-
-MATCHES=()
-while IFS= read -r match_path; do
-  [[ -n "$match_path" ]] && MATCHES+=("$match_path")
-done < "$MATCH_FILE"
-rm -f "$MATCH_FILE"
+  done < <(find "$ARCHIVE_ROOT" -type f -name 'bundle-summary.json' | sort)
+  while IFS= read -r match_path; do
+    [[ -n "$match_path" ]] && MATCHES+=("$match_path")
+  done < "$MATCH_FILE"
+  rm -f "$MATCH_FILE"
+fi
 
 if [[ "${#MATCHES[@]}" -eq 0 ]]; then
   echo "No matching release inventory bundle found for ${PLATFORM_LABEL}/${ARCH_LABEL} v${EXPECTED_VERSION} under $ARCHIVE_ROOT"

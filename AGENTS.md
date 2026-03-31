@@ -32,6 +32,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Keep `.github/workflows/release.yml` aligned too: packaged release jobs should emit human-readable inventories, generated rollback playbooks, channel recovery audits, a final matrix summary plus provenance record, and fail early when signing secrets, platform-specific installers, publish channel parity, rollback readiness, or `latest*.yml` manifest contents are wrong.
 - Use the archived-release rollback drill helpers when you need to validate that a previous tagged inventory can satisfy the generated rollback playbook before touching a live channel.
 - Prefer the standardized release inventory bundle as the archived rollback input shape; keep bundle contents and retrieval tooling aligned with the drill helpers and tagged release artifacts.
+- Keep the archived bundle index aligned with retrieval helpers so maintainers can discover available rollback targets before running drills.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`

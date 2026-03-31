@@ -229,6 +229,7 @@ The tagged `Release` workflow now also:
 - lets maintainers run a rollback drill against archived prior-release metadata so a chosen rollback target can be validated before changing a live channel
 - emits a standardized release inventory bundle per platform so archived rollback drill inputs can be stored as one reusable package instead of loose audit files
 - lets maintainers retrieve an archived bundle by platform, arch, and version before running rollback drills
+- emits a release bundle index in the matrix summary job so maintainers can discover available archived bundles per platform and version
 - audits signing readiness before packaging so missing mac notarization or Windows signing secrets fail before the packaging step starts
 - runs a follow-up matrix summary job that downloads every per-platform inventory and uploads `release-matrix-summary.md/json`
 - generates `release-provenance.md/json` from the tag, commit SHA, and matrix summary so shipped artifacts stay traceable to one release record

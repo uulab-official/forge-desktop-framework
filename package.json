@@ -1,7 +1,7 @@
 {
   "name": "forge-desktop-framework",
   "private": true,
-  "version": "0.1.59",
+  "version": "0.1.60",
   "description": "Open source local-engine desktop app framework — Electron + Python Worker",
   "license": "MIT",
   "repository": {
@@ -44,6 +44,7 @@
     "release:recovery:test": "bash scripts/test-release-channel-recovery.sh",
     "release:drill:test": "bash scripts/test-rollback-drill.sh",
     "release:bundle:test": "bash scripts/test-release-inventory-bundle.sh",
+    "release:bundle:index:test": "bash scripts/test-release-bundle-index.sh",
     "release:bundle:retrieve:test": "bash scripts/test-release-inventory-retrieval.sh",
     "release:manifests:test": "bash scripts/test-release-manifest-audit.sh",
     "release:rollback:test": "bash scripts/test-rollback-readiness-audit.sh",
