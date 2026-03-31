@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.59 (2026-03-31)
+
+### Archived Bundle Retrieval
+
+- Added `scripts/retrieve-release-inventory-bundle.sh` so maintainers can recover a canonical archived release inventory bundle by platform, arch, and version from downloaded workflow artifacts
+- Added `scripts/test-release-inventory-retrieval.sh`, wired it into `scripts/release.sh`, and exposed it as `pnpm release:bundle:retrieve:test`
+- Taught `scripts/run-rollback-drill.sh` to accept a retrieved bundle directory directly by resolving its bundled `files/` payload as rollback input
+- Updated tagged release artifact uploads to preserve the full standardized bundle directory instead of only bundle summary files
+
 ## 0.1.57 (2026-03-31)
 
 ### Archived Release Inventory Bundles

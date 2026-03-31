@@ -131,8 +131,7 @@ jobs:
             apps/app/release/channel-recovery.md
             apps/app/release/channel-recovery.json
             apps/app/release/latest*.yml
-            .release-bundles/${{ matrix.platform }}-${{ matrix.arch || 'default' }}-v${{ github.ref_name }}/bundle-summary.md
-            .release-bundles/${{ matrix.platform }}-${{ matrix.arch || 'default' }}-v${{ github.ref_name }}/bundle-summary.json
+            .release-bundles/${{ matrix.platform }}-${{ matrix.arch || 'default' }}-v${{ github.ref_name }}
 
       - name: Snapshot GitHub release output for channel parity
         if: ${{ vars.S3_ENABLED == 'true' }}
@@ -212,8 +211,7 @@ jobs:
             .release-audit/${{ matrix.platform }}-${{ matrix.arch || 'default' }}/s3-release/rollback-playbook.json
             .release-audit/${{ matrix.platform }}-${{ matrix.arch || 'default' }}/s3-release/channel-recovery.md
             .release-audit/${{ matrix.platform }}-${{ matrix.arch || 'default' }}/s3-release/channel-recovery.json
-            .release-bundles/${{ matrix.platform }}-s3-${{ matrix.arch || 'default' }}-v${{ github.ref_name }}/bundle-summary.md
-            .release-bundles/${{ matrix.platform }}-s3-${{ matrix.arch || 'default' }}-v${{ github.ref_name }}/bundle-summary.json
+            .release-bundles/${{ matrix.platform }}-s3-${{ matrix.arch || 'default' }}-v${{ github.ref_name }}
 
   release-matrix-summary:
     runs-on: ubuntu-latest

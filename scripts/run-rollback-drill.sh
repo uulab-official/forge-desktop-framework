@@ -36,9 +36,19 @@ fi
 
 CURRENT_PLAYBOOK_JSON="$CURRENT_RELEASE_DIR/rollback-playbook.json"
 CURRENT_RECOVERY_JSON="$CURRENT_RELEASE_DIR/channel-recovery.json"
-ARCHIVED_ARTIFACT_JSON="$ARCHIVED_RELEASE_DIR/artifact-summary.json"
-ARCHIVED_MANIFEST_JSON="$ARCHIVED_RELEASE_DIR/manifest-audit.json"
-ARCHIVED_PARITY_JSON="$ARCHIVED_RELEASE_DIR/channel-parity.json"
+
+ARCHIVED_INPUT_DIR="$ARCHIVED_RELEASE_DIR"
+if [[ -f "$ARCHIVED_RELEASE_DIR/bundle-summary.json" ]]; then
+  if [[ ! -d "$ARCHIVED_RELEASE_DIR/files" ]]; then
+    echo "Archived bundle is missing files directory: $ARCHIVED_RELEASE_DIR/files"
+    exit 1
+  fi
+  ARCHIVED_INPUT_DIR="$ARCHIVED_RELEASE_DIR/files"
+fi
+
+ARCHIVED_ARTIFACT_JSON="$ARCHIVED_INPUT_DIR/artifact-summary.json"
+ARCHIVED_MANIFEST_JSON="$ARCHIVED_INPUT_DIR/manifest-audit.json"
+ARCHIVED_PARITY_JSON="$ARCHIVED_INPUT_DIR/channel-parity.json"
 SUMMARY_MD="$CURRENT_RELEASE_DIR/rollback-drill.md"
 SUMMARY_JSON="$CURRENT_RELEASE_DIR/rollback-drill.json"
 

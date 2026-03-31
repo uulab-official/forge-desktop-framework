@@ -179,6 +179,7 @@ When S3 publishing is enabled, the tagged release flow now also audits publish c
 The tagged release flow now also emits `channel-recovery.md/json` so maintainers can see whether rollback playbooks, channel metadata, and publish parity still agree for GitHub-only or GitHub+S3 recovery paths.
 Maintainers can now also run a rollback drill against archived prior-release metadata to verify that a previous version still satisfies the generated rollback playbook before touching a live channel.
 Tagged release jobs now also emit a standardized release inventory bundle so those archived rollback inputs can be stored and reused instead of reconstructed from loose audit files.
+Maintainers can now retrieve that exact bundle by platform, arch, and version as the canonical rollback drill input.
 After the matrix finishes, the workflow now emits a top-level `release-matrix-summary.md/json` so maintainers can review every platform in one place.
 The same follow-up job now also emits `release-provenance.md/json` so tag, commit, version, and platform outputs stay traceable as one release record.
 
