@@ -33,6 +33,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Use the archived-release rollback drill helpers when you need to validate that a previous tagged inventory can satisfy the generated rollback playbook before touching a live channel.
 - Prefer the standardized release inventory bundle as the archived rollback input shape; keep bundle contents and retrieval tooling aligned with the drill helpers and tagged release artifacts.
 - Keep the archived bundle index aligned with retrieval helpers so maintainers can discover available rollback targets before running drills.
+- Keep remote GitHub artifact fetch helpers aligned with bundle retrieval so a tagged release can be reconstructed from `gh` without manual artifact browsing.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`

@@ -181,6 +181,7 @@ Maintainers can now also run a rollback drill against archived prior-release met
 Tagged release jobs now also emit a standardized release inventory bundle so those archived rollback inputs can be stored and reused instead of reconstructed from loose audit files.
 Maintainers can now retrieve that exact bundle by platform, arch, and version as the canonical rollback drill input.
 The release matrix summary now also emits a release bundle index so maintainers can discover which archived bundle versions exist per target before retrieval.
+Maintainers can now also fetch those archived bundles directly from tagged GitHub Actions release artifacts with `gh`, so rollback drills no longer require manual artifact downloads first.
 After the matrix finishes, the workflow now emits a top-level `release-matrix-summary.md/json` so maintainers can review every platform in one place.
 The same follow-up job now also emits `release-provenance.md/json` so tag, commit, version, and platform outputs stay traceable as one release record.
 

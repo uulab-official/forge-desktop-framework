@@ -230,6 +230,7 @@ The tagged `Release` workflow now also:
 - emits a standardized release inventory bundle per platform so archived rollback drill inputs can be stored as one reusable package instead of loose audit files
 - lets maintainers retrieve an archived bundle by platform, arch, and version before running rollback drills
 - emits a release bundle index in the matrix summary job so maintainers can discover available archived bundles per platform and version
+- lets maintainers fetch archived bundles straight from tagged GitHub Actions artifacts with `gh` before retrieval, so remote rollback inputs can be reconstructed from one command
 - audits signing readiness before packaging so missing mac notarization or Windows signing secrets fail before the packaging step starts
 - runs a follow-up matrix summary job that downloads every per-platform inventory and uploads `release-matrix-summary.md/json`
 - generates `release-provenance.md/json` from the tag, commit SHA, and matrix summary so shipped artifacts stay traceable to one release record
@@ -241,6 +242,18 @@ pnpm release:ship patch
 ```
 
 That command runs internal scaffold verification, external scaffold verification, official preset release-surface audit, bumps the shared framework version, creates `release: vX.Y.Z`, creates an annotated `vX.Y.Z` tag, and pushes both `main` and the tag to `origin`.
+
+To fetch an archived bundle from a tagged GitHub Actions release before a rollback drill:
+
+```bash
+bash scripts/fetch-release-inventory-bundle-from-github.sh \
+  uulab-official/forge-desktop-framework \
+  v0.1.60 \
+  mac \
+  arm64
+```
+
+That command downloads the tagged release artifacts with `gh`, restores the matrix bundle index locally, and then reuses the standard retrieval helper to produce a canonical rollback input directory.
 
 ### Build and Publish Locally
 

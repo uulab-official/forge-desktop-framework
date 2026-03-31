@@ -31,6 +31,7 @@ Today:
 - tagged releases now also upload a standardized release inventory bundle so archived rollback drill inputs can be stored and handed back to maintainers without rebuilding the audit set by hand
 - maintainers can now also retrieve that archived bundle directly for rollback drills instead of reconstructing inputs from individual audit files
 - the release matrix follow-up now also emits a release bundle index so archived bundle discovery is explicit before retrieval
+- maintainers can now also fetch archived bundles straight from tagged GitHub Actions artifacts with `gh` before local retrieval or rollback drills
 - the repo release workflow now also fails early if a matrix job is missing mac notarization or Windows signing secrets before packaging starts
 - the repo release workflow now also uploads a final `release-matrix-summary.md/json` artifact that aggregates all platform inventories
 - the repo release workflow now also uploads `release-provenance.md/json` so maintainers can map tag, commit, version, and platform outputs back to one release record

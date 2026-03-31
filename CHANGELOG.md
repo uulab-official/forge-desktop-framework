@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.61 (2026-03-31)
+
+### Archived Bundle Remote Fetch
+
+- added `scripts/fetch-release-inventory-bundle-from-github.sh` and `scripts/test-release-bundle-fetch.sh` so maintainers can pull tagged GitHub Actions release artifacts with `gh`, restore the archived bundle index locally, and hand the result directly to rollback tooling
+- wired GitHub bundle-fetch smoke into `scripts/release.sh`, exposed it as `pnpm release:bundle:fetch:test`, and documented the remote fetch path in the repo README, deployment guide, CLI package README, AGENTS notes, and Codex project notes
+- recorded the new archived bundle fetch flow in the `v0.1.61` release checklist so `release:ship` can gate this version against the new recovery input path
+
 ## 0.1.60 (2026-03-31)
 
 ### Archived Bundle Index

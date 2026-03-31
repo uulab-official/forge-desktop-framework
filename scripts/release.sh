@@ -68,6 +68,10 @@ echo "Running archived release inventory retrieval smoke test before version bum
 bash scripts/test-release-inventory-retrieval.sh
 echo ""
 
+echo "Running archived release inventory GitHub fetch smoke test before version bump..."
+bash scripts/test-release-bundle-fetch.sh
+echo ""
+
 echo "Running signing readiness audit smoke test before version bump..."
 bash scripts/test-signing-readiness-audit.sh
 echo ""
