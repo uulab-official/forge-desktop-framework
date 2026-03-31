@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.56 (2026-03-31)
+
+### Rollback Drill Automation
+
+- Added `scripts/run-rollback-drill.sh` and `scripts/test-rollback-drill.sh` so Forge maintainers can validate a candidate rollback target against archived prior-release metadata before touching a live channel
+- Wired rollback drill smoke into `scripts/release.sh`, added root `pnpm release:drill:test`, and documented the archived-release drill flow alongside the existing rollback playbook and channel recovery layers
+- Recorded the new drill workflow in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, and the new `v0.1.56` release checklist
+
 ## 0.1.55 (2026-03-31)
 
 ### Release Channel Recovery Audit

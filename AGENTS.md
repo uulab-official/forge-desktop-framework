@@ -30,6 +30,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Before shipping from `main`, create and mark the next version checklist `ready` under `docs/release-checklists/vX.Y.Z.md`; `release:ship` now verifies that file before any release gate runs.
 - Keep `.github/workflows/ci.yml` aligned with those guards so PRs catch release regressions before maintainers run `release:ship`.
 - Keep `.github/workflows/release.yml` aligned too: packaged release jobs should emit human-readable inventories, generated rollback playbooks, channel recovery audits, a final matrix summary plus provenance record, and fail early when signing secrets, platform-specific installers, publish channel parity, rollback readiness, or `latest*.yml` manifest contents are wrong.
+- Use the archived-release rollback drill helpers when you need to validate that a previous tagged inventory can satisfy the generated rollback playbook before touching a live channel.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`

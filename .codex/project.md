@@ -31,6 +31,7 @@ When a task touches one of these surfaces, check the others before finishing:
 - Use `pnpm release:audit` when you need a quick maintainer check that the official presets still scaffold the expected release files, scripts, and workflow surface.
 - Treat the Ubuntu `release-readiness` CI path as the pre-merge mirror of `release:ship`: external scaffold installs and official preset release-surface audit should stay green there too.
 - Treat tagged release jobs as auditable surfaces too: signing-readiness, publish-audit, manifest-audit, publish-channel-parity, rollback-readiness, rollback-playbooks, channel-recovery, per-platform summaries, the final matrix summary, and release provenance should stay aligned with the actual installer and manifest outputs.
+- Treat rollback drills against archived release metadata as the maintainer-side proof that a candidate rollback target still matches the generated playbook before you change any live release channel.
 - Keep `examples/*`, `apps/*`, and `packages/*` on the same version line.
 
 ## Near-Term Priorities
