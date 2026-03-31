@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.63 (2026-03-31)
+
+### Archived Rollback Target Selection
+
+- added `scripts/select-release-rollback-target.sh` and `scripts/test-release-rollback-target-selection.sh` so maintainers can choose the newest valid archived rollback candidate for a platform, arch, and recovery mode directly from `release-bundle-index.json`
+- wired rollback-target selection smoke into `scripts/release.sh`, exposed it as `pnpm release:rollback:target:test`, and added it to the Ubuntu `release-readiness` CI job so PRs catch selector regressions before `release:ship`
+- documented the new rollback-target selector in the repo README, deployment guide, CLI package README, AGENTS notes, and Codex project notes, and recorded the change in the `v0.1.63` release checklist
+
 ## 0.1.62 (2026-03-31)
 
 ### Archived Bundle S3 Fetch

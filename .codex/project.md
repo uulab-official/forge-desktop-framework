@@ -29,12 +29,13 @@ When a task touches one of these surfaces, check the others before finishing:
 - Prefer `scripts/ship-release.sh` when a framework change is ready to validate, version, commit, tag, and push as one release unit.
 - Create the next version checklist in `docs/release-checklists/` before shipping, and mark it `ready` before `release:ship`.
 - Use `pnpm release:audit` when you need a quick maintainer check that the official presets still scaffold the expected release files, scripts, and workflow surface.
-- Treat the Ubuntu `release-readiness` CI path as the pre-merge mirror of `release:ship`: external scaffold installs and official preset release-surface audit should stay green there too.
+- Treat the Ubuntu `release-readiness` CI path as the pre-merge mirror of `release:ship`: external scaffold installs, official preset release-surface audit, and rollback target selection smoke should stay green there too.
 - Treat tagged release jobs as auditable surfaces too: signing-readiness, publish-audit, manifest-audit, publish-channel-parity, rollback-readiness, rollback-playbooks, channel-recovery, per-platform summaries, the final matrix summary, and release provenance should stay aligned with the actual installer and manifest outputs.
 - Treat rollback drills against archived release metadata as the maintainer-side proof that a candidate rollback target still matches the generated playbook before you change any live release channel.
 - Keep archived release inventory bundles stable because they are becoming the canonical input shape for future rollback drills and release retrieval tooling.
 - Retrieval helpers should resolve archived bundles by platform, arch, and version before any rollback drill tries to interpret loose release files.
 - Bundle index generation should stay in step with retrieval helpers so archived rollback target discovery does not depend on manual artifact browsing.
+- Rollback target selectors should stay in step with the bundle index so maintainers can automatically choose the newest valid prior version for a recovery mode.
 - Remote GitHub artifact fetch helpers should restore the same archive shape locally so rollback drills do not depend on ad hoc artifact download steps.
 - Object-storage mirrors should preserve that same archive shape and bundle metadata so `aws`-based retrieval paths stay equivalent to GitHub artifact fetches.
 - Keep `examples/*`, `apps/*`, and `packages/*` on the same version line.

@@ -162,10 +162,11 @@ What the scaffold now adds by default:
 - GitHub Actions workflows for validation and tagged releases
 - renderer safety/diagnostics baseline with an error boundary and runtime log dock
 
-Framework CI now checks three release-readiness layers on Ubuntu before changes land:
+Framework CI now checks four release-readiness layers on Ubuntu before changes land:
 - in-repo scaffold smoke via `pnpm scaffold:test`
 - repo-outside scaffold install and build verification via `pnpm scaffold:external:test`
 - official preset release-surface audit via `pnpm release:audit`
+- archived rollback target selection smoke via `pnpm release:rollback:target:test`
 
 Maintainers now also keep a versioned release checklist in [docs/release-checklists](/Users/bonjin/Documents/workspace/uulab/forge-desktop-framework/docs/release-checklists/README.md). `release:ship` now verifies that the next version already has a `vX.Y.Z.md` checklist marked `ready` before any release gates run.
 
@@ -181,6 +182,7 @@ Maintainers can now also run a rollback drill against archived prior-release met
 Tagged release jobs now also emit a standardized release inventory bundle so those archived rollback inputs can be stored and reused instead of reconstructed from loose audit files.
 Maintainers can now retrieve that exact bundle by platform, arch, and version as the canonical rollback drill input.
 The release matrix summary now also emits a release bundle index so maintainers can discover which archived bundle versions exist per target before retrieval.
+Maintainers can now also auto-select the newest valid rollback candidate from that archived bundle index before retrieval or drill execution.
 Maintainers can now also fetch those archived bundles directly from tagged GitHub Actions release artifacts with `gh`, so rollback drills no longer require manual artifact downloads first.
 When S3 publishing is enabled, the same archived bundle cache is now also mirrored to object storage so maintainers can fetch rollback inputs with `aws s3 sync`.
 After the matrix finishes, the workflow now emits a top-level `release-matrix-summary.md/json` so maintainers can review every platform in one place.
