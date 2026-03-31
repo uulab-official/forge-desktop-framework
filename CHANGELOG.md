@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.62 (2026-03-31)
+
+### Archived Bundle S3 Fetch
+
+- added `scripts/fetch-release-inventory-bundle-from-s3.sh` and `scripts/test-release-bundle-fetch-from-s3.sh` so maintainers can sync the archived bundle cache from S3 or R2, regenerate the bundle index if needed, and hand the retrieved bundle straight to rollback tooling
+- updated the tagged release workflow to mirror `.release-bundles/` plus the generated bundle index, matrix summary, and provenance files into `s3://<bucket>/release-bundles/vX.Y.Z/` whenever `S3_ENABLED=true`
+- wired S3 bundle-fetch smoke into `scripts/release.sh`, exposed it as `pnpm release:bundle:fetch:s3:test`, and documented the object-storage fetch path in the repo README, deployment guide, CLI package README, AGENTS notes, and Codex project notes
+
 ## 0.1.61 (2026-03-31)
 
 ### Archived Bundle Remote Fetch

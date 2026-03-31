@@ -36,6 +36,7 @@ When a task touches one of these surfaces, check the others before finishing:
 - Retrieval helpers should resolve archived bundles by platform, arch, and version before any rollback drill tries to interpret loose release files.
 - Bundle index generation should stay in step with retrieval helpers so archived rollback target discovery does not depend on manual artifact browsing.
 - Remote GitHub artifact fetch helpers should restore the same archive shape locally so rollback drills do not depend on ad hoc artifact download steps.
+- Object-storage mirrors should preserve that same archive shape and bundle metadata so `aws`-based retrieval paths stay equivalent to GitHub artifact fetches.
 - Keep `examples/*`, `apps/*`, and `packages/*` on the same version line.
 
 ## Near-Term Priorities

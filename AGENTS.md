@@ -34,6 +34,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Prefer the standardized release inventory bundle as the archived rollback input shape; keep bundle contents and retrieval tooling aligned with the drill helpers and tagged release artifacts.
 - Keep the archived bundle index aligned with retrieval helpers so maintainers can discover available rollback targets before running drills.
 - Keep remote GitHub artifact fetch helpers aligned with bundle retrieval so a tagged release can be reconstructed from `gh` without manual artifact browsing.
+- Keep object-storage bundle mirroring aligned with retrieval helpers so S3 or R2 rollback inputs match the same archive shape as GitHub artifact downloads.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`

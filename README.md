@@ -182,6 +182,7 @@ Tagged release jobs now also emit a standardized release inventory bundle so tho
 Maintainers can now retrieve that exact bundle by platform, arch, and version as the canonical rollback drill input.
 The release matrix summary now also emits a release bundle index so maintainers can discover which archived bundle versions exist per target before retrieval.
 Maintainers can now also fetch those archived bundles directly from tagged GitHub Actions release artifacts with `gh`, so rollback drills no longer require manual artifact downloads first.
+When S3 publishing is enabled, the same archived bundle cache is now also mirrored to object storage so maintainers can fetch rollback inputs with `aws s3 sync`.
 After the matrix finishes, the workflow now emits a top-level `release-matrix-summary.md/json` so maintainers can review every platform in one place.
 The same follow-up job now also emits `release-provenance.md/json` so tag, commit, version, and platform outputs stay traceable as one release record.
 

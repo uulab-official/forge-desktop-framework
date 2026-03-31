@@ -231,6 +231,7 @@ The tagged `Release` workflow now also:
 - lets maintainers retrieve an archived bundle by platform, arch, and version before running rollback drills
 - emits a release bundle index in the matrix summary job so maintainers can discover available archived bundles per platform and version
 - lets maintainers fetch archived bundles straight from tagged GitHub Actions artifacts with `gh` before retrieval, so remote rollback inputs can be reconstructed from one command
+- when `S3_ENABLED=true`, mirrors the archived bundle cache plus the generated bundle index, matrix summary, and provenance files into `s3://<bucket>/release-bundles/vX.Y.Z/`
 - audits signing readiness before packaging so missing mac notarization or Windows signing secrets fail before the packaging step starts
 - runs a follow-up matrix summary job that downloads every per-platform inventory and uploads `release-matrix-summary.md/json`
 - generates `release-provenance.md/json` from the tag, commit SHA, and matrix summary so shipped artifacts stay traceable to one release record
@@ -254,6 +255,20 @@ bash scripts/fetch-release-inventory-bundle-from-github.sh \
 ```
 
 That command downloads the tagged release artifacts with `gh`, restores the matrix bundle index locally, and then reuses the standard retrieval helper to produce a canonical rollback input directory.
+
+To fetch the mirrored archived bundle cache from S3 or R2:
+
+```bash
+export S3_ENDPOINT="https://<account>.r2.cloudflarestorage.com"
+bash scripts/fetch-release-inventory-bundle-from-s3.sh \
+  forge-releases \
+  v0.1.61 \
+  mac \
+  arm64 \
+  s3
+```
+
+That command downloads `release-bundles/vX.Y.Z/` from object storage, restores the local bundle index if needed, and then reuses the same canonical retrieval helper that powers rollback drills.
 
 ### Build and Publish Locally
 

@@ -187,6 +187,9 @@ jobs:
             "${{ matrix.arch || 'default' }}" \
             "${{ github.ref_name }}"
 
+          aws s3 sync ".release-bundles/" "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/" \
+            --endpoint-url $S3_ENDPOINT
+
           # Upload all release artifacts
           aws s3 sync "$RELEASE_DIR/" s3://$S3_BUCKET/releases/${{ github.ref_name }}/ \
             --endpoint-url $S3_ENDPOINT \
@@ -241,6 +244,29 @@ jobs:
       - name: Generate release provenance
         shell: bash
         run: bash scripts/generate-release-provenance.sh .release-matrix/release-matrix-summary.json .release-matrix "${{ github.ref_name }}" "${{ github.sha }}"
+
+      - name: Upload release bundle metadata to S3/R2
+        if: ${{ vars.S3_ENABLED == 'true' }}
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_REGION || 'auto' }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
+        run: |
+          aws s3 cp .release-matrix/release-bundle-index.md "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/release-bundle-index.md" \
+            --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/release-bundle-index.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/release-bundle-index.json" \
+            --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/release-matrix-summary.md "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/release-matrix-summary.md" \
+            --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/release-matrix-summary.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/release-matrix-summary.json" \
+            --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/release-provenance.md "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/release-provenance.md" \
+            --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/release-provenance.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/release-provenance.json" \
+            --endpoint-url $S3_ENDPOINT
 
       - name: Upload release matrix summary
         uses: actions/upload-artifact@v4
