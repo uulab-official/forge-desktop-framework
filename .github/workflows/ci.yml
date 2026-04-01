@@ -115,6 +115,9 @@ jobs:
       - name: Verify One Point Zero promotion plan
         run: pnpm release:promotion:test
 
+      - name: Verify One Point Zero major release runbook
+        run: pnpm release:major:runbook:test
+
   python:
     runs-on: ubuntu-latest
     steps:

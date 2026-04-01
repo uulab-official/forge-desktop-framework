@@ -111,6 +111,14 @@ Required guard:
 
 - `pnpm release:promotion:test`
 
+### 10. Major Release Runbook Is Explicit
+
+Forge must emit one operator-focused runbook artifact that turns the promotion plan into the exact command sequence for the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:runbook:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -134,6 +142,7 @@ pnpm release:decision:test
 pnpm release:rc:test
 pnpm release:major:prepare:test
 pnpm release:promotion:test
+pnpm release:major:runbook:test
 pnpm release:ship patch
 pnpm version:check
 ```

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.76 (2026-04-01)
+
+### One Point Zero Major Release Runbook
+
+- added `scripts/generate-one-point-zero-major-release-runbook.sh` and `scripts/test-one-point-zero-major-release-runbook.sh` so Forge now emits `one-point-zero-major-release-runbook.md/json`, which turns the promotion-plan artifact into one explicit first-major-release execution sequence
+- wired `pnpm release:major:runbook:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one operator-focused `1.0.0` runbook for every shipped version
+- documented the new major-release runbook layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the 1.0 gate doc, and the `v0.1.76` release checklist
+
 ## 0.1.75 (2026-04-01)
 
 ### One Point Zero Promotion Plan

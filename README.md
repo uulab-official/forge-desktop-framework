@@ -180,6 +180,7 @@ Tagged release metadata now also emits `one-point-zero-decision.md/json`, which 
 Tagged release metadata now also emits `one-point-zero-release-candidate.md/json`, which points the current stable line at the final `1.0.0` promotion handoff and next checklist path.
 Maintainers can now also turn that release-candidate handoff into a prefilled `v1.0.0` checklist draft with `bash scripts/prepare-one-point-zero-major-checklist.sh`.
 Tagged release metadata now also emits `one-point-zero-promotion-plan.md/json`, which joins that audited release-candidate handoff with the prepared `v1.0.0` checklist draft as one final `1.0.0` staging plan.
+Tagged release metadata now also emits `one-point-zero-major-release-runbook.md/json`, which turns that staging plan into the exact command sequence maintainers should run for the first major ship.
 
 Tagged release runs now also upload per-matrix release inventory artifacts with `artifact-summary.md`, `artifact-summary.json`, and `latest*.yml` so maintainers can inspect packaged output without pulling raw runner files.
 The same tagged release flow now also audits platform-specific publish output so mac builds must emit `.dmg`, Windows builds must emit `.exe`, Linux builds must emit `.AppImage`, and all of them must keep a `latest*.yml` manifest.
@@ -210,6 +211,7 @@ It now also emits `one-point-zero-decision.md/json` so maintainers can review on
 It now also emits `one-point-zero-release-candidate.md/json` so maintainers can review the final `1.0.0` promotion handoff and next major-release checklist target from one artifact.
 The same `1.0` stack now also includes a checked helper that can materialize the matching `v1.0.0` checklist draft from that release-candidate artifact without rewriting the scope by hand.
 The same `1.0` stack now also emits `one-point-zero-promotion-plan.md/json` so maintainers can review the release-candidate handoff and generated `v1.0.0` checklist together before staging the first major release.
+The same `1.0` stack now also emits `one-point-zero-major-release-runbook.md/json` so maintainers can hand the final first-major-release command sequence around without rebuilding it from multiple artifacts.
 
 Feature packs available on the `minimal` starter today:
 - `settings` for persisted preferences and runtime controls
