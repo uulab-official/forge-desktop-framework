@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.72 (2026-04-01)
+
+### One Point Zero Decision Artifact
+
+- added `scripts/generate-one-point-zero-decision-report.sh` and `scripts/test-one-point-zero-decision-report.sh` so Forge now emits `one-point-zero-decision.md/json`, a final maintainer handoff derived from readiness, release-status, and freeze artifacts
+- wired `pnpm release:decision:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit final 1.0 decision artifact for every shipped version
+- documented the new decision layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the 1.0 gate doc, and the `v0.1.72` release checklist
+
 ## 0.1.71 (2026-04-01)
 
 ### One Point Zero Freeze Artifact

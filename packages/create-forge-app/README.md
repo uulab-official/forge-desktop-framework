@@ -40,6 +40,7 @@ Today:
 - that final remote rollback drill output now also includes `recovery-command-summary.md/json`, which captures the chosen rollback target, rerun command, archived assets, and operator follow-up actions
 - tagged release metadata now also includes `release-status.md/json`, which condenses the 1.0 gate, matrix targets, provenance, and official preset readiness into one release health artifact
 - tagged release metadata now also includes `one-point-zero-freeze.md/json`, which turns the release-status artifact and version checklist into one explicit freeze decision record
+- tagged release metadata now also includes `one-point-zero-decision.md/json`, which turns readiness, release-status, and freeze into one final maintainer 1.0 decision artifact
 - when S3 publishing is enabled, the repo release workflow now also mirrors that archived bundle cache to object storage so maintainers can fetch rollback inputs with `aws`
 - the Ubuntu `release-readiness` CI job now also exercises rollback target selection so release recovery helpers regress before `release:ship`, not after
 - the Ubuntu `release-readiness` CI job now also exercises release history indexing so multi-tag recovery helpers stay healthy before `release:ship`
@@ -51,6 +52,7 @@ Today:
 - the repo release workflow now also uploads `release-provenance.md/json` so maintainers can map tag, commit, version, and platform outputs back to one release record
 - framework releases now also require a versioned checklist under `docs/release-checklists/vX.Y.Z.md` before `release:ship` can move the version
 - Forge 1.0 release gate criteria are now fixed in `docs/one-point-zero-gate.md`, and maintainers can validate that contract with `pnpm release:onepointzero:test`
+- maintainers can now also validate the final 1.0 decision artifact with `pnpm release:decision:test`
 
 ## Why This Matters
 

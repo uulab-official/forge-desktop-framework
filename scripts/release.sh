@@ -120,6 +120,10 @@ echo "Running One Point Zero freeze report smoke test before version bump..."
 bash scripts/test-one-point-zero-freeze-report.sh
 echo ""
 
+echo "Running One Point Zero decision report smoke test before version bump..."
+bash scripts/test-one-point-zero-decision-report.sh
+echo ""
+
 # Get current version
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "Current version: $CURRENT_VERSION"

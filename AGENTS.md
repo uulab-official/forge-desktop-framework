@@ -44,6 +44,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Keep `docs/one-point-zero-gate.md` aligned with the actual release and recovery guards, and keep `pnpm release:onepointzero:test` green before shipping.
 - Keep the final `release-status.md/json` summary aligned with the 1.0 readiness audit, matrix summary, and provenance so maintainers can review one stable release-health artifact instead of stitching audits together by hand.
 - Keep the final `one-point-zero-freeze.md/json` summary aligned with both the release-status artifact and the version checklist so the freeze decision remains auditable.
+- Keep the final `one-point-zero-decision.md/json` summary aligned with readiness, release-status, and freeze so the last `1.0` go or hold handoff stays reproducible.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`
