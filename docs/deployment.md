@@ -217,6 +217,7 @@ The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pul
 - `pnpm release:audit`
 - `pnpm release:history:test`
 - `pnpm release:rollback:target:test`
+- `pnpm release:rollback:prepare:test`
 
 The tagged `Release` workflow now also:
 - writes a markdown and JSON inventory of packaged artifacts for each matrix job
@@ -234,6 +235,7 @@ The tagged `Release` workflow now also:
 - emits a release bundle index in the matrix summary job so maintainers can discover available archived bundles per platform and version
 - lets maintainers aggregate multiple fetched tags into a release history index so cached rollback inputs can be browsed across versions instead of one tag at a time
 - lets maintainers auto-select the newest valid previous bundle for a platform, arch, and recovery mode before retrieval or rollback drills
+- lets maintainers prepare a rollback input straight from that history root so selection and archived bundle retrieval can be handled as one command
 - lets maintainers fetch archived bundles straight from tagged GitHub Actions artifacts with `gh` before retrieval, so remote rollback inputs can be reconstructed from one command
 - when `S3_ENABLED=true`, mirrors the archived bundle cache plus the generated bundle index, matrix summary, and provenance files into `s3://<bucket>/release-bundles/vX.Y.Z/`
 - audits signing readiness before packaging so missing mac notarization or Windows signing secrets fail before the packaging step starts
@@ -295,6 +297,19 @@ bash scripts/select-release-rollback-target.sh \
 ```
 
 That command writes `rollback-target-selection.md/json/env`, chooses the newest archived version older than the current release, and enforces that the selected bundle still matches the requested recovery mode.
+
+If you want to close selection and archived bundle retrieval in one step from that same accumulated history root:
+
+```bash
+bash scripts/prepare-release-rollback-from-history.sh \
+  .fetched-release-artifacts \
+  mac \
+  arm64 \
+  0.1.64 \
+  dual-channel
+```
+
+That command regenerates `release-history-index.json` when needed, picks the newest valid prior release for the requested target and recovery mode, and then retrieves the canonical archived bundle into one prepared rollback directory.
 
 ### Build and Publish Locally
 

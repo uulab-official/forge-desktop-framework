@@ -35,6 +35,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Keep the archived bundle index aligned with retrieval helpers so maintainers can discover available rollback targets before running drills.
 - Keep release history indexing aligned with remote fetch helpers so multiple cached tags can be reasoned about without manual directory browsing.
 - Keep rollback target selection aligned with the archived bundle index so maintainers can choose the newest valid previous version without hand-browsing archived bundles.
+- Keep history-root rollback preparation aligned with selectors and retrieval helpers so accumulated cached tags can turn into one drill-ready bundle without manual path stitching.
 - Keep remote GitHub artifact fetch helpers aligned with bundle retrieval so a tagged release can be reconstructed from `gh` without manual artifact browsing.
 - Keep object-storage bundle mirroring aligned with retrieval helpers so S3 or R2 rollback inputs match the same archive shape as GitHub artifact downloads.
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.65 (2026-04-01)
+
+### History-Root Rollback Preparation
+
+- added `scripts/prepare-release-rollback-from-history.sh` and `scripts/test-release-rollback-history-preparation.sh` so maintainers can go from a multi-tag `release-history-index.json` directly to a retrieved rollback bundle without manually stitching selector and retrieval steps together
+- wired history-root rollback preparation smoke into `scripts/release.sh`, exposed it as `pnpm release:rollback:prepare:test`, and added it to the Ubuntu `release-readiness` CI job so PRs catch selector-to-retrieval regressions before `release:ship`
+- documented the new one-command history-root rollback preparation flow in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, and the `v0.1.65` release checklist
+
 ## 0.1.64 (2026-03-31)
 
 ### Remote Release History Index

@@ -72,6 +72,10 @@ echo "Running rollback target selection smoke test before version bump..."
 bash scripts/test-release-rollback-target-selection.sh
 echo ""
 
+echo "Running rollback history preparation smoke test before version bump..."
+bash scripts/test-release-rollback-history-preparation.sh
+echo ""
+
 echo "Running archived release inventory retrieval smoke test before version bump..."
 bash scripts/test-release-inventory-retrieval.sh
 echo ""
