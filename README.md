@@ -194,6 +194,7 @@ Both remote fetch helpers now also refresh a parent `release-history-index.md/js
 Maintainers can now also prepare a rollback input directly from that accumulated history root, so target selection and archived bundle retrieval can be closed in one command before a drill runs.
 Maintainers can now also build that history root straight from recent GitHub release artifacts or S3 mirrors and immediately prepare the rollback bundle from the same command chain.
 Maintainers can now also run the full remote recovery path in one command, so provider fetch, rollback target preparation, and rollback drill no longer need to be stitched together by hand.
+That final recovery command now also emits `recovery-command-summary.md/json`, so the chosen rollback target, archived assets, rerun command, and follow-up operator actions are preserved as one human-readable recovery artifact.
 After the matrix finishes, the workflow now emits a top-level `release-matrix-summary.md/json` so maintainers can review every platform in one place.
 The same follow-up job now also emits `release-provenance.md/json` so tag, commit, version, and platform outputs stay traceable as one release record.
 

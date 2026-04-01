@@ -368,6 +368,7 @@ bash scripts/run-remote-release-rollback-drill.sh \
 ```
 
 Those commands fetch recent remote history for the requested provider, prepare the best matching older rollback bundle, and then run `scripts/run-rollback-drill.sh` against the current release directory.
+They now also write `recovery-command-summary.md/json` next to the prepared output so maintainers can capture the chosen rollback target, archived asset list, rerun command, and follow-up operator actions as one recovery artifact.
 
 ### Build and Publish Locally
 

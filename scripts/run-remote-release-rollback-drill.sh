@@ -112,8 +112,9 @@ bash scripts/run-rollback-drill.sh "$CURRENT_RELEASE_DIR" "$RETRIEVED_DIR" "$PLA
 
 SUMMARY_MD="$OUTPUT_DIR/remote-rollback-drill.md"
 SUMMARY_JSON="$OUTPUT_DIR/remote-rollback-drill.json"
+RECOVERY_SUMMARY_DIR="$OUTPUT_DIR"
 
-node - "$PREPARED_JSON" "$CURRENT_RELEASE_DIR/rollback-drill.json" "$SUMMARY_MD" "$SUMMARY_JSON" "$PROVIDER" "$SOURCE" "$CURRENT_RELEASE_DIR" "$OUTPUT_DIR" <<'NODE'
+node - "$PREPARED_JSON" "$CURRENT_RELEASE_DIR/rollback-drill.json" "$SUMMARY_MD" "$SUMMARY_JSON" "$PROVIDER" "$SOURCE" "$CURRENT_RELEASE_DIR" "$OUTPUT_DIR" "$RECOVERY_MODE" "$HISTORY_ROOT" "$LIMIT" "$CHANNEL_LABEL" <<'NODE'
 const fs = require('node:fs');
 
 const [
@@ -125,6 +126,10 @@ const [
   source,
   currentReleaseDir,
   outputDir,
+  recoveryMode,
+  historyRoot,
+  limit,
+  channelLabel,
 ] = process.argv.slice(2);
 
 const prepared = JSON.parse(fs.readFileSync(preparedJsonPath, 'utf8'));
@@ -163,6 +168,12 @@ const payload = {
   source,
   currentReleaseDir,
   outputDir,
+  providerOptions: {
+    recoveryMode,
+    historyRoot,
+    limit: Number.parseInt(limit, 10) || null,
+    channelLabel,
+  },
   status,
   checks,
   prepared,
@@ -185,3 +196,5 @@ fi
 echo "Remote rollback drill written to:"
 echo "  $SUMMARY_MD"
 echo "  $SUMMARY_JSON"
+
+bash scripts/generate-recovery-command-summary.sh "$SUMMARY_JSON" "$RECOVERY_SUMMARY_DIR"

@@ -332,12 +332,24 @@ FORGE_FAKE_GH_FIXTURE_ROOT="$WORK_DIR/fake-gh-artifacts" \
 
 [[ -f "$CURRENT_GITHUB/rollback-drill.json" ]]
 [[ -f "$WORK_DIR/github-output/remote-rollback-drill.json" ]]
+[[ -f "$WORK_DIR/github-output/recovery-command-summary.json" ]]
 
 node - "$WORK_DIR/github-output/remote-rollback-drill.json" <<'NODE'
 const fs = require('node:fs');
 const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 if (payload.rollbackDrill.rollbackVersion !== '0.1.65') {
   throw new Error(`Expected GitHub remote rollback drill target 0.1.65, found ${payload.rollbackDrill.rollbackVersion}`);
+}
+NODE
+
+node - "$WORK_DIR/github-output/recovery-command-summary.json" <<'NODE'
+const fs = require('node:fs');
+const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+if (payload.rollbackVersion !== '0.1.65') {
+  throw new Error(`Expected GitHub recovery summary rollback target 0.1.65, found ${payload.rollbackVersion}`);
+}
+if (!Array.isArray(payload.recommendedActions) || payload.recommendedActions.length < 3) {
+  throw new Error('Expected GitHub recovery summary to include recommended actions.');
 }
 NODE
 
@@ -359,12 +371,24 @@ S3_ENDPOINT="https://example.r2.invalid" \
 
 [[ -f "$CURRENT_S3/rollback-drill.json" ]]
 [[ -f "$WORK_DIR/s3-output/remote-rollback-drill.json" ]]
+[[ -f "$WORK_DIR/s3-output/recovery-command-summary.json" ]]
 
 node - "$WORK_DIR/s3-output/remote-rollback-drill.json" <<'NODE'
 const fs = require('node:fs');
 const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 if (payload.rollbackDrill.rollbackVersion !== '0.1.65') {
   throw new Error(`Expected S3 remote rollback drill target 0.1.65, found ${payload.rollbackDrill.rollbackVersion}`);
+}
+NODE
+
+node - "$WORK_DIR/s3-output/recovery-command-summary.json" <<'NODE'
+const fs = require('node:fs');
+const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+if (payload.rollbackVersion !== '0.1.65') {
+  throw new Error(`Expected S3 recovery summary rollback target 0.1.65, found ${payload.rollbackVersion}`);
+}
+if (!payload.rerunCommand.includes('run-remote-release-rollback-drill.sh')) {
+  throw new Error('Expected S3 recovery summary to include a rerun command.');
 }
 NODE
 

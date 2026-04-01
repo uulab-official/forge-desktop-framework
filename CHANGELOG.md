@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.68 (2026-04-01)
+
+### Recovery Command Summary
+
+- added `scripts/generate-recovery-command-summary.sh` so provider-agnostic remote rollback drills now emit a stable `recovery-command-summary.md/json` artifact with the selected rollback target, archived asset list, rerun command, and operator follow-up actions
+- updated `scripts/run-remote-release-rollback-drill.sh` and `scripts/test-remote-release-rollback-drill.sh` so both GitHub and S3 recovery paths validate that summary artifact as part of the existing remote rollback drill smoke
+- documented the recovery summary output in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, and the `v0.1.68` release checklist
+
 ## 0.1.67 (2026-04-01)
 
 ### Provider-Agnostic Remote Rollback Drill
