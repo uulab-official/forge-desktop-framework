@@ -45,6 +45,7 @@ When a task touches one of these surfaces, check the others before finishing:
 - The recovery-command summary should stay in step with the final remote rollback drill wrapper so maintainers can trust the emitted rerun command, selected rollback target, and next actions.
 - The explicit `1.0` gate document should stay in step with release guards, CI, and public docs so Forge does not claim a stable product surface without a matching audit trail.
 - The final `release-status` artifact should stay in step with the 1.0 gate, matrix summary, and provenance so maintainers always have one condensed release-health view.
+- The final `one-point-zero-freeze` artifact should stay in step with both release-status and checklist formatting so the go/no-go decision remains reproducible.
 - Keep `examples/*`, `apps/*`, and `packages/*` on the same version line.
 
 ## Near-Term Priorities

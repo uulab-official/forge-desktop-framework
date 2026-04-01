@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.71 (2026-04-01)
+
+### One Point Zero Freeze Artifact
+
+- added `scripts/generate-one-point-zero-freeze-report.sh` and `scripts/test-one-point-zero-freeze-report.sh` so Forge now emits `one-point-zero-freeze.md/json`, a final go/no-go artifact derived from the release-status summary and the matching version checklist
+- wired `pnpm release:freeze:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit freeze-decision artifact for every shipped version
+- documented the new freeze layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the 1.0 gate doc, and the `v0.1.71` release checklist
+
 ## 0.1.70 (2026-04-01)
 
 ### Release Status Artifact

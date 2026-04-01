@@ -253,6 +253,10 @@ jobs:
         shell: bash
         run: bash scripts/generate-release-status-report.sh .release-matrix/one-point-zero-readiness.json .release-matrix/release-matrix-summary.json .release-matrix/release-provenance.json .release-matrix
 
+      - name: Generate One Point Zero freeze report
+        shell: bash
+        run: bash scripts/generate-one-point-zero-freeze-report.sh .release-matrix/release-status.json "docs/release-checklists/${{ github.ref_name }}.md" .release-matrix
+
       - name: Upload release bundle metadata to S3/R2
         if: ${{ vars.S3_ENABLED == 'true' }}
         shell: bash
@@ -283,6 +287,10 @@ jobs:
             --endpoint-url $S3_ENDPOINT
           aws s3 cp .release-matrix/release-status.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/release-status.json" \
             --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/one-point-zero-freeze.md "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-freeze.md" \
+            --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/one-point-zero-freeze.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-freeze.json" \
+            --endpoint-url $S3_ENDPOINT
 
       - name: Upload release matrix summary
         uses: actions/upload-artifact@v4
@@ -299,3 +307,5 @@ jobs:
             .release-matrix/one-point-zero-readiness.json
             .release-matrix/release-status.md
             .release-matrix/release-status.json
+            .release-matrix/one-point-zero-freeze.md
+            .release-matrix/one-point-zero-freeze.json

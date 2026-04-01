@@ -175,6 +175,7 @@ Framework CI now checks eight release-readiness layers on Ubuntu before changes 
 Maintainers now also keep a versioned release checklist in [docs/release-checklists](/Users/bonjin/Documents/workspace/uulab/forge-desktop-framework/docs/release-checklists/README.md). `release:ship` now verifies that the next version already has a `vX.Y.Z.md` checklist marked `ready` before any release gates run.
 Forge 1.0 release gate criteria now live in [docs/one-point-zero-gate.md](/Users/bonjin/Documents/workspace/uulab/forge-desktop-framework/docs/one-point-zero-gate.md), and maintainers can validate that the documented `1.0` contract still matches the repo with `pnpm release:onepointzero:test`.
 Tagged release metadata now also emits `release-status.md/json`, which condenses the `1.0` gate, matrix targets, provenance, and official preset readiness into one operator-facing release health artifact.
+Tagged release metadata now also emits `one-point-zero-freeze.md/json`, which combines the release-status artifact and the version checklist into a final `go/no-go` freeze record for maintainers.
 
 Tagged release runs now also upload per-matrix release inventory artifacts with `artifact-summary.md`, `artifact-summary.json`, and `latest*.yml` so maintainers can inspect packaged output without pulling raw runner files.
 The same tagged release flow now also audits platform-specific publish output so mac builds must emit `.dmg`, Windows builds must emit `.exe`, Linux builds must emit `.AppImage`, and all of them must keep a `latest*.yml` manifest.
@@ -200,6 +201,7 @@ That final recovery command now also emits `recovery-command-summary.md/json`, s
 After the matrix finishes, the workflow now emits a top-level `release-matrix-summary.md/json` so maintainers can review every platform in one place.
 The same follow-up job now also emits `release-provenance.md/json` so tag, commit, version, and platform outputs stay traceable as one release record.
 The same follow-up job now also emits `release-status.md/json` so maintainers can review the overall release state without opening every individual audit file.
+It now also emits `one-point-zero-freeze.md/json` so maintainers can review one explicit freeze decision artifact before calling the framework 1.0-ready.
 
 Feature packs available on the `minimal` starter today:
 - `settings` for persisted preferences and runtime controls

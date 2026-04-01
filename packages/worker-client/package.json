@@ -1,6 +1,6 @@
 {
   "name": "@forge/worker-client",
-  "version": "0.1.70",
+  "version": "0.1.71",
   "description": "Spawn and communicate with Forge Python workers over stdin/stdout JSON",
   "type": "module",
   "main": "./dist/index.js",

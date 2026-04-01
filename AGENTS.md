@@ -43,6 +43,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Keep the recovery-command summary aligned with the final remote rollback drill wrapper so maintainers can trust the emitted rerun command, selected target, and next actions.
 - Keep `docs/one-point-zero-gate.md` aligned with the actual release and recovery guards, and keep `pnpm release:onepointzero:test` green before shipping.
 - Keep the final `release-status.md/json` summary aligned with the 1.0 readiness audit, matrix summary, and provenance so maintainers can review one stable release-health artifact instead of stitching audits together by hand.
+- Keep the final `one-point-zero-freeze.md/json` summary aligned with both the release-status artifact and the version checklist so the freeze decision remains auditable.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`

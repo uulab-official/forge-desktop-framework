@@ -77,6 +77,7 @@ Required surfaces:
 - Ubuntu `release-readiness` job
 - `pnpm release:onepointzero:test`
 - `pnpm release:status:test`
+- `pnpm release:freeze:test`
 
 ## 1.0 Maintainer Rule
 
@@ -96,6 +97,7 @@ pnpm scaffold:external:test
 pnpm release:audit
 pnpm release:onepointzero:test
 pnpm release:status:test
+pnpm release:freeze:test
 pnpm release:ship patch
 pnpm version:check
 ```

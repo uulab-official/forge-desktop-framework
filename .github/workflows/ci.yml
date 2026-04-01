@@ -100,6 +100,9 @@ jobs:
       - name: Verify release status report
         run: pnpm release:status:test
 
+      - name: Verify One Point Zero freeze report
+        run: pnpm release:freeze:test
+
   python:
     runs-on: ubuntu-latest
     steps:
