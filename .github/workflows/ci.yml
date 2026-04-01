@@ -112,6 +112,9 @@ jobs:
       - name: Verify One Point Zero major checklist preparation
         run: pnpm release:major:prepare:test
 
+      - name: Verify One Point Zero promotion plan
+        run: pnpm release:promotion:test
+
   python:
     runs-on: ubuntu-latest
     steps:

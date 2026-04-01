@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.75 (2026-04-01)
+
+### One Point Zero Promotion Plan
+
+- added `scripts/generate-one-point-zero-promotion-plan-report.sh` and `scripts/test-one-point-zero-promotion-plan-report.sh` so Forge now emits `one-point-zero-promotion-plan.md/json`, which joins the audited release-candidate handoff with the prepared `v1.0.0` checklist draft as one final staging artifact
+- wired `pnpm release:promotion:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit first-major-release promotion plan for every shipped version
+- documented the new promotion-plan layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the 1.0 gate doc, and the `v0.1.75` release checklist
+
 ## 0.1.74 (2026-04-01)
 
 ### One Point Zero Major Checklist Preparation

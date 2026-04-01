@@ -216,6 +216,7 @@ Maintainers can now also run `pnpm release:freeze:test` to verify the final free
 Maintainers can now also run `pnpm release:decision:test` to verify the final decision artifact that turns the readiness, release-status, and freeze layers into one explicit `1.0` handoff.
 Maintainers can now also run `pnpm release:rc:test` to verify the final release-candidate artifact that points the current stable line at the `1.0.0` promotion path.
 Maintainers can now also run `pnpm release:major:prepare:test` to verify the helper that turns that release-candidate artifact into a prefilled `v1.0.0` checklist draft.
+Maintainers can now also run `pnpm release:promotion:test` to verify the final promotion-plan artifact that joins the release-candidate handoff with the generated `v1.0.0` checklist draft before a major ship.
 
 The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pull requests:
 - `pnpm scaffold:test`
@@ -232,6 +233,7 @@ The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pul
 - `pnpm release:decision:test`
 - `pnpm release:rc:test`
 - `pnpm release:major:prepare:test`
+- `pnpm release:promotion:test`
 
 The tagged `Release` workflow now also:
 - writes a markdown and JSON inventory of packaged artifacts for each matrix job
@@ -262,6 +264,7 @@ The tagged `Release` workflow now also:
 - generates `one-point-zero-decision.md/json` from the readiness audit, release-status artifact, and freeze record so maintainers also get one final `1.0` decision handoff artifact
 - generates `one-point-zero-release-candidate.md/json` from the final decision artifact so maintainers also get the next `1.0.0` promotion handoff and checklist target in one place
 - keeps a checked helper for preparing the matching `v1.0.0` checklist draft from that release-candidate artifact before any `major` ship run
+- prepares `v1.0.0.md` and generates `one-point-zero-promotion-plan.md/json` so the first major-release staging handoff is preserved as a tagged release artifact too
 
 For framework maintainers working in this monorepo, the official one-command ship flow is:
 

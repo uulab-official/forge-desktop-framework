@@ -1,6 +1,6 @@
 {
   "name": "@forge/app",
-  "version": "0.1.74",
+  "version": "0.1.75",
   "private": true,
   "main": "./dist-electron/main.js",
   "scripts": {

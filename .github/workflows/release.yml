@@ -265,6 +265,14 @@ jobs:
         shell: bash
         run: bash scripts/generate-one-point-zero-release-candidate-report.sh .release-matrix/one-point-zero-decision.json .release-matrix
 
+      - name: Prepare One Point Zero major checklist draft
+        shell: bash
+        run: bash scripts/prepare-one-point-zero-major-checklist.sh .release-matrix/one-point-zero-release-candidate.json .release-matrix/v1.0.0.md
+
+      - name: Generate One Point Zero promotion plan report
+        shell: bash
+        run: bash scripts/generate-one-point-zero-promotion-plan-report.sh .release-matrix/one-point-zero-release-candidate.json .release-matrix/v1.0.0.md .release-matrix
+
       - name: Upload release bundle metadata to S3/R2
         if: ${{ vars.S3_ENABLED == 'true' }}
         shell: bash
@@ -307,6 +315,12 @@ jobs:
             --endpoint-url $S3_ENDPOINT
           aws s3 cp .release-matrix/one-point-zero-release-candidate.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-release-candidate.json" \
             --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/v1.0.0.md "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/v1.0.0.md" \
+            --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/one-point-zero-promotion-plan.md "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-promotion-plan.md" \
+            --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/one-point-zero-promotion-plan.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-promotion-plan.json" \
+            --endpoint-url $S3_ENDPOINT
 
       - name: Upload release matrix summary
         uses: actions/upload-artifact@v4
@@ -329,3 +343,6 @@ jobs:
             .release-matrix/one-point-zero-decision.json
             .release-matrix/one-point-zero-release-candidate.md
             .release-matrix/one-point-zero-release-candidate.json
+            .release-matrix/v1.0.0.md
+            .release-matrix/one-point-zero-promotion-plan.md
+            .release-matrix/one-point-zero-promotion-plan.json

@@ -103,6 +103,14 @@ Required guard:
 
 - `pnpm release:major:prepare:test`
 
+### 9. Promotion Plan Is Explicit
+
+Forge must emit one final promotion-plan artifact that joins the audited release-candidate handoff with the prepared `v1.0.0` checklist draft.
+
+Required guard:
+
+- `pnpm release:promotion:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -125,6 +133,7 @@ pnpm release:freeze:test
 pnpm release:decision:test
 pnpm release:rc:test
 pnpm release:major:prepare:test
+pnpm release:promotion:test
 pnpm release:ship patch
 pnpm version:check
 ```

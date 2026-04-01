@@ -47,6 +47,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Keep the final `one-point-zero-decision.md/json` summary aligned with readiness, release-status, and freeze so the last `1.0` go or hold handoff stays reproducible.
 - Keep the final `one-point-zero-release-candidate.md/json` summary aligned with the decision artifact so the `1.0.0` promotion handoff and next-checklist target remain explicit.
 - Keep the `prepare-one-point-zero-major-checklist.sh` helper aligned with the release-candidate artifact so the generated `v1.0.0` checklist draft matches the documented promotion path.
+- Keep the final `one-point-zero-promotion-plan.md/json` summary aligned with the release-candidate artifact and prepared `v1.0.0` checklist so the first major-release staging plan stays reproducible.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`
