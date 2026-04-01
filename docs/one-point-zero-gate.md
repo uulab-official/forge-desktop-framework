@@ -76,6 +76,7 @@ Required surfaces:
 - `.github/workflows/ci.yml`
 - Ubuntu `release-readiness` job
 - `pnpm release:onepointzero:test`
+- `pnpm release:status:test`
 
 ## 1.0 Maintainer Rule
 
@@ -94,6 +95,7 @@ Use these commands as the minimum readiness stack before a `1.0` decision:
 pnpm scaffold:external:test
 pnpm release:audit
 pnpm release:onepointzero:test
+pnpm release:status:test
 pnpm release:ship patch
 pnpm version:check
 ```

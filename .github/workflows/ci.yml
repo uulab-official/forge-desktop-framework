@@ -97,6 +97,9 @@ jobs:
       - name: Verify Forge 1.0 release gate
         run: pnpm release:onepointzero:test
 
+      - name: Verify release status report
+        run: pnpm release:status:test
+
   python:
     runs-on: ubuntu-latest
     steps:

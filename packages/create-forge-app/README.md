@@ -38,6 +38,7 @@ Today:
 - maintainers can now also fetch several recent GitHub or S3 tags into one local history root and prepare the rollback bundle from that remote history without manually staging each tag
 - maintainers can now also run a provider-agnostic remote rollback drill command that fetches history, prepares the rollback bundle, and executes the drill in one pass
 - that final remote rollback drill output now also includes `recovery-command-summary.md/json`, which captures the chosen rollback target, rerun command, archived assets, and operator follow-up actions
+- tagged release metadata now also includes `release-status.md/json`, which condenses the 1.0 gate, matrix targets, provenance, and official preset readiness into one release health artifact
 - when S3 publishing is enabled, the repo release workflow now also mirrors that archived bundle cache to object storage so maintainers can fetch rollback inputs with `aws`
 - the Ubuntu `release-readiness` CI job now also exercises rollback target selection so release recovery helpers regress before `release:ship`, not after
 - the Ubuntu `release-readiness` CI job now also exercises release history indexing so multi-tag recovery helpers stay healthy before `release:ship`

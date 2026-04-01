@@ -211,6 +211,7 @@ pnpm release:playbook:test
 
 Every shipped version should also leave a checklist file under `docs/release-checklists/vX.Y.Z.md`. `pnpm release:ship patch` now fails early if that checklist is missing or not marked `ready`.
 Forge 1.0 release gate criteria are now fixed in [docs/one-point-zero-gate.md](/Users/bonjin/Documents/workspace/uulab/forge-desktop-framework/docs/one-point-zero-gate.md), and `pnpm release:onepointzero:test` verifies that the repo, CI, and public docs still match that `1.0` contract before the version can move.
+Maintainers can now also run `pnpm release:status:test` to verify the final release-status artifact that condenses the `1.0` gate, matrix targets, provenance, and official preset readiness into one summary.
 
 The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pull requests:
 - `pnpm scaffold:test`
@@ -222,6 +223,7 @@ The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pul
 - `pnpm release:history:remote:test`
 - `pnpm release:rollback:remote:test`
 - `pnpm release:onepointzero:test`
+- `pnpm release:status:test`
 
 The tagged `Release` workflow now also:
 - writes a markdown and JSON inventory of packaged artifacts for each matrix job
@@ -247,6 +249,7 @@ The tagged `Release` workflow now also:
 - audits signing readiness before packaging so missing mac notarization or Windows signing secrets fail before the packaging step starts
 - runs a follow-up matrix summary job that downloads every per-platform inventory and uploads `release-matrix-summary.md/json`
 - generates `release-provenance.md/json` from the tag, commit SHA, and matrix summary so shipped artifacts stay traceable to one release record
+- generates `release-status.md/json` from the 1.0 readiness audit, matrix summary, and provenance so maintainers get one condensed operator-facing release health artifact
 
 For framework maintainers working in this monorepo, the official one-command ship flow is:
 

@@ -245,6 +245,14 @@ jobs:
         shell: bash
         run: bash scripts/generate-release-provenance.sh .release-matrix/release-matrix-summary.json .release-matrix "${{ github.ref_name }}" "${{ github.sha }}"
 
+      - name: Audit Forge 1.0 readiness
+        shell: bash
+        run: bash scripts/audit-one-point-zero-readiness.sh .release-matrix
+
+      - name: Generate release status report
+        shell: bash
+        run: bash scripts/generate-release-status-report.sh .release-matrix/one-point-zero-readiness.json .release-matrix/release-matrix-summary.json .release-matrix/release-provenance.json .release-matrix
+
       - name: Upload release bundle metadata to S3/R2
         if: ${{ vars.S3_ENABLED == 'true' }}
         shell: bash
@@ -267,6 +275,14 @@ jobs:
             --endpoint-url $S3_ENDPOINT
           aws s3 cp .release-matrix/release-provenance.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/release-provenance.json" \
             --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/one-point-zero-readiness.md "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-readiness.md" \
+            --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/one-point-zero-readiness.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-readiness.json" \
+            --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/release-status.md "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/release-status.md" \
+            --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/release-status.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/release-status.json" \
+            --endpoint-url $S3_ENDPOINT
 
       - name: Upload release matrix summary
         uses: actions/upload-artifact@v4
@@ -279,3 +295,7 @@ jobs:
             .release-matrix/release-bundle-index.json
             .release-matrix/release-provenance.md
             .release-matrix/release-provenance.json
+            .release-matrix/one-point-zero-readiness.md
+            .release-matrix/one-point-zero-readiness.json
+            .release-matrix/release-status.md
+            .release-matrix/release-status.json

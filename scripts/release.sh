@@ -112,6 +112,10 @@ echo "Running release provenance smoke test before version bump..."
 bash scripts/test-release-provenance.sh
 echo ""
 
+echo "Running release status report smoke test before version bump..."
+bash scripts/test-release-status-report.sh
+echo ""
+
 # Get current version
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "Current version: $CURRENT_VERSION"

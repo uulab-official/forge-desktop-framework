@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.70 (2026-04-01)
+
+### Release Status Artifact
+
+- added `scripts/generate-release-status-report.sh` and `scripts/test-release-status-report.sh` so Forge now emits `release-status.md/json`, a condensed operator-facing summary built from the 1.0 readiness audit, release matrix summary, and release provenance
+- wired `pnpm release:status:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release matrix-summary follow-up so maintainers can validate and publish one final release-health artifact every time
+- documented the new release-status layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the 1.0 gate doc, and the `v0.1.70` release checklist
+
 ## 0.1.69 (2026-04-01)
 
 ### Forge 1.0 Release Gate
