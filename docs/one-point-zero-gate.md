@@ -95,6 +95,14 @@ Required guard:
 
 - `pnpm release:rc:test`
 
+### 8. Major Release Checklist Preparation Is Explicit
+
+Forge must provide one reproducible helper that turns the release-candidate handoff into a prefilled `v1.0.0` checklist draft.
+
+Required guard:
+
+- `pnpm release:major:prepare:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -116,6 +124,7 @@ pnpm release:status:test
 pnpm release:freeze:test
 pnpm release:decision:test
 pnpm release:rc:test
+pnpm release:major:prepare:test
 pnpm release:ship patch
 pnpm version:check
 ```

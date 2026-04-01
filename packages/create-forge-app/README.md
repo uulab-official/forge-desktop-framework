@@ -42,6 +42,7 @@ Today:
 - tagged release metadata now also includes `one-point-zero-freeze.md/json`, which turns the release-status artifact and version checklist into one explicit freeze decision record
 - tagged release metadata now also includes `one-point-zero-decision.md/json`, which turns readiness, release-status, and freeze into one final maintainer 1.0 decision artifact
 - tagged release metadata now also includes `one-point-zero-release-candidate.md/json`, which turns that final decision into one explicit `1.0.0` promotion handoff for maintainers
+- maintainers can now also turn that release-candidate artifact into a prefilled `v1.0.0` checklist draft with `scripts/prepare-one-point-zero-major-checklist.sh`
 - when S3 publishing is enabled, the repo release workflow now also mirrors that archived bundle cache to object storage so maintainers can fetch rollback inputs with `aws`
 - the Ubuntu `release-readiness` CI job now also exercises rollback target selection so release recovery helpers regress before `release:ship`, not after
 - the Ubuntu `release-readiness` CI job now also exercises release history indexing so multi-tag recovery helpers stay healthy before `release:ship`
@@ -55,6 +56,7 @@ Today:
 - Forge 1.0 release gate criteria are now fixed in `docs/one-point-zero-gate.md`, and maintainers can validate that contract with `pnpm release:onepointzero:test`
 - maintainers can now also validate the final 1.0 decision artifact with `pnpm release:decision:test`
 - maintainers can now also validate the final 1.0 release-candidate handoff with `pnpm release:rc:test`
+- maintainers can now also validate the 1.0 major checklist helper with `pnpm release:major:prepare:test`
 
 ## Why This Matters
 

@@ -48,6 +48,7 @@ When a task touches one of these surfaces, check the others before finishing:
 - The final `one-point-zero-freeze` artifact should stay in step with both release-status and checklist formatting so the go/no-go decision remains reproducible.
 - The final `one-point-zero-decision` artifact should stay in step with readiness, release-status, and freeze outputs so the last 1.0 handoff does not depend on manual interpretation.
 - The final `one-point-zero-release-candidate` artifact should stay in step with the decision output so the `1.0.0` promotion path and next checklist target remain explicit.
+- The `prepare-one-point-zero-major-checklist` helper should stay in step with the release-candidate artifact so the generated `v1.0.0` checklist draft does not drift from the audited promotion path.
 - Keep `examples/*`, `apps/*`, and `packages/*` on the same version line.
 
 ## Near-Term Priorities

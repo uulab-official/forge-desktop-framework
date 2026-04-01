@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.74 (2026-04-01)
+
+### One Point Zero Major Checklist Preparation
+
+- added `scripts/prepare-one-point-zero-major-checklist.sh` and `scripts/test-one-point-zero-major-checklist-preparation.sh` so Forge can turn the audited `one-point-zero-release-candidate.md/json` handoff into a prefilled `v1.0.0` checklist draft
+- wired `pnpm release:major:prepare:test` into `scripts/release.sh` and the Ubuntu `release-readiness` CI job so the first `1.0.0` checklist path stays reproducible before any major ship run
+- documented the new major-checklist preparation layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the 1.0 gate doc, and the `v0.1.74` release checklist
+
 ## 0.1.73 (2026-04-01)
 
 ### One Point Zero Release Candidate Artifact

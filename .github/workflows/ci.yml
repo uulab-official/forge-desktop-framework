@@ -109,6 +109,9 @@ jobs:
       - name: Verify One Point Zero release candidate report
         run: pnpm release:rc:test
 
+      - name: Verify One Point Zero major checklist preparation
+        run: pnpm release:major:prepare:test
+
   python:
     runs-on: ubuntu-latest
     steps:
