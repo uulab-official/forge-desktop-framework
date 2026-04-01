@@ -143,6 +143,14 @@ Required guard:
 
 - `pnpm release:major:packet:test`
 
+### 14. Major Release Signoff Is Explicit
+
+Forge must emit one final signoff sheet that turns the packet into the exact reviewer-facing approval surface for the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:signoff:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -170,6 +178,7 @@ pnpm release:major:runbook:test
 pnpm release:major:approval:test
 pnpm release:major:cockpit:test
 pnpm release:major:packet:test
+pnpm release:major:signoff:test
 pnpm release:ship patch
 pnpm version:check
 ```

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.80 (2026-04-01)
+
+### One Point Zero Major Release Signoff
+
+- added `scripts/generate-one-point-zero-major-release-signoff.sh` and `scripts/test-one-point-zero-major-release-signoff.sh` so Forge now emits `one-point-zero-major-release-signoff.md/json`, which turns the major-release packet into one final reviewer-facing signoff sheet
+- wired `pnpm release:major:signoff:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` signoff sheet for every shipped version
+- documented the new major-release signoff layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the 1.0 gate doc, and the `v0.1.80` release checklist
+
 ## 0.1.79 (2026-04-01)
 
 ### One Point Zero Major Release Packet

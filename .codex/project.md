@@ -54,6 +54,7 @@ When a task touches one of these surfaces, check the others before finishing:
 - The final `one-point-zero-major-release-approval` artifact should stay in step with the decision, promotion plan, and major-runbook layers so the first `1.0.0` approval handoff remains reproducible.
 - The final `one-point-zero-major-release-cockpit` artifact should stay in step with readiness, release-status, decision, promotion, runbook, and approval outputs so the first `1.0.0` operator view remains reproducible.
 - The final `one-point-zero-major-release-packet` artifact should stay in step with the cockpit output and prepared `v1.0.0` checklist so the first `1.0.0` human sign-off packet remains reproducible.
+- The final `one-point-zero-major-release-signoff` artifact should stay in step with the packet and prepared `v1.0.0` checklist so the first `1.0.0` reviewer signoff sheet remains reproducible.
 - Keep `examples/*`, `apps/*`, and `packages/*` on the same version line.
 
 ## Near-Term Priorities

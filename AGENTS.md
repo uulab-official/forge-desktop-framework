@@ -52,6 +52,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Keep the final `one-point-zero-major-release-approval.md/json` summary aligned with the decision, promotion plan, and major-runbook layers so the first `1.0.0` go/no-go handoff stays reproducible.
 - Keep the final `one-point-zero-major-release-cockpit.md/json` summary aligned with readiness, release-status, decision, promotion plan, runbook, and approval so the first `1.0.0` operator view stays reproducible.
 - Keep the final `one-point-zero-major-release-packet.md/json` summary aligned with the green cockpit artifact and prepared `v1.0.0` checklist so the first `1.0.0` human sign-off packet stays reproducible.
+- Keep the final `one-point-zero-major-release-signoff.md/json` summary aligned with the packet and prepared `v1.0.0` checklist so the first `1.0.0` reviewer signoff sheet stays reproducible.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`
