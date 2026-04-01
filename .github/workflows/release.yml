@@ -285,6 +285,10 @@ jobs:
         shell: bash
         run: bash scripts/generate-one-point-zero-major-release-cockpit.sh .release-matrix/one-point-zero-readiness.json .release-matrix/release-status.json .release-matrix/one-point-zero-decision.json .release-matrix/one-point-zero-promotion-plan.json .release-matrix/one-point-zero-major-release-runbook.json .release-matrix/one-point-zero-major-release-approval.json .release-matrix
 
+      - name: Generate One Point Zero major release packet
+        shell: bash
+        run: bash scripts/generate-one-point-zero-major-release-packet.sh .release-matrix/one-point-zero-major-release-cockpit.json .release-matrix/v1.0.0.md .release-matrix
+
       - name: Upload release bundle metadata to S3/R2
         if: ${{ vars.S3_ENABLED == 'true' }}
         shell: bash
@@ -345,6 +349,10 @@ jobs:
             --endpoint-url $S3_ENDPOINT
           aws s3 cp .release-matrix/one-point-zero-major-release-cockpit.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-major-release-cockpit.json" \
             --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/one-point-zero-major-release-packet.md "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-major-release-packet.md" \
+            --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/one-point-zero-major-release-packet.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-major-release-packet.json" \
+            --endpoint-url $S3_ENDPOINT
 
       - name: Upload release matrix summary
         uses: actions/upload-artifact@v4
@@ -376,3 +384,5 @@ jobs:
             .release-matrix/one-point-zero-major-release-approval.json
             .release-matrix/one-point-zero-major-release-cockpit.md
             .release-matrix/one-point-zero-major-release-cockpit.json
+            .release-matrix/one-point-zero-major-release-packet.md
+            .release-matrix/one-point-zero-major-release-packet.json

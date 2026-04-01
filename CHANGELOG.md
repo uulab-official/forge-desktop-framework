@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.79 (2026-04-01)
+
+### One Point Zero Major Release Packet
+
+- added `scripts/generate-one-point-zero-major-release-packet.sh` and `scripts/test-one-point-zero-major-release-packet.sh` so Forge now emits `one-point-zero-major-release-packet.md/json`, which joins the green cockpit artifact with the prepared `v1.0.0` checklist as one final human sign-off packet
+- wired `pnpm release:major:packet:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` sign-off packet for every shipped version
+- documented the new major-release packet layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the 1.0 gate doc, and the `v0.1.79` release checklist
+
 ## 0.1.78 (2026-04-01)
 
 ### One Point Zero Major Release Cockpit

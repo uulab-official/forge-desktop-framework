@@ -183,6 +183,7 @@ Tagged release metadata now also emits `one-point-zero-promotion-plan.md/json`, 
 Tagged release metadata now also emits `one-point-zero-major-release-runbook.md/json`, which turns that staging plan into the exact command sequence maintainers should run for the first major ship.
 Tagged release metadata now also emits `one-point-zero-major-release-approval.md/json`, which joins the `1.0` decision, promotion plan, and major-runbook layers into the final first-major-release approval handoff.
 Tagged release metadata now also emits `one-point-zero-major-release-cockpit.md/json`, which condenses the full `1.0` promotion stack into one final operator summary before the first major ship.
+Tagged release metadata now also emits `one-point-zero-major-release-packet.md/json`, which joins that green cockpit summary with the prepared `v1.0.0` checklist as the final human sign-off packet.
 
 Tagged release runs now also upload per-matrix release inventory artifacts with `artifact-summary.md`, `artifact-summary.json`, and `latest*.yml` so maintainers can inspect packaged output without pulling raw runner files.
 The same tagged release flow now also audits platform-specific publish output so mac builds must emit `.dmg`, Windows builds must emit `.exe`, Linux builds must emit `.AppImage`, and all of them must keep a `latest*.yml` manifest.
@@ -216,6 +217,7 @@ The same `1.0` stack now also emits `one-point-zero-promotion-plan.md/json` so m
 The same `1.0` stack now also emits `one-point-zero-major-release-runbook.md/json` so maintainers can hand the final first-major-release command sequence around without rebuilding it from multiple artifacts.
 The same `1.0` stack now also emits `one-point-zero-major-release-approval.md/json` so the final go/no-go approval for the first major release survives as one auditable artifact.
 The same `1.0` stack now also emits `one-point-zero-major-release-cockpit.md/json` so operators can review the final readiness, decision, approval, and ship commands from one artifact.
+The same `1.0` stack now also emits `one-point-zero-major-release-packet.md/json` so maintainers can review the final human sign-off packet without reopening every upstream 1.0 artifact.
 
 Feature packs available on the `minimal` starter today:
 - `settings` for persisted preferences and runtime controls

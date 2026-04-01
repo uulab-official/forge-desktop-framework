@@ -135,6 +135,14 @@ Required guard:
 
 - `pnpm release:major:cockpit:test`
 
+### 13. Major Release Packet Is Explicit
+
+Forge must emit one final human sign-off packet that joins the green cockpit artifact with the prepared `v1.0.0` checklist into one approval-ready `1.0.0` packet.
+
+Required guard:
+
+- `pnpm release:major:packet:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -161,6 +169,7 @@ pnpm release:promotion:test
 pnpm release:major:runbook:test
 pnpm release:major:approval:test
 pnpm release:major:cockpit:test
+pnpm release:major:packet:test
 pnpm release:ship patch
 pnpm version:check
 ```
