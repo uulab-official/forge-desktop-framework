@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.66 (2026-04-01)
+
+### Remote History Rollback Preparation
+
+- added `scripts/fetch-release-history-from-github.sh`, `scripts/fetch-release-history-from-s3.sh`, `scripts/prepare-release-rollback-from-github-history.sh`, and `scripts/prepare-release-rollback-from-s3-history.sh` so maintainers can fetch several recent remote tags into one local history root and immediately prepare the best matching rollback bundle
+- added `scripts/test-release-remote-history-preparation.sh`, wired it into `scripts/release.sh`, exposed it as `pnpm release:history:remote:test`, and added it to the Ubuntu `release-readiness` CI job so provider-specific history wrappers regress before `release:ship`
+- documented the new remote-history rollback preparation flow in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, and the `v0.1.66` release checklist
+
 ## 0.1.65 (2026-04-01)
 
 ### History-Root Rollback Preparation

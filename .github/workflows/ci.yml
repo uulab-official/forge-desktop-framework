@@ -88,6 +88,9 @@ jobs:
       - name: Verify rollback history preparation
         run: pnpm release:rollback:prepare:test
 
+      - name: Verify remote history rollback preparation
+        run: pnpm release:history:remote:test
+
   python:
     runs-on: ubuntu-latest
     steps:

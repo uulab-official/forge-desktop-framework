@@ -38,6 +38,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Keep history-root rollback preparation aligned with selectors and retrieval helpers so accumulated cached tags can turn into one drill-ready bundle without manual path stitching.
 - Keep remote GitHub artifact fetch helpers aligned with bundle retrieval so a tagged release can be reconstructed from `gh` without manual artifact browsing.
 - Keep object-storage bundle mirroring aligned with retrieval helpers so S3 or R2 rollback inputs match the same archive shape as GitHub artifact downloads.
+- Keep remote multi-tag history fetch wrappers aligned with the single-tag GitHub and S3 fetch helpers so provider-specific recovery flows do not drift.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`

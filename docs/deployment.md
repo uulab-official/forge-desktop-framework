@@ -218,6 +218,7 @@ The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pul
 - `pnpm release:history:test`
 - `pnpm release:rollback:target:test`
 - `pnpm release:rollback:prepare:test`
+- `pnpm release:history:remote:test`
 
 The tagged `Release` workflow now also:
 - writes a markdown and JSON inventory of packaged artifacts for each matrix job
@@ -237,6 +238,7 @@ The tagged `Release` workflow now also:
 - lets maintainers auto-select the newest valid previous bundle for a platform, arch, and recovery mode before retrieval or rollback drills
 - lets maintainers prepare a rollback input straight from that history root so selection and archived bundle retrieval can be handled as one command
 - lets maintainers fetch archived bundles straight from tagged GitHub Actions artifacts with `gh` before retrieval, so remote rollback inputs can be reconstructed from one command
+- lets maintainers fetch several recent GitHub or S3 tags into one history root and prepare the rollback bundle from that accumulated remote history in one maintainer flow
 - when `S3_ENABLED=true`, mirrors the archived bundle cache plus the generated bundle index, matrix summary, and provenance files into `s3://<bucket>/release-bundles/vX.Y.Z/`
 - audits signing readiness before packaging so missing mac notarization or Windows signing secrets fail before the packaging step starts
 - runs a follow-up matrix summary job that downloads every per-platform inventory and uploads `release-matrix-summary.md/json`
@@ -310,6 +312,31 @@ bash scripts/prepare-release-rollback-from-history.sh \
 ```
 
 That command regenerates `release-history-index.json` when needed, picks the newest valid prior release for the requested target and recovery mode, and then retrieves the canonical archived bundle into one prepared rollback directory.
+
+If you want to populate that history root from recent remote releases first, use one of these wrappers:
+
+```bash
+bash scripts/prepare-release-rollback-from-github-history.sh \
+  uulab-official/forge-desktop-framework \
+  mac \
+  arm64 \
+  0.1.65 \
+  dual-channel \
+  5
+```
+
+```bash
+bash scripts/prepare-release-rollback-from-s3-history.sh \
+  forge-release-cache \
+  mac \
+  arm64 \
+  0.1.65 \
+  dual-channel \
+  s3 \
+  5
+```
+
+Those commands fetch up to the requested number of remote tags at or before the current version, refresh the accumulated `release-history-index.json`, and then prepare the canonical retrieved rollback bundle from the best matching older release.
 
 ### Build and Publish Locally
 
