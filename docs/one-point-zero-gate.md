@@ -87,6 +87,14 @@ Required guard:
 
 - `pnpm release:decision:test`
 
+### 7. Release-Candidate Handoff Is Explicit
+
+Forge must emit one final release-candidate handoff that points the current stable line at the `1.0.0` promotion path.
+
+Required guard:
+
+- `pnpm release:rc:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -107,6 +115,7 @@ pnpm release:onepointzero:test
 pnpm release:status:test
 pnpm release:freeze:test
 pnpm release:decision:test
+pnpm release:rc:test
 pnpm release:ship patch
 pnpm version:check
 ```

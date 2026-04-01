@@ -214,6 +214,7 @@ Forge 1.0 release gate criteria are now fixed in [docs/one-point-zero-gate.md](/
 Maintainers can now also run `pnpm release:status:test` to verify the final release-status artifact that condenses the `1.0` gate, matrix targets, provenance, and official preset readiness into one summary.
 Maintainers can now also run `pnpm release:freeze:test` to verify the final freeze artifact that combines that release-status summary with the per-version checklist into one explicit `go/no-go` record.
 Maintainers can now also run `pnpm release:decision:test` to verify the final decision artifact that turns the readiness, release-status, and freeze layers into one explicit `1.0` handoff.
+Maintainers can now also run `pnpm release:rc:test` to verify the final release-candidate artifact that points the current stable line at the `1.0.0` promotion path.
 
 The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pull requests:
 - `pnpm scaffold:test`
@@ -228,6 +229,7 @@ The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pul
 - `pnpm release:status:test`
 - `pnpm release:freeze:test`
 - `pnpm release:decision:test`
+- `pnpm release:rc:test`
 
 The tagged `Release` workflow now also:
 - writes a markdown and JSON inventory of packaged artifacts for each matrix job
@@ -256,6 +258,7 @@ The tagged `Release` workflow now also:
 - generates `release-status.md/json` from the 1.0 readiness audit, matrix summary, and provenance so maintainers get one condensed operator-facing release health artifact
 - generates `one-point-zero-freeze.md/json` from the release-status artifact and the matching version checklist so maintainers also get one explicit freeze decision record
 - generates `one-point-zero-decision.md/json` from the readiness audit, release-status artifact, and freeze record so maintainers also get one final `1.0` decision handoff artifact
+- generates `one-point-zero-release-candidate.md/json` from the final decision artifact so maintainers also get the next `1.0.0` promotion handoff and checklist target in one place
 
 For framework maintainers working in this monorepo, the official one-command ship flow is:
 

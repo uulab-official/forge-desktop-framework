@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.73 (2026-04-01)
+
+### One Point Zero Release Candidate Artifact
+
+- added `scripts/generate-one-point-zero-release-candidate-report.sh` and `scripts/test-one-point-zero-release-candidate-report.sh` so Forge now emits `one-point-zero-release-candidate.md/json`, a final `1.0.0` promotion handoff derived from the one-point-zero decision artifact
+- wired `pnpm release:rc:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit release-candidate artifact for every shipped version
+- documented the new release-candidate layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the 1.0 gate doc, and the `v0.1.73` release checklist
+
 ## 0.1.72 (2026-04-01)
 
 ### One Point Zero Decision Artifact
