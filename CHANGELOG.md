@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.64 (2026-03-31)
+
+### Remote Release History Index
+
+- added `scripts/generate-release-history-index.sh` and `scripts/test-release-history-index.sh` so maintainers can aggregate multiple fetched tag directories into one `release-history-index.md/json` view with per-tag and per-target history
+- updated the GitHub and S3 archived bundle fetch helpers to refresh the parent release history index automatically, and included that presence in their fetch summaries
+- wired release-history smoke into `scripts/release.sh`, exposed it as `pnpm release:history:test`, and added it to the Ubuntu `release-readiness` CI job so multi-tag recovery metadata stays healthy before `release:ship`
+
 ## 0.1.63 (2026-03-31)
 
 ### Archived Rollback Target Selection

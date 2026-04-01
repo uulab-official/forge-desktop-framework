@@ -79,6 +79,9 @@ jobs:
       - name: Audit official preset release surfaces
         run: pnpm release:audit
 
+      - name: Verify release history index
+        run: pnpm release:history:test
+
       - name: Verify rollback target selection
         run: pnpm release:rollback:target:test
 

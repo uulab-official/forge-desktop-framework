@@ -16,6 +16,56 @@ cleanup() {
 
 trap cleanup EXIT
 
+run_with_timeout() {
+  local timeout_seconds="$1"
+  shift
+
+  node - "$timeout_seconds" "$@" <<'NODE'
+const { spawnSync } = require('node:child_process');
+
+const [timeoutSeconds, ...command] = process.argv.slice(2);
+if (command.length === 0) {
+  console.error('run_with_timeout requires a command');
+  process.exit(1);
+}
+
+const result = spawnSync(command[0], command.slice(1), {
+  stdio: 'inherit',
+  timeout: Number(timeoutSeconds) * 1000,
+});
+
+if (result.error) {
+  if (result.error.code === 'ETIMEDOUT') {
+    console.error(`Timed out after ${timeoutSeconds}s: ${command.join(' ')}`);
+    process.exit(124);
+  }
+  console.error(result.error.message);
+  process.exit(1);
+}
+
+process.exit(result.status ?? 0);
+NODE
+}
+
+install_with_retry() {
+  local target_dir="$1"
+  local attempt
+
+  for attempt in 1 2; do
+    if run_with_timeout 900 pnpm install --dir "$target_dir"; then
+      return 0
+    fi
+
+    if [[ "$attempt" -eq 1 ]]; then
+      echo "pnpm install stalled or failed for $target_dir; retrying once..."
+      sleep 2
+    fi
+  done
+
+  echo "pnpm install failed for $target_dir after retries."
+  exit 1
+}
+
 seed_release_output() {
   local target_dir="$1"
   local version
@@ -106,7 +156,7 @@ verify_external_app() {
   rewrite_forge_dependencies "$target_dir/package.json"
 
   echo "==> Installing external ${preset_id} app without workspace links"
-  pnpm install --dir "$target_dir"
+  install_with_retry "$target_dir"
 
   echo "==> Verifying external ${preset_id} app"
   pnpm --dir "$target_dir" release:check

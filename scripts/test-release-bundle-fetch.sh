@@ -212,6 +212,7 @@ FORGE_FAKE_GH_FIXTURE_ROOT="$FIXTURE_ARTIFACTS" \
 [[ -f "$FETCH_OUTPUT/files/rollback-playbook.json" ]]
 [[ -f "$DOWNLOAD_ROOT/release-bundle-index.json" ]]
 [[ -f "$DOWNLOAD_ROOT/release-matrix-summary.json" ]]
+[[ -f "$WORK_DIR/release-history-index.json" ]]
 
 if PATH="$WORK_DIR/bin:$PATH" FORGE_FAKE_GH_FIXTURE_ROOT="$FIXTURE_ARTIFACTS" \
   bash scripts/fetch-release-inventory-bundle-from-github.sh \

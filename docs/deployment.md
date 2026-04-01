@@ -215,6 +215,7 @@ The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pul
 - `pnpm scaffold:test`
 - `pnpm scaffold:external:test`
 - `pnpm release:audit`
+- `pnpm release:history:test`
 - `pnpm release:rollback:target:test`
 
 The tagged `Release` workflow now also:
@@ -231,6 +232,7 @@ The tagged `Release` workflow now also:
 - emits a standardized release inventory bundle per platform so archived rollback drill inputs can be stored as one reusable package instead of loose audit files
 - lets maintainers retrieve an archived bundle by platform, arch, and version before running rollback drills
 - emits a release bundle index in the matrix summary job so maintainers can discover available archived bundles per platform and version
+- lets maintainers aggregate multiple fetched tags into a release history index so cached rollback inputs can be browsed across versions instead of one tag at a time
 - lets maintainers auto-select the newest valid previous bundle for a platform, arch, and recovery mode before retrieval or rollback drills
 - lets maintainers fetch archived bundles straight from tagged GitHub Actions artifacts with `gh` before retrieval, so remote rollback inputs can be reconstructed from one command
 - when `S3_ENABLED=true`, mirrors the archived bundle cache plus the generated bundle index, matrix summary, and provenance files into `s3://<bucket>/release-bundles/vX.Y.Z/`
@@ -271,6 +273,15 @@ bash scripts/fetch-release-inventory-bundle-from-s3.sh \
 ```
 
 That command downloads `release-bundles/vX.Y.Z/` from object storage, restores the local bundle index if needed, and then reuses the same canonical retrieval helper that powers rollback drills.
+
+To aggregate multiple fetched tag directories into one remote history view:
+
+```bash
+bash scripts/generate-release-history-index.sh \
+  .fetched-release-artifacts
+```
+
+That command emits `release-history-index.md/json` so maintainers can see every cached tag, the bundled targets inside each one, and the latest archived version per target before picking a rollback path. The GitHub and S3 fetch helpers now refresh this parent history index automatically.
 
 If you keep an accumulated archive root with multiple tagged bundles locally, you can auto-select the best rollback candidate before retrieval:
 

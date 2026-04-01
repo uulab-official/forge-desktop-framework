@@ -78,6 +78,7 @@ NODE
 rm -rf "$ARCHIVE_ROOT"
 mkdir -p "$ARCHIVE_ROOT"
 gh run download "$RUN_ID" --repo "$REPO" --dir "$ARCHIVE_ROOT"
+HISTORY_ROOT="$(dirname "$ARCHIVE_ROOT")"
 
 MATRIX_DIR="$ARCHIVE_ROOT/release-matrix-summary"
 for carried_file in \
@@ -92,6 +93,8 @@ do
     cp "$MATRIX_DIR/$carried_file" "$ARCHIVE_ROOT/$carried_file"
   fi
 done
+
+bash scripts/generate-release-history-index.sh "$HISTORY_ROOT" "$HISTORY_ROOT"
 
 INVENTORY_COUNT="$(find "$ARCHIVE_ROOT" -maxdepth 1 -type d -name 'release-inventory-*' | wc -l | tr -d ' ')"
 if [[ "$INVENTORY_COUNT" == "0" ]]; then
@@ -126,6 +129,7 @@ const checks = {
   runResolved: Boolean(runId),
   releaseMatrixSummaryPresent: fs.existsSync(path.join(archiveRoot, 'release-matrix-summary.json')),
   releaseBundleIndexPresent: fs.existsSync(path.join(archiveRoot, 'release-bundle-index.json')),
+  releaseHistoryIndexPresent: fs.existsSync(path.join(path.dirname(archiveRoot), 'release-history-index.json')),
   inventoryArtifactsDownloaded: Number.parseInt(inventoryCount, 10) > 0,
   retrievedBundlePassed: retrieval.status === 'passed',
 };
@@ -147,6 +151,7 @@ const markdown = [
   `| Workflow run resolved | ${checks.runResolved} |`,
   `| Matrix summary artifact available | ${checks.releaseMatrixSummaryPresent} |`,
   `| Bundle index available | ${checks.releaseBundleIndexPresent} |`,
+  `| History index available | ${checks.releaseHistoryIndexPresent} |`,
   `| Release inventory artifacts downloaded | ${checks.inventoryArtifactsDownloaded} |`,
   `| Retrieved bundle passed | ${checks.retrievedBundlePassed} |`,
   '',

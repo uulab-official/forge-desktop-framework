@@ -35,6 +35,7 @@ When a task touches one of these surfaces, check the others before finishing:
 - Keep archived release inventory bundles stable because they are becoming the canonical input shape for future rollback drills and release retrieval tooling.
 - Retrieval helpers should resolve archived bundles by platform, arch, and version before any rollback drill tries to interpret loose release files.
 - Bundle index generation should stay in step with retrieval helpers so archived rollback target discovery does not depend on manual artifact browsing.
+- Release history indexing should stay in step with remote fetch helpers so multi-tag rollback discovery does not depend on ad hoc folder inspection.
 - Rollback target selectors should stay in step with the bundle index so maintainers can automatically choose the newest valid prior version for a recovery mode.
 - Remote GitHub artifact fetch helpers should restore the same archive shape locally so rollback drills do not depend on ad hoc artifact download steps.
 - Object-storage mirrors should preserve that same archive shape and bundle metadata so `aws`-based retrieval paths stay equivalent to GitHub artifact fetches.

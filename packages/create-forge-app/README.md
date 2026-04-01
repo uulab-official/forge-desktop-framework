@@ -31,10 +31,12 @@ Today:
 - tagged releases now also upload a standardized release inventory bundle so archived rollback drill inputs can be stored and handed back to maintainers without rebuilding the audit set by hand
 - maintainers can now also retrieve that archived bundle directly for rollback drills instead of reconstructing inputs from individual audit files
 - the release matrix follow-up now also emits a release bundle index so archived bundle discovery is explicit before retrieval
+- maintainers can now also aggregate multiple fetched tag directories into a release history index before choosing a recovery path
 - maintainers can now also auto-select the newest valid archived rollback target from that bundle index before retrieval or drill execution
 - maintainers can now also fetch archived bundles straight from tagged GitHub Actions artifacts with `gh` before local retrieval or rollback drills
 - when S3 publishing is enabled, the repo release workflow now also mirrors that archived bundle cache to object storage so maintainers can fetch rollback inputs with `aws`
 - the Ubuntu `release-readiness` CI job now also exercises rollback target selection so release recovery helpers regress before `release:ship`, not after
+- the Ubuntu `release-readiness` CI job now also exercises release history indexing so multi-tag recovery helpers stay healthy before `release:ship`
 - the repo release workflow now also fails early if a matrix job is missing mac notarization or Windows signing secrets before packaging starts
 - the repo release workflow now also uploads a final `release-matrix-summary.md/json` artifact that aggregates all platform inventories
 - the repo release workflow now also uploads `release-provenance.md/json` so maintainers can map tag, commit, version, and platform outputs back to one release record

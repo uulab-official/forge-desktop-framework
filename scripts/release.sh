@@ -64,6 +64,10 @@ echo "Running release bundle index smoke test before version bump..."
 bash scripts/test-release-bundle-index.sh
 echo ""
 
+echo "Running release history index smoke test before version bump..."
+bash scripts/test-release-history-index.sh
+echo ""
+
 echo "Running rollback target selection smoke test before version bump..."
 bash scripts/test-release-rollback-target-selection.sh
 echo ""

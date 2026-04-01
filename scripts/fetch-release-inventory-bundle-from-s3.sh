@@ -45,6 +45,7 @@ fi
 
 rm -rf "$ARCHIVE_ROOT"
 mkdir -p "$ARCHIVE_ROOT"
+HISTORY_ROOT="$(dirname "$ARCHIVE_ROOT")"
 
 AWS_SYNC_ARGS=(
   s3
@@ -68,6 +69,8 @@ fi
 if [[ ! -f "$ARCHIVE_ROOT/release-bundle-index.json" ]]; then
   bash scripts/generate-release-bundle-index.sh "$ARCHIVE_ROOT" "$ARCHIVE_ROOT"
 fi
+
+bash scripts/generate-release-history-index.sh "$HISTORY_ROOT" "$HISTORY_ROOT"
 
 bash scripts/retrieve-release-inventory-bundle.sh "$ARCHIVE_ROOT" "$MATCH_PLATFORM_LABEL" "$ARCH_LABEL" "$EXPECTED_VERSION" "$OUTPUT_DIR"
 
@@ -99,6 +102,7 @@ const checks = {
   bundlesDownloaded: Number.parseInt(bundleCount, 10) > 0,
   releaseBundleIndexPresent: fs.existsSync(path.join(archiveRoot, 'release-bundle-index.json')),
   releaseMatrixSummaryPresent: fs.existsSync(path.join(archiveRoot, 'release-matrix-summary.json')),
+  releaseHistoryIndexPresent: fs.existsSync(path.join(path.dirname(archiveRoot), 'release-history-index.json')),
   retrievedBundlePassed: retrieval.status === 'passed',
 };
 const status = Object.values(checks).every(Boolean) ? 'passed' : 'failed';
@@ -121,6 +125,7 @@ const markdown = [
   `| Archived bundles downloaded | ${checks.bundlesDownloaded} |`,
   `| Bundle index available | ${checks.releaseBundleIndexPresent} |`,
   `| Matrix summary mirrored | ${checks.releaseMatrixSummaryPresent} |`,
+  `| History index available | ${checks.releaseHistoryIndexPresent} |`,
   `| Retrieved bundle passed | ${checks.retrievedBundlePassed} |`,
   '',
 ].join('\n');

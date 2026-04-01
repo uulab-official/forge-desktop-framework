@@ -173,6 +173,7 @@ S3_ENDPOINT="https://example.r2.invalid" \
 [[ -f "$FETCH_OUTPUT/s3-fetch-summary.json" ]]
 [[ -f "$FETCH_OUTPUT/files/channel-recovery.json" ]]
 [[ -f "$DOWNLOAD_ROOT/release-bundle-index.json" ]]
+[[ -f "$WORK_DIR/release-history-index.json" ]]
 
 if PATH="$WORK_DIR/bin:$PATH" FORGE_FAKE_S3_ROOT="$REMOTE_ROOT" \
   bash scripts/fetch-release-inventory-bundle-from-s3.sh \

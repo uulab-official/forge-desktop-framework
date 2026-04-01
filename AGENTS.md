@@ -33,6 +33,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Use the archived-release rollback drill helpers when you need to validate that a previous tagged inventory can satisfy the generated rollback playbook before touching a live channel.
 - Prefer the standardized release inventory bundle as the archived rollback input shape; keep bundle contents and retrieval tooling aligned with the drill helpers and tagged release artifacts.
 - Keep the archived bundle index aligned with retrieval helpers so maintainers can discover available rollback targets before running drills.
+- Keep release history indexing aligned with remote fetch helpers so multiple cached tags can be reasoned about without manual directory browsing.
 - Keep rollback target selection aligned with the archived bundle index so maintainers can choose the newest valid previous version without hand-browsing archived bundles.
 - Keep remote GitHub artifact fetch helpers aligned with bundle retrieval so a tagged release can be reconstructed from `gh` without manual artifact browsing.
 - Keep object-storage bundle mirroring aligned with retrieval helpers so S3 or R2 rollback inputs match the same archive shape as GitHub artifact downloads.
