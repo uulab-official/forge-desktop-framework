@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.77 (2026-04-01)
+
+### One Point Zero Major Release Approval
+
+- added `scripts/generate-one-point-zero-major-release-approval.sh` and `scripts/test-one-point-zero-major-release-approval.sh` so Forge now emits `one-point-zero-major-release-approval.md/json`, which joins the `1.0` decision, promotion plan, and major-runbook layers into one final first-major-release approval artifact
+- wired `pnpm release:major:approval:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit first-major-release approval handoff for every shipped version
+- documented the new major-release approval layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the 1.0 gate doc, and the `v0.1.77` release checklist
+
 ## 0.1.76 (2026-04-01)
 
 ### One Point Zero Major Release Runbook

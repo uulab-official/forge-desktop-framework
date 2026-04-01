@@ -49,6 +49,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Keep the `prepare-one-point-zero-major-checklist.sh` helper aligned with the release-candidate artifact so the generated `v1.0.0` checklist draft matches the documented promotion path.
 - Keep the final `one-point-zero-promotion-plan.md/json` summary aligned with the release-candidate artifact and prepared `v1.0.0` checklist so the first major-release staging plan stays reproducible.
 - Keep the final `one-point-zero-major-release-runbook.md/json` summary aligned with the promotion plan so the first `1.0.0` ship sequence stays explicit and reproducible.
+- Keep the final `one-point-zero-major-release-approval.md/json` summary aligned with the decision, promotion plan, and major-runbook layers so the first `1.0.0` go/no-go handoff stays reproducible.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`

@@ -119,6 +119,14 @@ Required guard:
 
 - `pnpm release:major:runbook:test`
 
+### 11. Major Release Approval Is Explicit
+
+Forge must emit one final approval artifact that joins the `1.0` decision, promotion plan, and major-release runbook into the last go/no-go handoff before the first major tag.
+
+Required guard:
+
+- `pnpm release:major:approval:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -143,6 +151,7 @@ pnpm release:rc:test
 pnpm release:major:prepare:test
 pnpm release:promotion:test
 pnpm release:major:runbook:test
+pnpm release:major:approval:test
 pnpm release:ship patch
 pnpm version:check
 ```

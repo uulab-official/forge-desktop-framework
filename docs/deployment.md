@@ -218,6 +218,7 @@ Maintainers can now also run `pnpm release:rc:test` to verify the final release-
 Maintainers can now also run `pnpm release:major:prepare:test` to verify the helper that turns that release-candidate artifact into a prefilled `v1.0.0` checklist draft.
 Maintainers can now also run `pnpm release:promotion:test` to verify the final promotion-plan artifact that joins the release-candidate handoff with the generated `v1.0.0` checklist draft before a major ship.
 Maintainers can now also run `pnpm release:major:runbook:test` to verify the final major-release runbook artifact that turns that promotion plan into the exact `1.0.0` ship sequence.
+Maintainers can now also run `pnpm release:major:approval:test` to verify the final approval artifact that joins the `1.0` decision, promotion plan, and major-runbook layers into the last first-major-release handoff.
 
 The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pull requests:
 - `pnpm scaffold:test`
@@ -236,6 +237,7 @@ The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pul
 - `pnpm release:major:prepare:test`
 - `pnpm release:promotion:test`
 - `pnpm release:major:runbook:test`
+- `pnpm release:major:approval:test`
 
 The tagged `Release` workflow now also:
 - writes a markdown and JSON inventory of packaged artifacts for each matrix job
@@ -268,6 +270,7 @@ The tagged `Release` workflow now also:
 - keeps a checked helper for preparing the matching `v1.0.0` checklist draft from that release-candidate artifact before any `major` ship run
 - prepares `v1.0.0.md` and generates `one-point-zero-promotion-plan.md/json` so the first major-release staging handoff is preserved as a tagged release artifact too
 - generates `one-point-zero-major-release-runbook.md/json` from that promotion plan so the first major-release command sequence is preserved as a tagged release artifact too
+- generates `one-point-zero-major-release-approval.md/json` so the final first-major-release go/no-go handoff is preserved as a tagged release artifact too
 
 For framework maintainers working in this monorepo, the official one-command ship flow is:
 
