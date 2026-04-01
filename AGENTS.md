@@ -41,6 +41,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Keep remote multi-tag history fetch wrappers aligned with the single-tag GitHub and S3 fetch helpers so provider-specific recovery flows do not drift.
 - Keep the final remote rollback drill wrapper aligned with both provider-specific history wrappers and the local rollback drill so maintainers have one coherent recovery path.
 - Keep the recovery-command summary aligned with the final remote rollback drill wrapper so maintainers can trust the emitted rerun command, selected target, and next actions.
+- Keep `docs/one-point-zero-gate.md` aligned with the actual release and recovery guards, and keep `pnpm release:onepointzero:test` green before shipping.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`

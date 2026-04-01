@@ -173,6 +173,7 @@ Framework CI now checks eight release-readiness layers on Ubuntu before changes 
 - remote rollback drill smoke via `pnpm release:rollback:remote:test`
 
 Maintainers now also keep a versioned release checklist in [docs/release-checklists](/Users/bonjin/Documents/workspace/uulab/forge-desktop-framework/docs/release-checklists/README.md). `release:ship` now verifies that the next version already has a `vX.Y.Z.md` checklist marked `ready` before any release gates run.
+Forge 1.0 release gate criteria now live in [docs/one-point-zero-gate.md](/Users/bonjin/Documents/workspace/uulab/forge-desktop-framework/docs/one-point-zero-gate.md), and maintainers can validate that the documented `1.0` contract still matches the repo with `pnpm release:onepointzero:test`.
 
 Tagged release runs now also upload per-matrix release inventory artifacts with `artifact-summary.md`, `artifact-summary.json`, and `latest*.yml` so maintainers can inspect packaged output without pulling raw runner files.
 The same tagged release flow now also audits platform-specific publish output so mac builds must emit `.dmg`, Windows builds must emit `.exe`, Linux builds must emit `.AppImage`, and all of them must keep a `latest*.yml` manifest.

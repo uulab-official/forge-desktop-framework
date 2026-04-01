@@ -84,6 +84,10 @@ echo "Running remote rollback drill smoke test before version bump..."
 bash scripts/test-remote-release-rollback-drill.sh
 echo ""
 
+echo "Running Forge 1.0 readiness smoke test before version bump..."
+bash scripts/test-one-point-zero-readiness.sh
+echo ""
+
 echo "Running archived release inventory retrieval smoke test before version bump..."
 bash scripts/test-release-inventory-retrieval.sh
 echo ""

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.69 (2026-04-01)
+
+### Forge 1.0 Release Gate
+
+- added `docs/one-point-zero-gate.md`, `scripts/audit-one-point-zero-readiness.sh`, and `scripts/test-one-point-zero-readiness.sh` so Forge now has an explicit documented `1.0` contract plus a maintainer smoke test that emits `one-point-zero-readiness.md/json`
+- wired `pnpm release:onepointzero:test` into `scripts/release.sh` and the Ubuntu `release-readiness` CI job so `release:ship` and pull requests both fail when the documented `1.0` gate drifts from repo scripts, official presets, or public docs
+- documented the new 1.0 gate in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, and the `v0.1.69` release checklist
+
 ## 0.1.68 (2026-04-01)
 
 ### Recovery Command Summary

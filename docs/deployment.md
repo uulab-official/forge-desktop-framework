@@ -210,6 +210,7 @@ pnpm release:playbook:test
 ```
 
 Every shipped version should also leave a checklist file under `docs/release-checklists/vX.Y.Z.md`. `pnpm release:ship patch` now fails early if that checklist is missing or not marked `ready`.
+Forge 1.0 release gate criteria are now fixed in [docs/one-point-zero-gate.md](/Users/bonjin/Documents/workspace/uulab/forge-desktop-framework/docs/one-point-zero-gate.md), and `pnpm release:onepointzero:test` verifies that the repo, CI, and public docs still match that `1.0` contract before the version can move.
 
 The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pull requests:
 - `pnpm scaffold:test`
@@ -220,6 +221,7 @@ The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pul
 - `pnpm release:rollback:prepare:test`
 - `pnpm release:history:remote:test`
 - `pnpm release:rollback:remote:test`
+- `pnpm release:onepointzero:test`
 
 The tagged `Release` workflow now also:
 - writes a markdown and JSON inventory of packaged artifacts for each matrix job

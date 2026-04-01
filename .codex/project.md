@@ -43,6 +43,7 @@ When a task touches one of these surfaces, check the others before finishing:
 - Remote multi-version history fetch wrappers should stay in step with both GitHub and S3 single-tag fetch helpers so maintainer recovery paths do not fork by provider.
 - The final remote rollback drill wrapper should stay in step with both provider-specific history wrappers and the local rollback drill so the maintainer recovery path remains one coherent product surface.
 - The recovery-command summary should stay in step with the final remote rollback drill wrapper so maintainers can trust the emitted rerun command, selected rollback target, and next actions.
+- The explicit `1.0` gate document should stay in step with release guards, CI, and public docs so Forge does not claim a stable product surface without a matching audit trail.
 - Keep `examples/*`, `apps/*`, and `packages/*` on the same version line.
 
 ## Near-Term Priorities
