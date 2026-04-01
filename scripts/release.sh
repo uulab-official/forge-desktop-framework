@@ -80,6 +80,10 @@ echo "Running remote release history preparation smoke test before version bump.
 bash scripts/test-release-remote-history-preparation.sh
 echo ""
 
+echo "Running remote rollback drill smoke test before version bump..."
+bash scripts/test-remote-release-rollback-drill.sh
+echo ""
+
 echo "Running archived release inventory retrieval smoke test before version bump..."
 bash scripts/test-release-inventory-retrieval.sh
 echo ""

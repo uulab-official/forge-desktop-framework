@@ -41,6 +41,7 @@ When a task touches one of these surfaces, check the others before finishing:
 - Remote GitHub artifact fetch helpers should restore the same archive shape locally so rollback drills do not depend on ad hoc artifact download steps.
 - Object-storage mirrors should preserve that same archive shape and bundle metadata so `aws`-based retrieval paths stay equivalent to GitHub artifact fetches.
 - Remote multi-version history fetch wrappers should stay in step with both GitHub and S3 single-tag fetch helpers so maintainer recovery paths do not fork by provider.
+- The final remote rollback drill wrapper should stay in step with both provider-specific history wrappers and the local rollback drill so the maintainer recovery path remains one coherent product surface.
 - Keep `examples/*`, `apps/*`, and `packages/*` on the same version line.
 
 ## Near-Term Priorities

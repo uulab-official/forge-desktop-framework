@@ -219,6 +219,7 @@ The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pul
 - `pnpm release:rollback:target:test`
 - `pnpm release:rollback:prepare:test`
 - `pnpm release:history:remote:test`
+- `pnpm release:rollback:remote:test`
 
 The tagged `Release` workflow now also:
 - writes a markdown and JSON inventory of packaged artifacts for each matrix job
@@ -239,6 +240,7 @@ The tagged `Release` workflow now also:
 - lets maintainers prepare a rollback input straight from that history root so selection and archived bundle retrieval can be handled as one command
 - lets maintainers fetch archived bundles straight from tagged GitHub Actions artifacts with `gh` before retrieval, so remote rollback inputs can be reconstructed from one command
 - lets maintainers fetch several recent GitHub or S3 tags into one history root and prepare the rollback bundle from that accumulated remote history in one maintainer flow
+- lets maintainers run that remote provider fetch plus rollback preparation plus rollback drill as one provider-agnostic maintainer command
 - when `S3_ENABLED=true`, mirrors the archived bundle cache plus the generated bundle index, matrix summary, and provenance files into `s3://<bucket>/release-bundles/vX.Y.Z/`
 - audits signing readiness before packaging so missing mac notarization or Windows signing secrets fail before the packaging step starts
 - runs a follow-up matrix summary job that downloads every per-platform inventory and uploads `release-matrix-summary.md/json`
@@ -337,6 +339,35 @@ bash scripts/prepare-release-rollback-from-s3-history.sh \
 ```
 
 Those commands fetch up to the requested number of remote tags at or before the current version, refresh the accumulated `release-history-index.json`, and then prepare the canonical retrieved rollback bundle from the best matching older release.
+
+If you already have the current release inventory on disk and want to run the full remote rollback drill in one pass:
+
+```bash
+bash scripts/run-remote-release-rollback-drill.sh \
+  github \
+  uulab-official/forge-desktop-framework \
+  apps/app/release \
+  mac \
+  arm64 \
+  0.1.66 \
+  dual-channel \
+  5
+```
+
+```bash
+bash scripts/run-remote-release-rollback-drill.sh \
+  s3 \
+  forge-release-cache \
+  apps/app/release \
+  mac \
+  arm64 \
+  0.1.66 \
+  dual-channel \
+  5 \
+  s3
+```
+
+Those commands fetch recent remote history for the requested provider, prepare the best matching older rollback bundle, and then run `scripts/run-rollback-drill.sh` against the current release directory.
 
 ### Build and Publish Locally
 

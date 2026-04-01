@@ -162,7 +162,7 @@ What the scaffold now adds by default:
 - GitHub Actions workflows for validation and tagged releases
 - renderer safety/diagnostics baseline with an error boundary and runtime log dock
 
-Framework CI now checks seven release-readiness layers on Ubuntu before changes land:
+Framework CI now checks eight release-readiness layers on Ubuntu before changes land:
 - in-repo scaffold smoke via `pnpm scaffold:test`
 - repo-outside scaffold install and build verification via `pnpm scaffold:external:test`
 - official preset release-surface audit via `pnpm release:audit`
@@ -170,6 +170,7 @@ Framework CI now checks seven release-readiness layers on Ubuntu before changes 
 - archived rollback target selection smoke via `pnpm release:rollback:target:test`
 - archived rollback preparation smoke via `pnpm release:rollback:prepare:test`
 - remote history rollback preparation smoke via `pnpm release:history:remote:test`
+- remote rollback drill smoke via `pnpm release:rollback:remote:test`
 
 Maintainers now also keep a versioned release checklist in [docs/release-checklists](/Users/bonjin/Documents/workspace/uulab/forge-desktop-framework/docs/release-checklists/README.md). `release:ship` now verifies that the next version already has a `vX.Y.Z.md` checklist marked `ready` before any release gates run.
 
@@ -192,6 +193,7 @@ When S3 publishing is enabled, the same archived bundle cache is now also mirror
 Both remote fetch helpers now also refresh a parent `release-history-index.md/json` so multi-tag rollback discovery stays current as maintainers accumulate cached artifacts.
 Maintainers can now also prepare a rollback input directly from that accumulated history root, so target selection and archived bundle retrieval can be closed in one command before a drill runs.
 Maintainers can now also build that history root straight from recent GitHub release artifacts or S3 mirrors and immediately prepare the rollback bundle from the same command chain.
+Maintainers can now also run the full remote recovery path in one command, so provider fetch, rollback target preparation, and rollback drill no longer need to be stitched together by hand.
 After the matrix finishes, the workflow now emits a top-level `release-matrix-summary.md/json` so maintainers can review every platform in one place.
 The same follow-up job now also emits `release-provenance.md/json` so tag, commit, version, and platform outputs stay traceable as one release record.
 

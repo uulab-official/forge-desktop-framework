@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.67 (2026-04-01)
+
+### Provider-Agnostic Remote Rollback Drill
+
+- added `scripts/run-remote-release-rollback-drill.sh` and `scripts/test-remote-release-rollback-drill.sh` so maintainers can fetch recent remote history, prepare the best matching rollback bundle, and run the rollback drill from one provider-agnostic command
+- wired remote rollback drill smoke into `scripts/release.sh`, exposed it as `pnpm release:rollback:remote:test`, and added it to the Ubuntu `release-readiness` CI job so the final maintainer recovery wrapper regresses before `release:ship`
+- documented the new provider-agnostic remote rollback drill flow in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, and the `v0.1.67` release checklist
+
 ## 0.1.66 (2026-04-01)
 
 ### Remote History Rollback Preparation
