@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.78 (2026-04-01)
+
+### One Point Zero Major Release Cockpit
+
+- added `scripts/generate-one-point-zero-major-release-cockpit.sh` and `scripts/test-one-point-zero-major-release-cockpit.sh` so Forge now emits `one-point-zero-major-release-cockpit.md/json`, which condenses readiness, release-status, decision, promotion, runbook, and approval into one final first-major-release operator summary
+- wired `pnpm release:major:cockpit:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` cockpit artifact for every shipped version
+- documented the new major-release cockpit layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the 1.0 gate doc, and the `v0.1.78` release checklist
+
 ## 0.1.77 (2026-04-01)
 
 ### One Point Zero Major Release Approval

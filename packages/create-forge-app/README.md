@@ -46,6 +46,7 @@ Today:
 - tagged release metadata now also includes `one-point-zero-promotion-plan.md/json`, which turns the release-candidate artifact plus the generated `v1.0.0` checklist draft into one explicit first-major-release staging plan
 - tagged release metadata now also includes `one-point-zero-major-release-runbook.md/json`, which turns that staging plan into one explicit first-major-release execution sequence for maintainers
 - tagged release metadata now also includes `one-point-zero-major-release-approval.md/json`, which turns the `1.0` decision, promotion plan, and runbook into one final first-major-release approval handoff
+- tagged release metadata now also includes `one-point-zero-major-release-cockpit.md/json`, which turns the full first-major-release stack into one final operator cockpit summary
 - when S3 publishing is enabled, the repo release workflow now also mirrors that archived bundle cache to object storage so maintainers can fetch rollback inputs with `aws`
 - the Ubuntu `release-readiness` CI job now also exercises rollback target selection so release recovery helpers regress before `release:ship`, not after
 - the Ubuntu `release-readiness` CI job now also exercises release history indexing so multi-tag recovery helpers stay healthy before `release:ship`
@@ -63,6 +64,7 @@ Today:
 - maintainers can now also validate the final 1.0 promotion-plan handoff with `pnpm release:promotion:test`
 - maintainers can now also validate the final 1.0 major-release runbook with `pnpm release:major:runbook:test`
 - maintainers can now also validate the final 1.0 major-release approval handoff with `pnpm release:major:approval:test`
+- maintainers can now also validate the final 1.0 major-release cockpit with `pnpm release:major:cockpit:test`
 
 ## Why This Matters
 

@@ -127,6 +127,14 @@ Required guard:
 
 - `pnpm release:major:approval:test`
 
+### 12. Major Release Cockpit Is Explicit
+
+Forge must emit one final operator cockpit artifact that condenses readiness, release health, decision, promotion, runbook, and approval into one single-screen `1.0.0` summary.
+
+Required guard:
+
+- `pnpm release:major:cockpit:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -152,6 +160,7 @@ pnpm release:major:prepare:test
 pnpm release:promotion:test
 pnpm release:major:runbook:test
 pnpm release:major:approval:test
+pnpm release:major:cockpit:test
 pnpm release:ship patch
 pnpm version:check
 ```

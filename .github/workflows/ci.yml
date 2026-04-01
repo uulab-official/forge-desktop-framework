@@ -121,6 +121,9 @@ jobs:
       - name: Verify One Point Zero major release approval
         run: pnpm release:major:approval:test
 
+      - name: Verify One Point Zero major release cockpit
+        run: pnpm release:major:cockpit:test
+
   python:
     runs-on: ubuntu-latest
     steps:
