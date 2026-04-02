@@ -159,6 +159,14 @@ Required guard:
 
 - `pnpm release:major:board:test`
 
+### 16. Major Release Verdict Is Explicit
+
+Forge must emit one final go or no-go artifact that turns the board-facing review surface into the exact maintainer verdict sheet for the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:verdict:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -188,6 +196,7 @@ pnpm release:major:cockpit:test
 pnpm release:major:packet:test
 pnpm release:major:signoff:test
 pnpm release:major:board:test
+pnpm release:major:verdict:test
 pnpm release:ship patch
 pnpm version:check
 ```

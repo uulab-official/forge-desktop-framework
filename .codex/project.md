@@ -56,6 +56,7 @@ When a task touches one of these surfaces, check the others before finishing:
 - The final `one-point-zero-major-release-packet` artifact should stay in step with the cockpit output and prepared `v1.0.0` checklist so the first `1.0.0` human sign-off packet remains reproducible.
 - The final `one-point-zero-major-release-signoff` artifact should stay in step with the packet and prepared `v1.0.0` checklist so the first `1.0.0` reviewer signoff sheet remains reproducible.
 - The final `one-point-zero-major-release-board` artifact should stay in step with the signoff sheet and prepared `v1.0.0` checklist so the first `1.0.0` board review artifact remains reproducible.
+- The final `one-point-zero-major-release-verdict` artifact should stay in step with the board artifact and prepared `v1.0.0` checklist so the first `1.0.0` maintainer go/no-go sheet remains reproducible.
 - Keep `examples/*`, `apps/*`, and `packages/*` on the same version line.
 
 ## Near-Term Priorities
