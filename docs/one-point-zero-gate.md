@@ -247,6 +247,14 @@ Required guard:
 
 - `pnpm release:major:execution:test`
 
+### 27. Major Release Attestation Is Explicit
+
+Forge must emit one final attestation artifact that turns the execution artifact plus prepared `v1.0.0` checklist into the exact last immutable ship record before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:attestation:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -287,6 +295,7 @@ pnpm release:major:rehearsal:test
 pnpm release:major:go-live:test
 pnpm release:major:activation:test
 pnpm release:major:execution:test
+pnpm release:major:attestation:test
 pnpm release:ship patch
 pnpm version:check
 ```

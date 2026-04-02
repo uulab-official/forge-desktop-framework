@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.93 (2026-04-02)
+
+### One Point Zero Major Release Attestation
+
+- added `scripts/generate-one-point-zero-major-release-attestation.sh` and `scripts/test-one-point-zero-major-release-attestation.sh` so Forge now emits `one-point-zero-major-release-attestation.md/json`, which turns the major-release execution artifact plus prepared `v1.0.0` checklist into one final immutable attestation surface
+- wired `pnpm release:major:attestation:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` attestation artifact for every shipped version
+- documented the new major-release attestation layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the `1.0` gate doc, and the `v0.1.93` release checklist
+
 ## 0.1.92 (2026-04-02)
 
 ### One Point Zero Major Release Execution

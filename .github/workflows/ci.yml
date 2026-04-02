@@ -166,6 +166,9 @@ jobs:
       - name: Verify One Point Zero major release execution
         run: pnpm release:major:execution:test
 
+      - name: Verify One Point Zero major release attestation
+        run: pnpm release:major:attestation:test
+
   python:
     runs-on: ubuntu-latest
     steps:
