@@ -212,6 +212,10 @@ echo "Running One Point Zero major release seal smoke test before version bump..
 bash scripts/test-one-point-zero-major-release-seal.sh
 echo ""
 
+echo "Running One Point Zero major release charter smoke test before version bump..."
+bash scripts/test-one-point-zero-major-release-charter.sh
+echo ""
+
 # Get current version
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "Current version: $CURRENT_VERSION"

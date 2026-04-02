@@ -263,6 +263,14 @@ Required guard:
 
 - `pnpm release:major:seal:test`
 
+### 29. Major Release Charter Is Explicit
+
+Forge must emit one final charter artifact that turns the seal artifact plus prepared `v1.0.0` checklist into the exact last immutable charter before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:charter:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -305,6 +313,7 @@ pnpm release:major:activation:test
 pnpm release:major:execution:test
 pnpm release:major:attestation:test
 pnpm release:major:seal:test
+pnpm release:major:charter:test
 pnpm release:ship patch
 pnpm version:check
 ```

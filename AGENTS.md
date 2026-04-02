@@ -63,6 +63,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Keep the final `one-point-zero-major-release-trigger.md/json` summary aligned with the preflight artifact and prepared `v1.0.0` checklist so the first `1.0.0` execution trigger stays reproducible.
 - Keep the final `one-point-zero-major-release-rehearsal.md/json` summary aligned with the trigger artifact and prepared `v1.0.0` checklist so the first `1.0.0` dry-run rehearsal stays reproducible.
 - Keep the final `one-point-zero-major-release-seal.md/json` summary aligned with the attestation artifact and prepared `v1.0.0` checklist so the first `1.0.0` immutable seal stays reproducible.
+- Keep the final `one-point-zero-major-release-charter.md/json` summary aligned with the seal artifact and prepared `v1.0.0` checklist so the first `1.0.0` immutable charter stays reproducible.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`
