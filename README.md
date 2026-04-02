@@ -190,6 +190,7 @@ Tagged release metadata now also emits `one-point-zero-major-release-verdict.md/
 Tagged release metadata now also emits `one-point-zero-major-release-authorization.md/json`, which turns that verdict artifact into the final execution authorization sheet for the first major ship.
 Tagged release metadata now also emits `one-point-zero-major-release-warrant.md/json`, which turns that authorization artifact into the final launch-side warrant sheet for the first major ship.
 Tagged release metadata now also emits `one-point-zero-major-release-launch-sheet.md/json`, which turns that warrant artifact into the final operator-facing execution handoff for the first major ship.
+Tagged release metadata now also emits `one-point-zero-major-release-command-card.md/json`, which turns that launch sheet into the final command-only execution card for the first major ship.
 
 Tagged release runs now also upload per-matrix release inventory artifacts with `artifact-summary.md`, `artifact-summary.json`, and `latest*.yml` so maintainers can inspect packaged output without pulling raw runner files.
 The same tagged release flow now also audits platform-specific publish output so mac builds must emit `.dmg`, Windows builds must emit `.exe`, Linux builds must emit `.AppImage`, and all of them must keep a `latest*.yml` manifest.
@@ -230,6 +231,7 @@ The same `1.0` stack now also emits `one-point-zero-major-release-verdict.md/jso
 The same `1.0` stack now also emits `one-point-zero-major-release-authorization.md/json` so the final major-release execution authorization sheet survives as a tagged release artifact too.
 The same `1.0` stack now also emits `one-point-zero-major-release-warrant.md/json` so the final major-release launch-side warrant sheet survives as a tagged release artifact too.
 The same `1.0` stack now also emits `one-point-zero-major-release-launch-sheet.md/json` so the final major-release execution handoff survives as a tagged release artifact too.
+The same `1.0` stack now also emits `one-point-zero-major-release-command-card.md/json` so the final major-release command surface survives as a tagged release artifact too.
 
 Feature packs available on the `minimal` starter today:
 - `settings` for persisted preferences and runtime controls

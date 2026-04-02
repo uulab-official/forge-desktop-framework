@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.86 (2026-04-02)
+
+### One Point Zero Major Release Command Card
+
+- added `scripts/generate-one-point-zero-major-release-command-card.sh` and `scripts/test-one-point-zero-major-release-command-card.sh` so Forge now emits `one-point-zero-major-release-command-card.md/json`, which turns the major-release launch-sheet artifact into one final command-only execution card
+- wired `pnpm release:major:command-card:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` command-card artifact for every shipped version
+- documented the new major-release command-card layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the `1.0` gate doc, and the `v0.1.86` release checklist
+
 ## 0.1.85 (2026-04-02)
 
 ### One Point Zero Major Release Launch Sheet

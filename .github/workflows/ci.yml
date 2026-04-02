@@ -145,6 +145,9 @@ jobs:
       - name: Verify One Point Zero major release launch sheet
         run: pnpm release:major:launch-sheet:test
 
+      - name: Verify One Point Zero major release command card
+        run: pnpm release:major:command-card:test
+
   python:
     runs-on: ubuntu-latest
     steps:

@@ -191,6 +191,14 @@ Required guard:
 
 - `pnpm release:major:launch-sheet:test`
 
+### 20. Major Release Command Card Is Explicit
+
+Forge must emit one final command-only card that turns the launch sheet into the exact last command surface for the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:command-card:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -224,6 +232,7 @@ pnpm release:major:verdict:test
 pnpm release:major:authorization:test
 pnpm release:major:warrant:test
 pnpm release:major:launch-sheet:test
+pnpm release:major:command-card:test
 pnpm release:ship patch
 pnpm version:check
 ```
