@@ -230,6 +230,7 @@ Maintainers can now also run `pnpm release:major:launch-sheet:test` to verify th
 Maintainers can now also run `pnpm release:major:command-card:test` to verify the final command-only execution card for the first `1.0.0` ship.
 Maintainers can now also run `pnpm release:major:preflight:test` to verify the final preflight gate before the first `1.0.0` ship.
 Maintainers can now also run `pnpm release:major:trigger:test` to verify the final execution trigger before the first `1.0.0` ship.
+Maintainers can now also run `pnpm release:major:rehearsal:test` to verify the final dry-run rehearsal before the first `1.0.0` ship.
 
 The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pull requests:
 - `pnpm scaffold:test`
@@ -260,6 +261,7 @@ The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pul
 - `pnpm release:major:command-card:test`
 - `pnpm release:major:preflight:test`
 - `pnpm release:major:trigger:test`
+- `pnpm release:major:rehearsal:test`
 
 The tagged `Release` workflow now also:
 - writes a markdown and JSON inventory of packaged artifacts for each matrix job
@@ -304,6 +306,7 @@ The tagged `Release` workflow now also:
 - generates `one-point-zero-major-release-command-card.md/json` so the final first-major-release command surface is preserved as a tagged release artifact too
 - generates `one-point-zero-major-release-preflight.md/json` so the final first-major-release preflight gate is preserved as a tagged release artifact too
 - generates `one-point-zero-major-release-trigger.md/json` so the final first-major-release execution trigger is preserved as a tagged release artifact too
+- generates `one-point-zero-major-release-rehearsal.md/json` so the final first-major-release dry-run rehearsal is preserved as a tagged release artifact too
 
 For framework maintainers working in this monorepo, the official one-command ship flow is:
 
