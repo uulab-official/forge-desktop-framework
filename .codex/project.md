@@ -66,6 +66,7 @@ When a task touches one of these surfaces, check the others before finishing:
 - The final `one-point-zero-major-release-rehearsal` artifact should stay in step with the trigger artifact and prepared `v1.0.0` checklist so the first `1.0.0` dry-run rehearsal remains reproducible.
 - The final `one-point-zero-major-release-seal` artifact should stay in step with the attestation artifact and prepared `v1.0.0` checklist so the first `1.0.0` immutable seal remains reproducible.
 - The final `one-point-zero-major-release-charter` artifact should stay in step with the seal artifact and prepared `v1.0.0` checklist so the first `1.0.0` immutable charter remains reproducible.
+- The final `one-point-zero-major-release-canon` artifact should stay in step with the charter artifact and prepared `v1.0.0` checklist so the first `1.0.0` immutable canon remains reproducible.
 - Keep `examples/*`, `apps/*`, and `packages/*` on the same version line.
 
 ## Near-Term Priorities

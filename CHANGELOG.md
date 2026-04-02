@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.96 (2026-04-02)
+
+### One Point Zero Major Release Canon
+
+- added `scripts/generate-one-point-zero-major-release-canon.sh` and `scripts/test-one-point-zero-major-release-canon.sh` so Forge now emits `one-point-zero-major-release-canon.md/json`, which turns the major-release charter artifact plus prepared `v1.0.0` checklist into one final immutable canon surface
+- wired `pnpm release:major:canon:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` canon artifact for every shipped version
+- documented the new major-release canon layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the `1.0` gate doc, and the `v0.1.96` release checklist
+
 ## 0.1.95 (2026-04-02)
 
 ### One Point Zero Major Release Charter

@@ -200,6 +200,7 @@ Tagged release metadata now also emits `one-point-zero-major-release-execution.m
 Tagged release metadata now also emits `one-point-zero-major-release-attestation.md/json`, which turns that execution artifact plus prepared `v1.0.0` checklist into the final immutable attestation surface before the first major ship.
 Tagged release metadata now also emits `one-point-zero-major-release-seal.md/json`, which turns that attestation artifact plus prepared `v1.0.0` checklist into the final immutable seal surface before the first major ship.
 Tagged release metadata now also emits `one-point-zero-major-release-charter.md/json`, which turns that seal artifact plus prepared `v1.0.0` checklist into the final immutable charter surface before the first major ship.
+Tagged release metadata now also emits `one-point-zero-major-release-canon.md/json`, which turns that charter artifact plus prepared `v1.0.0` checklist into the final immutable canon surface before the first major ship.
 
 Tagged release runs now also upload per-matrix release inventory artifacts with `artifact-summary.md`, `artifact-summary.json`, and `latest*.yml` so maintainers can inspect packaged output without pulling raw runner files.
 The same tagged release flow now also audits platform-specific publish output so mac builds must emit `.dmg`, Windows builds must emit `.exe`, Linux builds must emit `.AppImage`, and all of them must keep a `latest*.yml` manifest.
@@ -250,6 +251,7 @@ The same `1.0` stack now also emits `one-point-zero-major-release-execution.md/j
 The same `1.0` stack now also emits `one-point-zero-major-release-attestation.md/json` so the final immutable major-release attestation surface survives as a tagged release artifact too.
 The same `1.0` stack now also emits `one-point-zero-major-release-seal.md/json` so the final immutable major-release seal surface survives as a tagged release artifact too.
 The same `1.0` stack now also emits `one-point-zero-major-release-charter.md/json` so the final immutable major-release charter surface survives as a tagged release artifact too.
+The same `1.0` stack now also emits `one-point-zero-major-release-canon.md/json` so the final immutable major-release canon surface survives as a tagged release artifact too.
 
 Feature packs available on the `minimal` starter today:
 - `settings` for persisted preferences and runtime controls
