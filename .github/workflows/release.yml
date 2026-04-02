@@ -301,6 +301,10 @@ jobs:
         shell: bash
         run: bash scripts/generate-one-point-zero-major-release-verdict.sh .release-matrix/one-point-zero-major-release-board.json .release-matrix/v1.0.0.md .release-matrix
 
+      - name: Generate One Point Zero major release authorization
+        shell: bash
+        run: bash scripts/generate-one-point-zero-major-release-authorization.sh .release-matrix/one-point-zero-major-release-verdict.json .release-matrix/v1.0.0.md .release-matrix
+
       - name: Upload release bundle metadata to S3/R2
         if: ${{ vars.S3_ENABLED == 'true' }}
         shell: bash
@@ -377,6 +381,10 @@ jobs:
             --endpoint-url $S3_ENDPOINT
           aws s3 cp .release-matrix/one-point-zero-major-release-verdict.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-major-release-verdict.json" \
             --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/one-point-zero-major-release-authorization.md "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-major-release-authorization.md" \
+            --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/one-point-zero-major-release-authorization.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-major-release-authorization.json" \
+            --endpoint-url $S3_ENDPOINT
 
       - name: Upload release matrix summary
         uses: actions/upload-artifact@v4
@@ -416,3 +424,5 @@ jobs:
             .release-matrix/one-point-zero-major-release-board.json
             .release-matrix/one-point-zero-major-release-verdict.md
             .release-matrix/one-point-zero-major-release-verdict.json
+            .release-matrix/one-point-zero-major-release-authorization.md
+            .release-matrix/one-point-zero-major-release-authorization.json

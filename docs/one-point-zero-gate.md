@@ -167,6 +167,14 @@ Required guard:
 
 - `pnpm release:major:verdict:test`
 
+### 17. Major Release Authorization Is Explicit
+
+Forge must emit one final execution authorization artifact that turns the maintainer verdict sheet into the exact run authorization surface for the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:authorization:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -197,6 +205,7 @@ pnpm release:major:packet:test
 pnpm release:major:signoff:test
 pnpm release:major:board:test
 pnpm release:major:verdict:test
+pnpm release:major:authorization:test
 pnpm release:ship patch
 pnpm version:check
 ```

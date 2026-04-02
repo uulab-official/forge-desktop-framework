@@ -51,6 +51,7 @@ Today:
 - tagged release metadata now also includes `one-point-zero-major-release-signoff.md/json`, which turns that packet into the final reviewer-facing signoff sheet for the first major ship
 - tagged release metadata now also includes `one-point-zero-major-release-board.md/json`, which turns that signoff sheet into the final board-facing review artifact for the first major ship
 - tagged release metadata now also includes `one-point-zero-major-release-verdict.md/json`, which turns that board artifact into the final maintainer go/no-go sheet for the first major ship
+- tagged release metadata now also includes `one-point-zero-major-release-authorization.md/json`, which turns that verdict artifact into the final execution authorization sheet for the first major ship
 - when S3 publishing is enabled, the repo release workflow now also mirrors that archived bundle cache to object storage so maintainers can fetch rollback inputs with `aws`
 - the Ubuntu `release-readiness` CI job now also exercises rollback target selection so release recovery helpers regress before `release:ship`, not after
 - the Ubuntu `release-readiness` CI job now also exercises release history indexing so multi-tag recovery helpers stay healthy before `release:ship`
@@ -73,6 +74,7 @@ Today:
 - maintainers can now also validate the final 1.0 major-release signoff sheet with `pnpm release:major:signoff:test`
 - maintainers can now also validate the final 1.0 major-release board artifact with `pnpm release:major:board:test`
 - maintainers can now also validate the final 1.0 major-release verdict artifact with `pnpm release:major:verdict:test`
+- maintainers can now also validate the final 1.0 major-release authorization artifact with `pnpm release:major:authorization:test`
 
 ## Why This Matters
 

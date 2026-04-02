@@ -187,6 +187,7 @@ Tagged release metadata now also emits `one-point-zero-major-release-packet.md/j
 Tagged release metadata now also emits `one-point-zero-major-release-signoff.md/json`, which turns that packet into the explicit reviewer-facing signoff sheet for the first major ship.
 Tagged release metadata now also emits `one-point-zero-major-release-board.md/json`, which turns that signoff sheet into the final board-facing review artifact for the first major ship.
 Tagged release metadata now also emits `one-point-zero-major-release-verdict.md/json`, which turns that board artifact into the final maintainer go/no-go sheet for the first major ship.
+Tagged release metadata now also emits `one-point-zero-major-release-authorization.md/json`, which turns that verdict artifact into the final execution authorization sheet for the first major ship.
 
 Tagged release runs now also upload per-matrix release inventory artifacts with `artifact-summary.md`, `artifact-summary.json`, and `latest*.yml` so maintainers can inspect packaged output without pulling raw runner files.
 The same tagged release flow now also audits platform-specific publish output so mac builds must emit `.dmg`, Windows builds must emit `.exe`, Linux builds must emit `.AppImage`, and all of them must keep a `latest*.yml` manifest.
@@ -224,6 +225,7 @@ The same `1.0` stack now also emits `one-point-zero-major-release-packet.md/json
 The same `1.0` stack now also emits `one-point-zero-major-release-signoff.md/json` so the final reviewer-facing approval sheet survives as a tagged release artifact too.
 The same `1.0` stack now also emits `one-point-zero-major-release-board.md/json` so the final board-facing review artifact survives as a tagged release artifact too.
 The same `1.0` stack now also emits `one-point-zero-major-release-verdict.md/json` so the final maintainer go/no-go sheet survives as a tagged release artifact too.
+The same `1.0` stack now also emits `one-point-zero-major-release-authorization.md/json` so the final major-release execution authorization sheet survives as a tagged release artifact too.
 
 Feature packs available on the `minimal` starter today:
 - `settings` for persisted preferences and runtime controls

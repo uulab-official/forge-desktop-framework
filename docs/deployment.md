@@ -224,6 +224,7 @@ Maintainers can now also run `pnpm release:major:packet:test` to verify the fina
 Maintainers can now also run `pnpm release:major:signoff:test` to verify the final reviewer-facing signoff sheet for the first `1.0.0` ship.
 Maintainers can now also run `pnpm release:major:board:test` to verify the final board-facing review artifact for the first `1.0.0` ship.
 Maintainers can now also run `pnpm release:major:verdict:test` to verify the final maintainer go/no-go sheet for the first `1.0.0` ship.
+Maintainers can now also run `pnpm release:major:authorization:test` to verify the final execution authorization sheet for the first `1.0.0` ship.
 
 The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pull requests:
 - `pnpm scaffold:test`
@@ -248,6 +249,7 @@ The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pul
 - `pnpm release:major:signoff:test`
 - `pnpm release:major:board:test`
 - `pnpm release:major:verdict:test`
+- `pnpm release:major:authorization:test`
 
 The tagged `Release` workflow now also:
 - writes a markdown and JSON inventory of packaged artifacts for each matrix job
@@ -286,6 +288,7 @@ The tagged `Release` workflow now also:
 - generates `one-point-zero-major-release-signoff.md/json` so the final first-major-release reviewer signoff sheet is preserved as a tagged release artifact too
 - generates `one-point-zero-major-release-board.md/json` so the final first-major-release board-facing review artifact is preserved as a tagged release artifact too
 - generates `one-point-zero-major-release-verdict.md/json` so the final first-major-release maintainer go/no-go sheet is preserved as a tagged release artifact too
+- generates `one-point-zero-major-release-authorization.md/json` so the final first-major-release execution authorization sheet is preserved as a tagged release artifact too
 
 For framework maintainers working in this monorepo, the official one-command ship flow is:
 
