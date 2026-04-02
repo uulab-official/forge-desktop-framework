@@ -62,6 +62,7 @@ Today:
 - tagged release metadata now also includes `one-point-zero-major-release-activation.md/json`, which turns that go-live artifact plus the prepared `v1.0.0` checklist into the final execution confirmation surface for the first major ship
 - tagged release metadata now also includes `one-point-zero-major-release-execution.md/json`, which turns that activation artifact plus the prepared `v1.0.0` checklist into the final execution confirmation surface for the first major ship
 - tagged release metadata now also includes `one-point-zero-major-release-attestation.md/json`, which turns that execution artifact plus the prepared `v1.0.0` checklist into the final immutable attestation surface for the first major ship
+- tagged release metadata now also includes `one-point-zero-major-release-seal.md/json`, which turns that attestation artifact plus the prepared `v1.0.0` checklist into the final immutable seal surface for the first major ship
 - when S3 publishing is enabled, the repo release workflow now also mirrors that archived bundle cache to object storage so maintainers can fetch rollback inputs with `aws`
 - the Ubuntu `release-readiness` CI job now also exercises rollback target selection so release recovery helpers regress before `release:ship`, not after
 - the Ubuntu `release-readiness` CI job now also exercises release history indexing so multi-tag recovery helpers stay healthy before `release:ship`
@@ -95,6 +96,7 @@ Today:
 - maintainers can now also validate the final 1.0 major-release activation surface with `pnpm release:major:activation:test`
 - maintainers can now also validate the final 1.0 major-release execution surface with `pnpm release:major:execution:test`
 - maintainers can now also validate the final 1.0 major-release attestation surface with `pnpm release:major:attestation:test`
+- maintainers can now also validate the final 1.0 major-release seal surface with `pnpm release:major:seal:test`
 
 ## Why This Matters
 
