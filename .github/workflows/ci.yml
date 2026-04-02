@@ -151,6 +151,9 @@ jobs:
       - name: Verify One Point Zero major release preflight
         run: pnpm release:major:preflight:test
 
+      - name: Verify One Point Zero major release trigger
+        run: pnpm release:major:trigger:test
+
   python:
     runs-on: ubuntu-latest
     steps:

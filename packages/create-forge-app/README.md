@@ -56,6 +56,7 @@ Today:
 - tagged release metadata now also includes `one-point-zero-major-release-launch-sheet.md/json`, which turns that warrant artifact into the final operator-facing execution handoff for the first major ship
 - tagged release metadata now also includes `one-point-zero-major-release-command-card.md/json`, which turns that launch-sheet artifact into the final command-only execution card for the first major ship
 - tagged release metadata now also includes `one-point-zero-major-release-preflight.md/json`, which turns that command-card artifact plus the prepared `v1.0.0` checklist into the final preflight gate for the first major ship
+- tagged release metadata now also includes `one-point-zero-major-release-trigger.md/json`, which turns that preflight artifact plus the prepared `v1.0.0` checklist into the final execution trigger for the first major ship
 - when S3 publishing is enabled, the repo release workflow now also mirrors that archived bundle cache to object storage so maintainers can fetch rollback inputs with `aws`
 - the Ubuntu `release-readiness` CI job now also exercises rollback target selection so release recovery helpers regress before `release:ship`, not after
 - the Ubuntu `release-readiness` CI job now also exercises release history indexing so multi-tag recovery helpers stay healthy before `release:ship`
@@ -83,6 +84,7 @@ Today:
 - maintainers can now also validate the final 1.0 major-release launch sheet with `pnpm release:major:launch-sheet:test`
 - maintainers can now also validate the final 1.0 major-release command card with `pnpm release:major:command-card:test`
 - maintainers can now also validate the final 1.0 major-release preflight gate with `pnpm release:major:preflight:test`
+- maintainers can now also validate the final 1.0 major-release trigger with `pnpm release:major:trigger:test`
 
 ## Why This Matters
 

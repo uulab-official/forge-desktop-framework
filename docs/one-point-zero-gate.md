@@ -207,6 +207,14 @@ Required guard:
 
 - `pnpm release:major:preflight:test`
 
+### 22. Major Release Trigger Is Explicit
+
+Forge must emit one final trigger artifact that turns the preflight artifact plus prepared `v1.0.0` checklist into the exact last execution trigger before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:trigger:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -242,6 +250,7 @@ pnpm release:major:warrant:test
 pnpm release:major:launch-sheet:test
 pnpm release:major:command-card:test
 pnpm release:major:preflight:test
+pnpm release:major:trigger:test
 pnpm release:ship patch
 pnpm version:check
 ```
