@@ -196,6 +196,7 @@ Tagged release metadata now also emits `one-point-zero-major-release-trigger.md/
 Tagged release metadata now also emits `one-point-zero-major-release-rehearsal.md/json`, which turns that trigger artifact plus prepared `v1.0.0` checklist into the final dry-run rehearsal before the first major ship.
 Tagged release metadata now also emits `one-point-zero-major-release-go-live.md/json`, which turns that rehearsal artifact plus prepared `v1.0.0` checklist into the final execution surface before the first major ship.
 Tagged release metadata now also emits `one-point-zero-major-release-activation.md/json`, which turns that go-live artifact plus prepared `v1.0.0` checklist into the final execution confirmation surface before the first major ship.
+Tagged release metadata now also emits `one-point-zero-major-release-execution.md/json`, which turns that activation artifact plus prepared `v1.0.0` checklist into the final execution confirmation surface before the first major ship.
 
 Tagged release runs now also upload per-matrix release inventory artifacts with `artifact-summary.md`, `artifact-summary.json`, and `latest*.yml` so maintainers can inspect packaged output without pulling raw runner files.
 The same tagged release flow now also audits platform-specific publish output so mac builds must emit `.dmg`, Windows builds must emit `.exe`, Linux builds must emit `.AppImage`, and all of them must keep a `latest*.yml` manifest.
@@ -242,6 +243,7 @@ The same `1.0` stack now also emits `one-point-zero-major-release-trigger.md/jso
 The same `1.0` stack now also emits `one-point-zero-major-release-rehearsal.md/json` so the final major-release dry-run rehearsal survives as a tagged release artifact too.
 The same `1.0` stack now also emits `one-point-zero-major-release-go-live.md/json` so the final major-release execution surface survives as a tagged release artifact too.
 The same `1.0` stack now also emits `one-point-zero-major-release-activation.md/json` so the final major-release execution confirmation surface survives as a tagged release artifact too.
+The same `1.0` stack now also emits `one-point-zero-major-release-execution.md/json` so the final major-release execution confirmation surface survives as a tagged release artifact too.
 
 Feature packs available on the `minimal` starter today:
 - `settings` for persisted preferences and runtime controls

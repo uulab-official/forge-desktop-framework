@@ -62,7 +62,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Keep the final `one-point-zero-major-release-preflight.md/json` summary aligned with the command-card artifact and prepared `v1.0.0` checklist so the first `1.0.0` preflight gate stays reproducible.
 - Keep the final `one-point-zero-major-release-trigger.md/json` summary aligned with the preflight artifact and prepared `v1.0.0` checklist so the first `1.0.0` execution trigger stays reproducible.
 - Keep the final `one-point-zero-major-release-rehearsal.md/json` summary aligned with the trigger artifact and prepared `v1.0.0` checklist so the first `1.0.0` dry-run rehearsal stays reproducible.
-- Keep the final `one-point-zero-major-release-activation.md/json` summary aligned with the go-live artifact and prepared `v1.0.0` checklist so the first `1.0.0` execution confirmation surface stays reproducible.
+- Keep the final `one-point-zero-major-release-execution.md/json` summary aligned with the activation artifact and prepared `v1.0.0` checklist so the first `1.0.0` execution confirmation surface stays reproducible.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`
