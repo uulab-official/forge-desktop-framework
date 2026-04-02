@@ -168,6 +168,10 @@ echo "Running One Point Zero major release authorization smoke test before versi
 bash scripts/test-one-point-zero-major-release-authorization.sh
 echo ""
 
+echo "Running One Point Zero major release warrant smoke test before version bump..."
+bash scripts/test-one-point-zero-major-release-warrant.sh
+echo ""
+
 # Get current version
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "Current version: $CURRENT_VERSION"

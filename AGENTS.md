@@ -56,6 +56,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Keep the final `one-point-zero-major-release-board.md/json` summary aligned with the signoff sheet and prepared `v1.0.0` checklist so the first `1.0.0` board review artifact stays reproducible.
 - Keep the final `one-point-zero-major-release-verdict.md/json` summary aligned with the board artifact and prepared `v1.0.0` checklist so the first `1.0.0` maintainer go/no-go sheet stays reproducible.
 - Keep the final `one-point-zero-major-release-authorization.md/json` summary aligned with the verdict artifact and prepared `v1.0.0` checklist so the first `1.0.0` execution authorization sheet stays reproducible.
+- Keep the final `one-point-zero-major-release-warrant.md/json` summary aligned with the authorization artifact and prepared `v1.0.0` checklist so the first `1.0.0` launch-side warrant sheet stays reproducible.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`

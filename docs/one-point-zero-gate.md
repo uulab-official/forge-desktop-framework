@@ -175,6 +175,14 @@ Required guard:
 
 - `pnpm release:major:authorization:test`
 
+### 18. Major Release Warrant Is Explicit
+
+Forge must emit one final launch-side warrant artifact that turns the execution authorization sheet into the exact last maintainer document for the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:warrant:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -206,6 +214,7 @@ pnpm release:major:signoff:test
 pnpm release:major:board:test
 pnpm release:major:verdict:test
 pnpm release:major:authorization:test
+pnpm release:major:warrant:test
 pnpm release:ship patch
 pnpm version:check
 ```

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.84 (2026-04-02)
+
+### One Point Zero Major Release Warrant
+
+- added `scripts/generate-one-point-zero-major-release-warrant.sh` and `scripts/test-one-point-zero-major-release-warrant.sh` so Forge now emits `one-point-zero-major-release-warrant.md/json`, which turns the major-release authorization artifact into one final launch-side warrant sheet
+- wired `pnpm release:major:warrant:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` warrant artifact for every shipped version
+- documented the new major-release warrant layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the 1.0 gate doc, and the `v0.1.84` release checklist
+
 ## 0.1.83 (2026-04-02)
 
 ### One Point Zero Major Release Authorization

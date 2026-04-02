@@ -139,6 +139,9 @@ jobs:
       - name: Verify One Point Zero major release authorization
         run: pnpm release:major:authorization:test
 
+      - name: Verify One Point Zero major release warrant
+        run: pnpm release:major:warrant:test
+
   python:
     runs-on: ubuntu-latest
     steps:
