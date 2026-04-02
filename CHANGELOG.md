@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.81 (2026-04-02)
+
+### One Point Zero Major Release Board
+
+- added `scripts/generate-one-point-zero-major-release-board.sh` and `scripts/test-one-point-zero-major-release-board.sh` so Forge now emits `one-point-zero-major-release-board.md/json`, which turns the major-release signoff sheet into one final board-facing review artifact
+- wired `pnpm release:major:board:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` board review artifact for every shipped version
+- documented the new major-release board layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the 1.0 gate doc, and the `v0.1.81` release checklist
+
 ## 0.1.80 (2026-04-01)
 
 ### One Point Zero Major Release Signoff

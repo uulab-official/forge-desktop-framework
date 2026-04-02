@@ -151,6 +151,14 @@ Required guard:
 
 - `pnpm release:major:signoff:test`
 
+### 15. Major Release Board Is Explicit
+
+Forge must emit one final board-facing artifact that turns the signoff sheet into the exact approval-board review surface for the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:board:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -179,6 +187,7 @@ pnpm release:major:approval:test
 pnpm release:major:cockpit:test
 pnpm release:major:packet:test
 pnpm release:major:signoff:test
+pnpm release:major:board:test
 pnpm release:ship patch
 pnpm version:check
 ```

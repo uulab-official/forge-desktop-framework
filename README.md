@@ -185,6 +185,7 @@ Tagged release metadata now also emits `one-point-zero-major-release-approval.md
 Tagged release metadata now also emits `one-point-zero-major-release-cockpit.md/json`, which condenses the full `1.0` promotion stack into one final operator summary before the first major ship.
 Tagged release metadata now also emits `one-point-zero-major-release-packet.md/json`, which joins that green cockpit summary with the prepared `v1.0.0` checklist as the final human sign-off packet.
 Tagged release metadata now also emits `one-point-zero-major-release-signoff.md/json`, which turns that packet into the explicit reviewer-facing signoff sheet for the first major ship.
+Tagged release metadata now also emits `one-point-zero-major-release-board.md/json`, which turns that signoff sheet into the final board-facing review artifact for the first major ship.
 
 Tagged release runs now also upload per-matrix release inventory artifacts with `artifact-summary.md`, `artifact-summary.json`, and `latest*.yml` so maintainers can inspect packaged output without pulling raw runner files.
 The same tagged release flow now also audits platform-specific publish output so mac builds must emit `.dmg`, Windows builds must emit `.exe`, Linux builds must emit `.AppImage`, and all of them must keep a `latest*.yml` manifest.
@@ -220,6 +221,7 @@ The same `1.0` stack now also emits `one-point-zero-major-release-approval.md/js
 The same `1.0` stack now also emits `one-point-zero-major-release-cockpit.md/json` so operators can review the final readiness, decision, approval, and ship commands from one artifact.
 The same `1.0` stack now also emits `one-point-zero-major-release-packet.md/json` so maintainers can review the final human sign-off packet without reopening every upstream 1.0 artifact.
 The same `1.0` stack now also emits `one-point-zero-major-release-signoff.md/json` so the final reviewer-facing approval sheet survives as a tagged release artifact too.
+The same `1.0` stack now also emits `one-point-zero-major-release-board.md/json` so the final board-facing review artifact survives as a tagged release artifact too.
 
 Feature packs available on the `minimal` starter today:
 - `settings` for persisted preferences and runtime controls
