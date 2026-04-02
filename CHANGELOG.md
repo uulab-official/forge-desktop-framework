@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.90 (2026-04-02)
+
+### One Point Zero Major Release Go Live
+
+- added `scripts/generate-one-point-zero-major-release-go-live.sh` and `scripts/test-one-point-zero-major-release-go-live.sh` so Forge now emits `one-point-zero-major-release-go-live.md/json`, which turns the major-release rehearsal artifact plus prepared `v1.0.0` checklist into one final execution surface
+- wired `pnpm release:major:go-live:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` go-live artifact for every shipped version
+- documented the new major-release go-live layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the `1.0` gate doc, and the `v0.1.90` release checklist
+
 ## 0.1.89 (2026-04-02)
 
 ### One Point Zero Major Release Rehearsal

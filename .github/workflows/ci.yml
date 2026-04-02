@@ -157,6 +157,9 @@ jobs:
       - name: Verify One Point Zero major release rehearsal
         run: pnpm release:major:rehearsal:test
 
+      - name: Verify One Point Zero major release go live
+        run: pnpm release:major:go-live:test
+
   python:
     runs-on: ubuntu-latest
     steps:

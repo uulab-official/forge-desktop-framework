@@ -223,6 +223,14 @@ Required guard:
 
 - `pnpm release:major:rehearsal:test`
 
+### 24. Major Release Go Live Is Explicit
+
+Forge must emit one final go-live artifact that turns the rehearsal artifact plus prepared `v1.0.0` checklist into the exact last execution surface before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:go-live:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -260,6 +268,7 @@ pnpm release:major:command-card:test
 pnpm release:major:preflight:test
 pnpm release:major:trigger:test
 pnpm release:major:rehearsal:test
+pnpm release:major:go-live:test
 pnpm release:ship patch
 pnpm version:check
 ```
