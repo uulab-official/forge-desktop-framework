@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.85 (2026-04-02)
+
+### One Point Zero Major Release Launch Sheet
+
+- added `scripts/generate-one-point-zero-major-release-launch-sheet.sh` and `scripts/test-one-point-zero-major-release-launch-sheet.sh` so Forge now emits `one-point-zero-major-release-launch-sheet.md/json`, which turns the major-release warrant artifact into one final operator-facing execution handoff
+- wired `pnpm release:major:launch-sheet:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` launch-sheet artifact for every shipped version
+- documented the new major-release launch-sheet layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the `1.0` gate doc, and the `v0.1.85` release checklist
+
 ## 0.1.84 (2026-04-02)
 
 ### One Point Zero Major Release Warrant

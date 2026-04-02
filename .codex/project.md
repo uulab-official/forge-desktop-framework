@@ -59,6 +59,7 @@ When a task touches one of these surfaces, check the others before finishing:
 - The final `one-point-zero-major-release-verdict` artifact should stay in step with the board artifact and prepared `v1.0.0` checklist so the first `1.0.0` maintainer go/no-go sheet remains reproducible.
 - The final `one-point-zero-major-release-authorization` artifact should stay in step with the verdict artifact and prepared `v1.0.0` checklist so the first `1.0.0` execution authorization sheet remains reproducible.
 - The final `one-point-zero-major-release-warrant` artifact should stay in step with the authorization artifact and prepared `v1.0.0` checklist so the first `1.0.0` launch-side warrant sheet remains reproducible.
+- The final `one-point-zero-major-release-launch-sheet` artifact should stay in step with the warrant artifact and prepared `v1.0.0` checklist so the first `1.0.0` execution handoff remains reproducible.
 - Keep `examples/*`, `apps/*`, and `packages/*` on the same version line.
 
 ## Near-Term Priorities

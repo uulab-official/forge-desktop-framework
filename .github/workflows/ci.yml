@@ -142,6 +142,9 @@ jobs:
       - name: Verify One Point Zero major release warrant
         run: pnpm release:major:warrant:test
 
+      - name: Verify One Point Zero major release launch sheet
+        run: pnpm release:major:launch-sheet:test
+
   python:
     runs-on: ubuntu-latest
     steps:

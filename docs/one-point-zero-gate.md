@@ -183,6 +183,14 @@ Required guard:
 
 - `pnpm release:major:warrant:test`
 
+### 19. Major Release Launch Sheet Is Explicit
+
+Forge must emit one final operator-facing launch sheet that turns the launch-side warrant artifact into the exact last execution handoff for the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:launch-sheet:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -215,6 +223,7 @@ pnpm release:major:board:test
 pnpm release:major:verdict:test
 pnpm release:major:authorization:test
 pnpm release:major:warrant:test
+pnpm release:major:launch-sheet:test
 pnpm release:ship patch
 pnpm version:check
 ```
