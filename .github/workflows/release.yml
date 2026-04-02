@@ -333,6 +333,10 @@ jobs:
         shell: bash
         run: bash scripts/generate-one-point-zero-major-release-go-live.sh .release-matrix/one-point-zero-major-release-rehearsal.json .release-matrix/v1.0.0.md .release-matrix
 
+      - name: Generate One Point Zero major release activation
+        shell: bash
+        run: bash scripts/generate-one-point-zero-major-release-activation.sh .release-matrix/one-point-zero-major-release-go-live.json .release-matrix/v1.0.0.md .release-matrix
+
       - name: Upload release bundle metadata to S3/R2
         if: ${{ vars.S3_ENABLED == 'true' }}
         shell: bash
@@ -441,6 +445,10 @@ jobs:
             --endpoint-url $S3_ENDPOINT
           aws s3 cp .release-matrix/one-point-zero-major-release-go-live.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-major-release-go-live.json" \
             --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/one-point-zero-major-release-activation.md "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-major-release-activation.md" \
+            --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/one-point-zero-major-release-activation.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-major-release-activation.json" \
+            --endpoint-url $S3_ENDPOINT
 
       - name: Upload release matrix summary
         uses: actions/upload-artifact@v4
@@ -496,3 +504,5 @@ jobs:
             .release-matrix/one-point-zero-major-release-rehearsal.json
             .release-matrix/one-point-zero-major-release-go-live.md
             .release-matrix/one-point-zero-major-release-go-live.json
+            .release-matrix/one-point-zero-major-release-activation.md
+            .release-matrix/one-point-zero-major-release-activation.json

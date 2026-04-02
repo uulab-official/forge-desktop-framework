@@ -231,6 +231,14 @@ Required guard:
 
 - `pnpm release:major:go-live:test`
 
+### 25. Major Release Activation Is Explicit
+
+Forge must emit one final activation artifact that turns the go-live artifact plus prepared `v1.0.0` checklist into the exact last execution confirmation surface before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:activation:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -269,6 +277,7 @@ pnpm release:major:preflight:test
 pnpm release:major:trigger:test
 pnpm release:major:rehearsal:test
 pnpm release:major:go-live:test
+pnpm release:major:activation:test
 pnpm release:ship patch
 pnpm version:check
 ```

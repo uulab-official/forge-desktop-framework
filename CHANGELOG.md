@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.91 (2026-04-02)
+
+### One Point Zero Major Release Activation
+
+- added `scripts/generate-one-point-zero-major-release-activation.sh` and `scripts/test-one-point-zero-major-release-activation.sh` so Forge now emits `one-point-zero-major-release-activation.md/json`, which turns the major-release go-live artifact plus prepared `v1.0.0` checklist into one final execution confirmation surface
+- wired `pnpm release:major:activation:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` activation artifact for every shipped version
+- documented the new major-release activation layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the `1.0` gate doc, and the `v0.1.91` release checklist
+
 ## 0.1.90 (2026-04-02)
 
 ### One Point Zero Major Release Go Live

@@ -160,6 +160,9 @@ jobs:
       - name: Verify One Point Zero major release go live
         run: pnpm release:major:go-live:test
 
+      - name: Verify One Point Zero major release activation
+        run: pnpm release:major:activation:test
+
   python:
     runs-on: ubuntu-latest
     steps:
