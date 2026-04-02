@@ -199,6 +199,14 @@ Required guard:
 
 - `pnpm release:major:command-card:test`
 
+### 21. Major Release Preflight Is Explicit
+
+Forge must emit one final preflight artifact that turns the command card plus prepared `v1.0.0` checklist into the exact last readiness gate before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:preflight:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -233,6 +241,7 @@ pnpm release:major:authorization:test
 pnpm release:major:warrant:test
 pnpm release:major:launch-sheet:test
 pnpm release:major:command-card:test
+pnpm release:major:preflight:test
 pnpm release:ship patch
 pnpm version:check
 ```

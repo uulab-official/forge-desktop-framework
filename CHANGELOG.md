@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.87 (2026-04-02)
+
+### One Point Zero Major Release Preflight
+
+- added `scripts/generate-one-point-zero-major-release-preflight.sh` and `scripts/test-one-point-zero-major-release-preflight.sh` so Forge now emits `one-point-zero-major-release-preflight.md/json`, which turns the major-release command-card artifact plus prepared `v1.0.0` checklist into one final ready-to-ship preflight gate
+- wired `pnpm release:major:preflight:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` preflight artifact for every shipped version
+- documented the new major-release preflight layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the `1.0` gate doc, and the `v0.1.87` release checklist
+
 ## 0.1.86 (2026-04-02)
 
 ### One Point Zero Major Release Command Card
