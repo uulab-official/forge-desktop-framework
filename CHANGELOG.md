@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.101 (2026-04-03)
+
+### One Point Zero Major Release Ledger
+
+- added `scripts/generate-one-point-zero-major-release-ledger.sh` and `scripts/test-one-point-zero-major-release-ledger.sh` so Forge now emits `one-point-zero-major-release-ledger.md/json`, which turns the major-release capsule artifact plus prepared `v1.0.0` checklist into one final immutable ledger surface
+- wired `pnpm release:major:ledger:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` ledger artifact for every shipped version
+- documented the new major-release ledger layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the `1.0` gate doc, and the `v0.1.101` release checklist
+
 ## 0.1.100 (2026-04-03)
 
 ### One Point Zero Major Release Capsule

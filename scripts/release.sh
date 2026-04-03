@@ -233,6 +233,10 @@ echo "Running One Point Zero major release capsule smoke test before version bum
 bash scripts/test-one-point-zero-major-release-capsule.sh
 echo ""
 
+echo "Running One Point Zero major release ledger smoke test before version bump..."
+bash scripts/test-one-point-zero-major-release-ledger.sh
+echo ""
+
 # Get current version
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "Current version: $CURRENT_VERSION"

@@ -373,6 +373,10 @@ jobs:
         shell: bash
         run: bash scripts/generate-one-point-zero-major-release-capsule.sh .release-matrix/one-point-zero-major-release-compact.json .release-matrix/v1.0.0.md .release-matrix
 
+      - name: Generate One Point Zero major release ledger
+        shell: bash
+        run: bash scripts/generate-one-point-zero-major-release-ledger.sh .release-matrix/one-point-zero-major-release-capsule.json .release-matrix/v1.0.0.md .release-matrix
+
       - name: Upload release bundle metadata to S3/R2
         if: ${{ vars.S3_ENABLED == 'true' }}
         shell: bash
@@ -521,6 +525,10 @@ jobs:
             --endpoint-url $S3_ENDPOINT
           aws s3 cp .release-matrix/one-point-zero-major-release-capsule.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-major-release-capsule.json" \
             --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/one-point-zero-major-release-ledger.md "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-major-release-ledger.md" \
+            --endpoint-url $S3_ENDPOINT
+          aws s3 cp .release-matrix/one-point-zero-major-release-ledger.json "s3://$S3_BUCKET/release-bundles/${{ github.ref_name }}/one-point-zero-major-release-ledger.json" \
+            --endpoint-url $S3_ENDPOINT
 
       - name: Upload release matrix summary
         uses: actions/upload-artifact@v4
@@ -594,5 +602,7 @@ jobs:
             .release-matrix/one-point-zero-major-release-covenant.json
             .release-matrix/one-point-zero-major-release-compact.md
             .release-matrix/one-point-zero-major-release-compact.json
-            .release-matrix/one-point-zero-major-release-capsule.md
-            .release-matrix/one-point-zero-major-release-capsule.json
+          .release-matrix/one-point-zero-major-release-capsule.md
+          .release-matrix/one-point-zero-major-release-capsule.json
+          .release-matrix/one-point-zero-major-release-ledger.md
+          .release-matrix/one-point-zero-major-release-ledger.json

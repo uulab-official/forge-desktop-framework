@@ -311,6 +311,14 @@ Required guard:
 
 - `pnpm release:major:capsule:test`
 
+### 35. Major Release Ledger Is Explicit
+
+Forge must emit one final ledger artifact that turns the capsule artifact plus prepared `v1.0.0` checklist into the exact last immutable ledger before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:ledger:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -359,6 +367,7 @@ pnpm release:major:constitution:test
 pnpm release:major:covenant:test
 pnpm release:major:compact:test
 pnpm release:major:capsule:test
+pnpm release:major:ledger:test
 pnpm release:ship patch
 pnpm version:check
 ```
