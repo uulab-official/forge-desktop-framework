@@ -67,7 +67,7 @@ When a task touches one of these surfaces, check the others before finishing:
 - The final `one-point-zero-major-release-seal` artifact should stay in step with the attestation artifact and prepared `v1.0.0` checklist so the first `1.0.0` immutable seal remains reproducible.
 - The final `one-point-zero-major-release-charter` artifact should stay in step with the seal artifact and prepared `v1.0.0` checklist so the first `1.0.0` immutable charter remains reproducible.
 - The final `one-point-zero-major-release-canon` artifact should stay in step with the charter artifact and prepared `v1.0.0` checklist so the first `1.0.0` immutable canon remains reproducible.
-- The final `one-point-zero-major-release-constitution`, `one-point-zero-major-release-covenant`, `one-point-zero-major-release-compact`, `one-point-zero-major-release-capsule`, `one-point-zero-major-release-ledger`, and `one-point-zero-major-release-archive` artifacts should stay in step with the canon artifact and prepared `v1.0.0` checklist so the first `1.0.0` immutable constitution, covenant, compact, capsule, ledger, and archive remain reproducible.
+- The final `one-point-zero-major-release-constitution`, `one-point-zero-major-release-covenant`, `one-point-zero-major-release-compact`, `one-point-zero-major-release-capsule`, `one-point-zero-major-release-ledger`, `one-point-zero-major-release-archive`, and `one-point-zero-major-release-vault` artifacts should stay in step with the canon artifact and prepared `v1.0.0` checklist so the first `1.0.0` immutable constitution, covenant, compact, capsule, ledger, archive, and vault remain reproducible.
 - Keep `examples/*`, `apps/*`, and `packages/*` on the same version line.
 
 ## Near-Term Priorities

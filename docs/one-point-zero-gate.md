@@ -327,6 +327,14 @@ Required guard:
 
 - `pnpm release:major:archive:test`
 
+### 37. Major Release Vault Is Explicit
+
+Forge must emit one final vault artifact that turns the archive artifact plus prepared `v1.0.0` checklist into the exact last immutable vault before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:vault:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -377,6 +385,7 @@ pnpm release:major:compact:test
 pnpm release:major:capsule:test
 pnpm release:major:ledger:test
 pnpm release:major:archive:test
+pnpm release:major:vault:test
 pnpm release:ship patch
 pnpm version:check
 ```
