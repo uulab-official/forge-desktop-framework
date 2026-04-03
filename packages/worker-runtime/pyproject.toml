@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "forge-worker-runtime"
-version = "0.1.106"
+version = "0.1.107"
 description = "Python worker runtime for Forge Desktop Framework"
 license = {text = "MIT"}
 requires-python = ">=3.10"
