@@ -199,6 +199,9 @@ jobs:
       - name: Verify One Point Zero major release vault
         run: pnpm release:major:vault:test
 
+      - name: Verify One Point Zero major release registry
+        run: pnpm release:major:registry:test
+
   python:
     runs-on: ubuntu-latest
     steps:

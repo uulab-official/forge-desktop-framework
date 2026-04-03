@@ -335,6 +335,14 @@ Required guard:
 
 - `pnpm release:major:vault:test`
 
+### 38. Major Release Registry Is Explicit
+
+Forge must emit one final registry artifact that turns the vault artifact plus prepared `v1.0.0` checklist into the exact last immutable registry before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:registry:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -386,6 +394,7 @@ pnpm release:major:capsule:test
 pnpm release:major:ledger:test
 pnpm release:major:archive:test
 pnpm release:major:vault:test
+pnpm release:major:registry:test
 pnpm release:ship patch
 pnpm version:check
 ```
