@@ -184,6 +184,9 @@ jobs:
       - name: Verify One Point Zero major release covenant
         run: pnpm release:major:covenant:test
 
+      - name: Verify One Point Zero major release compact
+        run: pnpm release:major:compact:test
+
   python:
     runs-on: ubuntu-latest
     steps:

@@ -225,6 +225,9 @@ bash scripts/test-one-point-zero-major-release-constitution.sh
 
 echo "Running One Point Zero major release covenant smoke test before version bump..."
 bash scripts/test-one-point-zero-major-release-covenant.sh
+
+echo "Running One Point Zero major release compact smoke test before version bump..."
+bash scripts/test-one-point-zero-major-release-compact.sh
 echo ""
 
 # Get current version

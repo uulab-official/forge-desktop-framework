@@ -295,6 +295,14 @@ Required guard:
 
 - `pnpm release:major:covenant:test`
 
+### 33. Major Release Compact Is Explicit
+
+Forge must emit one final compact artifact that turns the covenant artifact plus prepared `v1.0.0` checklist into the exact last immutable compact before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:compact:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -341,6 +349,7 @@ pnpm release:major:charter:test
 pnpm release:major:canon:test
 pnpm release:major:constitution:test
 pnpm release:major:covenant:test
+pnpm release:major:compact:test
 pnpm release:ship patch
 pnpm version:check
 ```
