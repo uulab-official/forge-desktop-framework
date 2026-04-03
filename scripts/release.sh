@@ -265,6 +265,10 @@ echo "Running One Point Zero major release folio smoke test before version bump.
 bash scripts/test-one-point-zero-major-release-folio.sh
 echo ""
 
+echo "Running One Point Zero major release portfolio smoke test before version bump..."
+bash scripts/test-one-point-zero-major-release-portfolio.sh
+echo ""
+
 # Get current version
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "Current version: $CURRENT_VERSION"

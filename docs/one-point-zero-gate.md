@@ -375,6 +375,14 @@ Required guard:
 
 - `pnpm release:major:folio:test`
 
+### 43. Major Release Portfolio Is Explicit
+
+Forge must emit one final portfolio artifact that turns the folio artifact plus prepared `v1.0.0` checklist into the exact last immutable portfolio before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:portfolio:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -431,6 +439,7 @@ pnpm release:major:directory:test
 pnpm release:major:manifest:test
 pnpm release:major:dossier:test
 pnpm release:major:folio:test
+pnpm release:major:portfolio:test
 pnpm release:ship patch
 pnpm version:check
 ```
