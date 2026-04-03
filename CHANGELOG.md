@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.100 (2026-04-03)
+
+### One Point Zero Major Release Capsule
+
+- added `scripts/generate-one-point-zero-major-release-capsule.sh` and `scripts/test-one-point-zero-major-release-capsule.sh` so Forge now emits `one-point-zero-major-release-capsule.md/json`, which turns the major-release compact artifact plus prepared `v1.0.0` checklist into one final immutable capsule surface
+- wired `pnpm release:major:capsule:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` capsule artifact for every shipped version
+- documented the new major-release capsule layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the `1.0` gate doc, and the `v0.1.100` release checklist
+
 ## 0.1.99 (2026-04-03)
 
 ### One Point Zero Major Release Compact

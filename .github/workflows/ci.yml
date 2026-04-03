@@ -187,6 +187,9 @@ jobs:
       - name: Verify One Point Zero major release compact
         run: pnpm release:major:compact:test
 
+      - name: Verify One Point Zero major release capsule
+        run: pnpm release:major:capsule:test
+
   python:
     runs-on: ubuntu-latest
     steps:
