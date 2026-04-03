@@ -367,6 +367,14 @@ Required guard:
 
 - `pnpm release:major:dossier:test`
 
+### 42. Major Release Folio Is Explicit
+
+Forge must emit one final folio artifact that turns the dossier artifact plus prepared `v1.0.0` checklist into the exact last immutable folio before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:folio:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -422,6 +430,7 @@ pnpm release:major:registry:test
 pnpm release:major:directory:test
 pnpm release:major:manifest:test
 pnpm release:major:dossier:test
+pnpm release:major:folio:test
 pnpm release:ship patch
 pnpm version:check
 ```

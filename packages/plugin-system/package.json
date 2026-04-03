@@ -1,6 +1,6 @@
 {
   "name": "@forge/plugin-system",
-  "version": "0.1.107",
+  "version": "0.1.108",
   "description": "Plugin registry and lifecycle helpers for Forge Desktop apps",
   "type": "module",
   "main": "./dist/index.js",

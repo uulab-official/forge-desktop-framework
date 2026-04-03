@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.108 (2026-04-03)
+
+### One Point Zero Major Release Folio
+
+- added `scripts/generate-one-point-zero-major-release-folio.sh` and `scripts/test-one-point-zero-major-release-folio.sh` so Forge now emits `one-point-zero-major-release-folio.md/json`, which turns the major-release dossier artifact plus prepared `v1.0.0` checklist into one final immutable folio surface
+- wired `pnpm release:major:folio:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` folio artifact for every shipped version
+- documented the new major-release folio layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the `1.0` gate doc, and the `v0.1.108` release checklist
+
 ## 0.1.107 (2026-04-03)
 
 ### One Point Zero Major Release Dossier
