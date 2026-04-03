@@ -249,6 +249,10 @@ echo "Running One Point Zero major release registry smoke test before version bu
 bash scripts/test-one-point-zero-major-release-registry.sh
 echo ""
 
+echo "Running One Point Zero major release directory smoke test before version bump..."
+bash scripts/test-one-point-zero-major-release-directory.sh
+echo ""
+
 # Get current version
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "Current version: $CURRENT_VERSION"

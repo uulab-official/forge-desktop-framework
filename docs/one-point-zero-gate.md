@@ -343,6 +343,14 @@ Required guard:
 
 - `pnpm release:major:registry:test`
 
+### 39. Major Release Directory Is Explicit
+
+Forge must emit one final directory artifact that turns the registry artifact plus prepared `v1.0.0` checklist into the exact last immutable directory before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:directory:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -395,6 +403,7 @@ pnpm release:major:ledger:test
 pnpm release:major:archive:test
 pnpm release:major:vault:test
 pnpm release:major:registry:test
+pnpm release:major:directory:test
 pnpm release:ship patch
 pnpm version:check
 ```

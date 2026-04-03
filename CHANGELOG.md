@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.105 (2026-04-03)
+
+### One Point Zero Major Release Directory
+
+- added `scripts/generate-one-point-zero-major-release-directory.sh` and `scripts/test-one-point-zero-major-release-directory.sh` so Forge now emits `one-point-zero-major-release-directory.md/json`, which turns the major-release registry artifact plus prepared `v1.0.0` checklist into one final immutable directory surface
+- wired `pnpm release:major:directory:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` directory artifact for every shipped version
+- documented the new major-release directory layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the `1.0` gate doc, and the `v0.1.105` release checklist
+
 ## 0.1.104 (2026-04-03)
 
 ### One Point Zero Major Release Registry
