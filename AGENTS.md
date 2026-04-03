@@ -65,7 +65,7 @@ If a change affects onboarding, packaging, scaffolding, or examples, update the 
 - Keep the final `one-point-zero-major-release-seal.md/json` summary aligned with the attestation artifact and prepared `v1.0.0` checklist so the first `1.0.0` immutable seal stays reproducible.
 - Keep the final `one-point-zero-major-release-charter.md/json` summary aligned with the seal artifact and prepared `v1.0.0` checklist so the first `1.0.0` immutable charter stays reproducible.
 - Keep the final `one-point-zero-major-release-canon.md/json` summary aligned with the charter artifact and prepared `v1.0.0` checklist so the first `1.0.0` immutable canon stays reproducible.
-- Keep the final `one-point-zero-major-release-constitution.md/json` summary aligned with the canon artifact and prepared `v1.0.0` checklist so the first `1.0.0` immutable constitution stays reproducible.
+- Keep the final `one-point-zero-major-release-constitution.md/json` and `one-point-zero-major-release-covenant.md/json` summaries aligned with the canon artifact and prepared `v1.0.0` checklist so the first `1.0.0` immutable constitution and covenant stay reproducible.
 
 ## Validation
 - Framework-wide checks: `pnpm build`, `pnpm typecheck`

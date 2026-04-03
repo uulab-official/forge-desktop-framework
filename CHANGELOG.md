@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.98 (2026-04-03)
+
+### One Point Zero Major Release Covenant
+
+- added `scripts/generate-one-point-zero-major-release-covenant.sh` and `scripts/test-one-point-zero-major-release-covenant.sh` so Forge now emits `one-point-zero-major-release-covenant.md/json`, which turns the major-release constitution artifact plus prepared `v1.0.0` checklist into one final immutable covenant surface
+- wired `pnpm release:major:covenant:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` covenant artifact for every shipped version
+- documented the new major-release covenant layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the `1.0` gate doc, and the `v0.1.98` release checklist
+
 ## 0.1.97 (2026-04-03)
 
 ### One Point Zero Major Release Constitution

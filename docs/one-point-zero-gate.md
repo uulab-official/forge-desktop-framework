@@ -287,6 +287,14 @@ Required guard:
 
 - `pnpm release:major:constitution:test`
 
+### 32. Major Release Covenant Is Explicit
+
+Forge must emit one final covenant artifact that turns the constitution artifact plus prepared `v1.0.0` checklist into the exact last immutable covenant before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:covenant:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -332,6 +340,7 @@ pnpm release:major:seal:test
 pnpm release:major:charter:test
 pnpm release:major:canon:test
 pnpm release:major:constitution:test
+pnpm release:major:covenant:test
 pnpm release:ship patch
 pnpm version:check
 ```
