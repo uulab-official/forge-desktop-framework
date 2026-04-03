@@ -193,6 +193,9 @@ jobs:
       - name: Verify One Point Zero major release ledger
         run: pnpm release:major:ledger:test
 
+      - name: Verify One Point Zero major release archive
+        run: pnpm release:major:archive:test
+
   python:
     runs-on: ubuntu-latest
     steps:
