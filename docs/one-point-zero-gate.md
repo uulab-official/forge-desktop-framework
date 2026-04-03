@@ -351,6 +351,14 @@ Required guard:
 
 - `pnpm release:major:directory:test`
 
+### 40. Major Release Manifest Is Explicit
+
+Forge must emit one final manifest artifact that turns the directory artifact plus prepared `v1.0.0` checklist into the exact last immutable manifest before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:manifest:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -404,6 +412,7 @@ pnpm release:major:archive:test
 pnpm release:major:vault:test
 pnpm release:major:registry:test
 pnpm release:major:directory:test
+pnpm release:major:manifest:test
 pnpm release:ship patch
 pnpm version:check
 ```

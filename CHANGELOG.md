@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.106 (2026-04-03)
+
+### One Point Zero Major Release Manifest
+
+- added `scripts/generate-one-point-zero-major-release-manifest.sh` and `scripts/test-one-point-zero-major-release-manifest.sh` so Forge now emits `one-point-zero-major-release-manifest.md/json`, which turns the major-release directory artifact plus prepared `v1.0.0` checklist into one final immutable manifest surface
+- wired `pnpm release:major:manifest:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` manifest artifact for every shipped version
+- documented the new major-release manifest layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the `1.0` gate doc, and the `v0.1.106` release checklist
+
 ## 0.1.105 (2026-04-03)
 
 ### One Point Zero Major Release Directory

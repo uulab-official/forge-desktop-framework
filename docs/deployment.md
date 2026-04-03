@@ -238,7 +238,7 @@ Maintainers can now also run `pnpm release:major:attestation:test` to verify the
 Maintainers can now also run `pnpm release:major:seal:test` to verify the final immutable seal surface before the first `1.0.0` ship.
 Maintainers can now also run `pnpm release:major:charter:test` to verify the final immutable charter surface before the first `1.0.0` ship.
 Maintainers can now also run `pnpm release:major:canon:test` to verify the final immutable canon surface before the first `1.0.0` ship.
-Maintainers can now also run `pnpm release:major:constitution:test`, `pnpm release:major:covenant:test`, `pnpm release:major:compact:test`, `pnpm release:major:capsule:test`, `pnpm release:major:ledger:test`, `pnpm release:major:archive:test`, `pnpm release:major:vault:test`, `pnpm release:major:registry:test`, and `pnpm release:major:directory:test` to verify the final immutable constitution, covenant, compact, capsule, ledger, archive, vault, registry, and directory surfaces before the first `1.0.0` ship.
+Maintainers can now also run `pnpm release:major:constitution:test`, `pnpm release:major:covenant:test`, `pnpm release:major:compact:test`, `pnpm release:major:capsule:test`, `pnpm release:major:ledger:test`, `pnpm release:major:archive:test`, `pnpm release:major:vault:test`, `pnpm release:major:registry:test`, `pnpm release:major:directory:test`, and `pnpm release:major:manifest:test` to verify the final immutable constitution, covenant, compact, capsule, ledger, archive, vault, registry, directory, and manifest surfaces before the first `1.0.0` ship.
 
 The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pull requests:
 - `pnpm scaffold:test`
@@ -286,6 +286,7 @@ The GitHub `CI` workflow now runs the same release-readiness stack on Ubuntu pul
 - `pnpm release:major:vault:test`
 - `pnpm release:major:registry:test`
 - `pnpm release:major:directory:test`
+- `pnpm release:major:manifest:test`
 
 The tagged `Release` workflow now also:
 - writes a markdown and JSON inventory of packaged artifacts for each matrix job
@@ -338,7 +339,7 @@ The tagged `Release` workflow now also:
 - generates `one-point-zero-major-release-seal.md/json` so the final first-major-release immutable seal surface is preserved as a tagged release artifact too
 - generates `one-point-zero-major-release-charter.md/json` so the final first-major-release immutable charter surface is preserved as a tagged release artifact too
 - generates `one-point-zero-major-release-canon.md/json` so the final first-major-release immutable canon surface is preserved as a tagged release artifact too
-- generates `one-point-zero-major-release-constitution.md/json`, `one-point-zero-major-release-covenant.md/json`, `one-point-zero-major-release-compact.md/json`, `one-point-zero-major-release-capsule.md/json`, `one-point-zero-major-release-ledger.md/json`, `one-point-zero-major-release-archive.md/json`, `one-point-zero-major-release-vault.md/json`, `one-point-zero-major-release-registry.md/json`, and `one-point-zero-major-release-directory.md/json` so the final first-major-release immutable constitution, covenant, compact, capsule, ledger, archive, vault, registry, and directory surfaces are preserved as tagged release artifacts too
+- generates `one-point-zero-major-release-constitution.md/json`, `one-point-zero-major-release-covenant.md/json`, `one-point-zero-major-release-compact.md/json`, `one-point-zero-major-release-capsule.md/json`, `one-point-zero-major-release-ledger.md/json`, `one-point-zero-major-release-archive.md/json`, `one-point-zero-major-release-vault.md/json`, `one-point-zero-major-release-registry.md/json`, `one-point-zero-major-release-directory.md/json`, and `one-point-zero-major-release-manifest.md/json` so the final first-major-release immutable constitution, covenant, compact, capsule, ledger, archive, vault, registry, directory, and manifest surfaces are preserved as tagged release artifacts too
 
 For framework maintainers working in this monorepo, the official one-command ship flow is:
 

@@ -205,6 +205,9 @@ jobs:
       - name: Verify One Point Zero major release directory
         run: pnpm release:major:directory:test
 
+      - name: Verify One Point Zero major release manifest
+        run: pnpm release:major:manifest:test
+
   python:
     runs-on: ubuntu-latest
     steps:
