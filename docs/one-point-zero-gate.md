@@ -279,6 +279,14 @@ Required guard:
 
 - `pnpm release:major:canon:test`
 
+### 31. Major Release Constitution Is Explicit
+
+Forge must emit one final constitution artifact that turns the canon artifact plus prepared `v1.0.0` checklist into the exact last immutable constitution before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:constitution:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -323,6 +331,7 @@ pnpm release:major:attestation:test
 pnpm release:major:seal:test
 pnpm release:major:charter:test
 pnpm release:major:canon:test
+pnpm release:major:constitution:test
 pnpm release:ship patch
 pnpm version:check
 ```

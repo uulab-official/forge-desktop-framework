@@ -178,6 +178,9 @@ jobs:
       - name: Verify One Point Zero major release canon
         run: pnpm release:major:canon:test
 
+      - name: Verify One Point Zero major release constitution
+        run: pnpm release:major:constitution:test
+
   python:
     runs-on: ubuntu-latest
     steps:
