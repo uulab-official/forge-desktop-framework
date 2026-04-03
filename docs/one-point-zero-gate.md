@@ -383,6 +383,14 @@ Required guard:
 
 - `pnpm release:major:portfolio:test`
 
+### 44. Major Release Compendium Is Explicit
+
+Forge must emit one final compendium artifact that turns the portfolio artifact plus prepared `v1.0.0` checklist into the exact last immutable compendium before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:compendium:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -440,6 +448,7 @@ pnpm release:major:manifest:test
 pnpm release:major:dossier:test
 pnpm release:major:folio:test
 pnpm release:major:portfolio:test
+pnpm release:major:compendium:test
 pnpm release:ship patch
 pnpm version:check
 ```
