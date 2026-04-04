@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { WorkerRequest } from '@forge/ipc-contract';
 
-contextBridge.exposeInMainWorld('api', {
+contextBridge.exposeInMainWorld('api', Object.freeze({
   execute: (request: WorkerRequest) => ipcRenderer.invoke('worker:execute', request),
-});
+}));

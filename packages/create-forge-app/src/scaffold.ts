@@ -248,6 +248,7 @@ async function rewriteProjectReadme(
       'pnpm build',
       'pnpm typecheck',
       'pnpm release:check',
+      'pnpm security:check',
       'pnpm production:check',
       'pnpm setup:python',
       'pnpm build:worker',
@@ -262,6 +263,7 @@ async function rewriteProjectReadme(
       '- Copy `.env.example` to `.env` and fill in release metadata',
       '- Add GitHub Actions secrets before pushing a release tag',
       '- Run `pnpm release:check` to verify release prerequisites',
+      '- Run `pnpm security:check` to confirm the Electron shell still matches the framework security baseline',
       '- Run `pnpm production:check` for the default GitHub channel, or `pnpm production:check:all -- --require-release-output` after packaging when you need a full multi-channel audit',
       '- Build the bundled worker with `pnpm build:worker`',
       '- Package the desktop app with `pnpm package`',
@@ -321,6 +323,7 @@ async function writeReleasePreset(
   await writeFile(join(targetDir, 'scripts', 'check-publish-env.sh'), getPublishEnvCheckScript(), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'verify-package-output.sh'), getVerifyPackageOutputScript(), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'audit-package-output.sh'), getAuditPackageOutputScript(), 'utf-8');
+  await writeFile(join(targetDir, 'scripts', 'security-baseline.sh'), getSecurityBaselineScript(), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'production-readiness.sh'), getProductionReadinessScript(), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'setup-python.sh'), getSetupPythonScript(), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'build-worker.sh'), getBuildWorkerScript(), 'utf-8');
@@ -367,6 +370,7 @@ async function updatePackageJsonForRelease(
     'package:verify:s3': 'bash scripts/verify-package-output.sh s3',
     'package:audit': 'bash scripts/audit-package-output.sh github',
     'package:audit:s3': 'bash scripts/audit-package-output.sh s3',
+    'security:check': 'bash scripts/security-baseline.sh',
     'production:check': 'bash scripts/production-readiness.sh github',
     'production:check:github': 'bash scripts/production-readiness.sh github',
     'production:check:s3': 'bash scripts/production-readiness.sh s3',
@@ -980,6 +984,9 @@ function getProductionReadinessScript(): string {
     'echo "=== Type check ==="',
     'pnpm typecheck',
     '',
+    'echo "=== Electron security baseline ==="',
+    'pnpm security:check',
+    '',
     'if [ -f "worker/main.py" ]; then',
     '  echo "=== Python worker environment ==="',
     '  pnpm setup:python',
@@ -1013,6 +1020,71 @@ function getProductionReadinessScript(): string {
     'done',
     '',
     'echo "Production readiness checks passed for: ${TARGETS[*]}"',
+    '',
+  ].join('\n');
+}
+
+function getSecurityBaselineScript(): string {
+  return [
+    '#!/bin/bash',
+    'set -euo pipefail',
+    '',
+    'SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"',
+    'ROOT_DIR="$SCRIPT_DIR/.."',
+    '',
+    'cd "$ROOT_DIR"',
+    '',
+    'assert_contains() {',
+    '  local path="$1"',
+    '  local pattern="$2"',
+    '  local description="$3"',
+    '',
+    '  if ! grep -Fq "$pattern" "$path"; then',
+    '    echo "Security baseline check failed: $description"',
+    '    echo "Missing pattern: $pattern"',
+    '    echo "File: $path"',
+    '    exit 1',
+    '  fi',
+    '}',
+    '',
+    'assert_not_contains() {',
+    '  local path="$1"',
+    '  local pattern="$2"',
+    '  local description="$3"',
+    '',
+    '  if grep -Fq "$pattern" "$path"; then',
+    '    echo "Security baseline check failed: $description"',
+    '    echo "Unexpected pattern: $pattern"',
+    '    echo "File: $path"',
+    '    exit 1',
+    '  fi',
+    '}',
+    '',
+    'MAIN_FILE="electron/main.ts"',
+    'PRELOAD_FILE="electron/preload.ts"',
+    '',
+    'if [ ! -f "$MAIN_FILE" ]; then',
+    '  echo "Missing Electron main entry: $MAIN_FILE"',
+    '  exit 1',
+    'fi',
+    '',
+    'if [ ! -f "$PRELOAD_FILE" ]; then',
+    '  echo "Missing Electron preload entry: $PRELOAD_FILE"',
+    '  exit 1',
+    'fi',
+    '',
+    'assert_contains "$MAIN_FILE" "contextIsolation: true" "renderer isolation must stay enabled"',
+    'assert_contains "$MAIN_FILE" "nodeIntegration: false" "Node.js integration must stay disabled in the renderer"',
+    'assert_contains "$MAIN_FILE" "sandbox: true" "Chromium sandbox must stay enabled"',
+    'assert_contains "$MAIN_FILE" "webSecurity: true" "webSecurity must stay enabled"',
+    'assert_contains "$MAIN_FILE" "setWindowOpenHandler" "new windows must be explicitly denied or redirected"',
+    'assert_contains "$MAIN_FILE" "will-navigate" "unexpected navigations must be guarded"',
+    'assert_contains "$MAIN_FILE" "shell.openExternal" "external links must leave the Electron renderer"',
+    'assert_contains "$PRELOAD_FILE" "contextBridge.exposeInMainWorld" "preload must expose a bridged API"',
+    'assert_contains "$PRELOAD_FILE" "Object.freeze(" "exposed preload API should be frozen"',
+    'assert_not_contains "$PRELOAD_FILE" "ipcRenderer.sendSync" "sync IPC should not be exposed to the renderer"',
+    '',
+    'echo "Electron security baseline checks passed."',
     '',
   ].join('\n');
 }
@@ -1076,7 +1148,7 @@ function getMinimalElectronMainSource(
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
   const dialogFileName = `${toIdentifier(projectName)}-document.txt`;
 
-  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor || useIdlePresence ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useNetworkStatus ? ', net' : ''}${useSecureStorage ? ', safeStorage' : ''}${useFileDialogs || useDownloads || useExternalLinks || useSupportBundle || useLogArchive || useIncidentReport || useDiagnosticsTimeline ? `, ${useFileDialogs ? 'dialog, ' : ''}shell${useFileDialogs ? ', type OpenDialogOptions' : ''}` : ''} } from 'electron';
+  return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor || useIdlePresence ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useNetworkStatus ? ', net' : ''}${useSecureStorage ? ', safeStorage' : ''}, shell${useFileDialogs ? ', dialog, type OpenDialogOptions' : ''} } from 'electron';
 import path from 'node:path';
 ${useSystemInfo ? "import os from 'node:os';\n" : ''}
 ${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage || useSupportBundle || useLogArchive || useIncidentReport || useDiagnosticsTimeline ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage ? 'readFile' : '', 'writeFile', ...((useDiagnostics || useSupportBundle || useLogArchive || useIncidentReport || useDiagnosticsTimeline) ? ['mkdir'] : []), ...(useLogArchive ? ['readdir', 'stat', 'copyFile'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
@@ -1106,7 +1178,39 @@ const workerClient = createWorkerClient({
 });
 
 const enabledFeatures = ${JSON.stringify(features)};
-${useSettings ? "const settingsManager = createSettingsManager(path.join(app.getPath('userData'), 'settings.json'));\n" : ''}${useJobs ? 'const jobEngine = createJobEngine(workerClient);\n' : ''}${useUpdater ? "const updater = createUpdater({ autoDownload: false, autoInstallOnAppQuit: true });\n" : ''}${useWindowing ? `
+${useSettings ? "const settingsManager = createSettingsManager(path.join(app.getPath('userData'), 'settings.json'));\n" : ''}${useJobs ? 'const jobEngine = createJobEngine(workerClient);\n' : ''}${useUpdater ? "const updater = createUpdater({ autoDownload: false, autoInstallOnAppQuit: true });\n" : ''}function isTrustedRendererUrl(targetUrl: string) {
+  if (!targetUrl) {
+    return false;
+  }
+
+  if (!isDev) {
+    return targetUrl.startsWith('file://');
+  }
+
+  const devServerUrl = process.env['VITE_DEV_SERVER_URL'];
+  if (!devServerUrl) {
+    return false;
+  }
+
+  try {
+    return new URL(targetUrl).origin === new URL(devServerUrl).origin;
+  } catch {
+    return false;
+  }
+}
+
+function maybeOpenExternalUrl(targetUrl: string) {
+  try {
+    const parsed = new URL(targetUrl);
+    if (['http:', 'https:', 'mailto:'].includes(parsed.protocol)) {
+      void shell.openExternal(targetUrl);
+    }
+  } catch {
+    // Ignore malformed URLs; they stay blocked inside the Electron shell.
+  }
+}
+
+${useWindowing ? `
 const windowStatePath = path.join(app.getPath('userData'), 'window-state.json');
 type WindowState = {
   width: number;
@@ -3621,9 +3725,28 @@ ${useWindowing ? `    ...(typeof windowState.x === 'number' && typeof windowStat
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
+      webSecurity: true,
     },
     titleBarStyle: 'hiddenInset',
     show: false,
+  });
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (!isTrustedRendererUrl(url)) {
+      maybeOpenExternalUrl(url);
+    }
+
+    return { action: 'deny' };
+  });
+
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (isTrustedRendererUrl(url)) {
+      return;
+    }
+
+    event.preventDefault();
+    maybeOpenExternalUrl(url);
   });
 
 ${useDiagnosticsTimeline ? "  pushDiagnosticsTimelineEvent('window', 'created', `window:${mainWindow.id}`);\n" : ''}
@@ -3923,7 +4046,7 @@ ${useSettings ? `  settings: {
   },
 ` : ''}};
 
-contextBridge.exposeInMainWorld('api', api);
+contextBridge.exposeInMainWorld('api', Object.freeze(api));
 
 export type ForgeDesktopAPI = typeof api;
 `;
@@ -7331,6 +7454,7 @@ function getReleasePlaybook(projectName: string, metadata: ScaffoldMetadata): st
     '```bash',
     'pnpm install',
     'pnpm release:check',
+    'pnpm security:check',
     'pnpm production:check',
     'pnpm package',
     'pnpm production:check:github -- --require-release-output',
@@ -7368,6 +7492,7 @@ function getProductionReadinessGuide(projectName: string, metadata: ScaffoldMeta
     '## Default GitHub Release Path',
     '',
     '```bash',
+    'pnpm security:check',
     'pnpm production:check',
     'pnpm package',
     'pnpm production:check:github -- --require-release-output',
@@ -7376,6 +7501,7 @@ function getProductionReadinessGuide(projectName: string, metadata: ScaffoldMeta
     '## Generic or S3 Update Channel',
     '',
     '```bash',
+    'pnpm security:check',
     'pnpm production:check:s3',
     'pnpm package:s3',
     'pnpm production:check:s3 -- --require-release-output',
@@ -7384,6 +7510,7 @@ function getProductionReadinessGuide(projectName: string, metadata: ScaffoldMeta
     '## Full Multi-Channel Audit',
     '',
     '```bash',
+    'pnpm security:check',
     'pnpm production:check:all',
     'pnpm package',
     'pnpm production:check:all -- --require-release-output',
@@ -7392,6 +7519,7 @@ function getProductionReadinessGuide(projectName: string, metadata: ScaffoldMeta
     '## What Gets Checked',
     '',
     '- Release preflight files and metadata',
+    '- Electron security baseline in `electron/main.ts` and `electron/preload.ts`',
     '- TypeScript typecheck',
     '- Python worker environment and bundled worker build',
     '- Electron renderer and main-process build',

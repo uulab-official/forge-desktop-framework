@@ -14,6 +14,12 @@ mkdir -p "$TEMPLATES_DIR"
 for example_dir in "$EXAMPLES_DIR"/*/; do
   if [ -d "$example_dir" ]; then
     example_name=$(basename "$example_dir")
+
+    if [[ "$example_name" == __* ]]; then
+      echo "  Skipping transient example directory $example_name..."
+      continue
+    fi
+
     dest="$TEMPLATES_DIR/$example_name"
 
     echo "  Copying $example_name..."

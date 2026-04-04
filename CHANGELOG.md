@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.119 (2026-04-04)
+
+### Production Security Baseline
+
+- added generated `pnpm security:check` plus `scripts/security-baseline.sh`, so scaffolded apps can fail fast when Electron renderer isolation, sandboxing, external navigation guards, or preload API freezing drift away from the framework baseline
+- hardened the generated minimal shell, the minimal example, the synced templates, and the reference app with `sandbox: true`, `webSecurity: true`, `setWindowOpenHandler`, `will-navigate` guards, and frozen preload APIs
+- updated `production-ready` docs and release-surface audit coverage so production-grade starters now document and verify the Electron security baseline alongside release, publish, worker, and packaged-artifact checks
+
 ## 0.1.118 (2026-04-04)
 
 ### Production Readiness Commands

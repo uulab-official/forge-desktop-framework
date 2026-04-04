@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import path from 'node:path';
 import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
@@ -23,6 +23,27 @@ const workerClient = createWorkerClient({
 
 let mainWindow: BrowserWindow | null = null;
 
+function isTrustedRendererUrl(targetUrl: string) {
+  if (!targetUrl) return false;
+  if (!isDev) return targetUrl.startsWith('file://');
+  const devServerUrl = process.env['VITE_DEV_SERVER_URL'];
+  if (!devServerUrl) return false;
+  try {
+    return new URL(targetUrl).origin === new URL(devServerUrl).origin;
+  } catch {
+    return false;
+  }
+}
+
+function maybeOpenExternalUrl(targetUrl: string) {
+  try {
+    const parsed = new URL(targetUrl);
+    if (['http:', 'https:', 'mailto:'].includes(parsed.protocol)) {
+      void shell.openExternal(targetUrl);
+    }
+  } catch {}
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 900,
@@ -31,7 +52,19 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
+      webSecurity: true,
     },
+  });
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (!isTrustedRendererUrl(url)) maybeOpenExternalUrl(url);
+    return { action: 'deny' };
+  });
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (isTrustedRendererUrl(url)) return;
+    event.preventDefault();
+    maybeOpenExternalUrl(url);
   });
 
   if (isDev && process.env['VITE_DEV_SERVER_URL']) {

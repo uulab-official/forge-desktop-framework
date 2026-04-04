@@ -50,6 +50,6 @@ const electronAPI = {
   },
 };
 
-contextBridge.exposeInMainWorld('electronAPI', electronAPI);
+contextBridge.exposeInMainWorld('electronAPI', Object.freeze(electronAPI));
 
 export type ElectronAPI = typeof electronAPI;
