@@ -93,7 +93,7 @@ node dist/index.js create my-forge-app --template minimal \
   --preset production-ready
 ```
 
-That starter now also includes `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm production:check` for the default GitHub path, and `pnpm production:check:all -- --require-release-output` for a full post-package audit.
+That starter now also includes `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm production:check` for the default GitHub path, and `pnpm production:check:all -- --require-release-output` for a full post-package audit. Its generated validate and tagged release workflows also upload `ops/snapshots/` as build artifacts.
 
 Or preview the bundled launch starter:
 

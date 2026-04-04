@@ -120,7 +120,7 @@ node dist/index.js create my-forge-app --template minimal \
   --preset production-ready
 ```
 
-Generated apps from that preset now also ship `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm production:check` for the default GitHub release path, and `pnpm production:check:all -- --require-release-output` for a full post-package audit.
+Generated apps from that preset now also ship `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm production:check` for the default GitHub release path, and `pnpm production:check:all -- --require-release-output` for a full post-package audit. The generated validate and tagged release workflows now also upload `ops/snapshots/` as GitHub Actions artifacts.
 
 Or use the launch-focused preset if you only want the release, updater, and desktop shell baseline:
 
@@ -169,6 +169,7 @@ What the scaffold now adds by default:
 - local scripts for Python setup, worker bundling, and app packaging
 - `.env.example`, release preflight, publish-target preflight, package-output verification, package-output audit, and a release playbook
 - `docs/production-readiness.md` plus `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, and `pnpm production:check*` commands for repeatable pre-ship validation
+- GitHub Actions artifact upload for generated `ops/snapshots/` evidence from validate and tagged release runs
 - GitHub Actions workflows for validation and tagged releases
 - renderer safety/diagnostics baseline with an error boundary and runtime log dock
 

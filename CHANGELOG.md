@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.122 (2026-04-04)
+
+### Production Operations Snapshot Artifacts
+
+- updated generated `validate.yml` and tagged `release.yml` workflows so scaffolded apps now upload `ops/snapshots/` as GitHub Actions artifacts instead of leaving operator-facing evidence only on runner disk
+- enriched generated `pnpm ops:snapshot` output with CI execution context, including workflow name, run id, ref, commit SHA, and runner OS in both the Markdown and JSON snapshot payloads
+- extended release-surface audit coverage plus production-ready docs so Forge now verifies and documents snapshot artifact retention as part of the production scaffold contract
+
 ## 0.1.121 (2026-04-04)
 
 ### Production Operations Snapshot
