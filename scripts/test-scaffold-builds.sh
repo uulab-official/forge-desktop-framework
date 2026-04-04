@@ -150,8 +150,13 @@ pnpm install --dir "$PRODUCTION_READY_APP" --link-workspace-packages >/dev/null
 
 echo "==> Verifying production-ready smoke app"
 pnpm --dir "$PRODUCTION_READY_APP" release:check
+pnpm --dir "$PRODUCTION_READY_APP" ops:snapshot -- --label production-ready-smoke
 seed_release_output "$PRODUCTION_READY_APP"
 env GH_TOKEN=forge-smoke-token AWS_ACCESS_KEY_ID=forge-smoke-key AWS_SECRET_ACCESS_KEY=forge-smoke-secret S3_BUCKET=forge-smoke-bucket S3_ENDPOINT=https://example.com S3_UPDATE_URL=https://downloads.example.com/releases pnpm --dir "$PRODUCTION_READY_APP" production:check:all -- --require-release-output
+if ! find "$PRODUCTION_READY_APP/ops/snapshots" -name 'ops-snapshot.json' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops snapshot JSON was not produced."
+  exit 1
+fi
 if [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker" ] && [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker.exe" ]; then
   echo "Production-ready smoke app worker binary was not produced."
   exit 1

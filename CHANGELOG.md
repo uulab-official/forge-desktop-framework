@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.121 (2026-04-04)
+
+### Production Operations Snapshot
+
+- added generated `pnpm ops:snapshot` plus `scripts/ops-snapshot.sh`, so scaffolded apps can emit operator-facing Markdown and JSON snapshots of their current release surface under `ops/snapshots/`
+- updated the generated release playbook, production-readiness guide, project README, package scripts, and GitHub Actions workflows so the operations snapshot is part of the documented `production-ready` validation path instead of an ad hoc maintainer step
+- extended release-surface audit coverage plus internal and external `production-ready` smoke flows so Forge now proves the snapshot command actually runs and writes evidence before the framework version can move
+
 ## 0.1.120 (2026-04-04)
 
 ### Production Runtime Hygiene Baseline

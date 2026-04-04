@@ -1,7 +1,7 @@
 {
   "name": "forge-desktop-framework",
   "private": true,
-  "version": "0.1.120",
+  "version": "0.1.121",
   "description": "Open source local-engine desktop app framework — Electron + Python Worker",
   "license": "MIT",
   "repository": {
