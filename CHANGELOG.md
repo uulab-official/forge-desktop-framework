@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.113 (2026-04-04)
+
+### One Point Zero Major Release Digest
+
+- added `scripts/generate-one-point-zero-major-release-digest.sh` and `scripts/test-one-point-zero-major-release-digest.sh` so Forge now emits `one-point-zero-major-release-digest.md/json`, which turns the major-release omnibus artifact plus prepared `v1.0.0` checklist into one final immutable digest surface
+- wired `pnpm release:major:digest:test` into `scripts/release.sh`, the Ubuntu `release-readiness` CI job, and the tagged release follow-up so maintainers can validate and publish one explicit `1.0.0` digest artifact for every shipped version
+- documented the new major-release digest layer in the repo README, deployment guide, CLI package README, AGENTS notes, Codex project notes, the `1.0` gate doc, and the `v0.1.113` release checklist
+
 ## 0.1.112 (2026-04-04)
 
 ### One Point Zero Major Release Omnibus
