@@ -337,8 +337,8 @@ const setupPy = fs.readFileSync(setupPath, 'utf8').replace(
 fs.writeFileSync(setupPath, setupPy);
 "
 
-# Update all workspace packages
-for pkg_json in packages/*/package.json apps/*/package.json examples/*/package.json; do
+# Update all workspace packages and distributable template copies
+for pkg_json in packages/*/package.json apps/*/package.json examples/*/package.json packages/create-forge-app/templates/*/package.json; do
   if [ -f "$pkg_json" ]; then
     node -e "
     const fs = require('fs');

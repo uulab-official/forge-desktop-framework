@@ -248,6 +248,7 @@ async function rewriteProjectReadme(
       'pnpm build',
       'pnpm typecheck',
       'pnpm release:check',
+      'pnpm production:check',
       'pnpm setup:python',
       'pnpm build:worker',
       'pnpm package',
@@ -261,10 +262,11 @@ async function rewriteProjectReadme(
       '- Copy `.env.example` to `.env` and fill in release metadata',
       '- Add GitHub Actions secrets before pushing a release tag',
       '- Run `pnpm release:check` to verify release prerequisites',
+      '- Run `pnpm production:check` for the default GitHub channel, or `pnpm production:check:all -- --require-release-output` after packaging when you need a full multi-channel audit',
       '- Build the bundled worker with `pnpm build:worker`',
       '- Package the desktop app with `pnpm package`',
       '',
-      'Detailed release steps live in `docs/release-playbook.md`.',
+      'Detailed release steps live in `docs/release-playbook.md` and `docs/production-readiness.md`.',
       '',
       '## Template Notes',
       '',
@@ -314,10 +316,12 @@ async function writeReleasePreset(
   await writeFile(join(targetDir, '.github', 'workflows', 'release.yml'), getReleaseWorkflow(), 'utf-8');
   await writeFile(join(targetDir, 'build', 'entitlements.mac.plist'), getMacEntitlements(), 'utf-8');
   await writeFile(join(targetDir, 'docs', 'release-playbook.md'), getReleasePlaybook(projectName, metadata), 'utf-8');
+  await writeFile(join(targetDir, 'docs', 'production-readiness.md'), getProductionReadinessGuide(projectName, metadata), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'preflight-release.sh'), getPreflightReleaseScript(), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'check-publish-env.sh'), getPublishEnvCheckScript(), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'verify-package-output.sh'), getVerifyPackageOutputScript(), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'audit-package-output.sh'), getAuditPackageOutputScript(), 'utf-8');
+  await writeFile(join(targetDir, 'scripts', 'production-readiness.sh'), getProductionReadinessScript(), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'setup-python.sh'), getSetupPythonScript(), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'build-worker.sh'), getBuildWorkerScript(), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'build-app.sh'), getBuildAppScript(), 'utf-8');
@@ -363,6 +367,10 @@ async function updatePackageJsonForRelease(
     'package:verify:s3': 'bash scripts/verify-package-output.sh s3',
     'package:audit': 'bash scripts/audit-package-output.sh github',
     'package:audit:s3': 'bash scripts/audit-package-output.sh s3',
+    'production:check': 'bash scripts/production-readiness.sh github',
+    'production:check:github': 'bash scripts/production-readiness.sh github',
+    'production:check:s3': 'bash scripts/production-readiness.sh s3',
+    'production:check:all': 'bash scripts/production-readiness.sh github s3',
     'setup:python': 'bash scripts/setup-python.sh',
     'build:worker': 'bash scripts/build-worker.sh',
     'build:app': 'bash scripts/build-app.sh',
@@ -782,7 +790,7 @@ function getPublishEnvCheckScript(): string {
     '',
     'echo "Publish preflight passed for: ${TARGETS[*]}"',
     '',
-  ].join('\\n');
+  ].join('\n');
 }
 
 function getVerifyPackageOutputScript(): string {
@@ -847,7 +855,7 @@ function getVerifyPackageOutputScript(): string {
     'echo ""',
     'echo "Package output verification passed for $TARGET"',
     '',
-  ].join('\\n');
+  ].join('\n');
 }
 
 function getAuditPackageOutputScript(): string {
@@ -925,7 +933,88 @@ function getAuditPackageOutputScript(): string {
     '',
     'echo "Package audit passed for $TARGET at version $APP_VERSION"',
     '',
-  ].join('\\n');
+  ].join('\n');
+}
+
+function getProductionReadinessScript(): string {
+  return [
+    '#!/bin/bash',
+    'set -euo pipefail',
+    '',
+    'SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"',
+    'ROOT_DIR="$SCRIPT_DIR/.."',
+    '',
+    'cd "$ROOT_DIR"',
+    '',
+    'REQUIRE_RELEASE_OUTPUT=0',
+    'TARGETS=()',
+    '',
+    'while [ "$#" -gt 0 ]; do',
+    '  case "$1" in',
+    '    github|s3)',
+    '      TARGETS+=("$1")',
+    '      ;;',
+    '    --)',
+    '      ;;',
+    '    --require-release-output)',
+    '      REQUIRE_RELEASE_OUTPUT=1',
+    '      ;;',
+    '    *)',
+    '      echo "Unsupported production readiness argument: $1"',
+    '      echo "Use github, s3, and optionally --require-release-output."',
+    '      exit 1',
+    '      ;;',
+    '  esac',
+    '  shift',
+    'done',
+    '',
+    'if [ "${#TARGETS[@]}" -eq 0 ]; then',
+    '  TARGETS=("github")',
+    'fi',
+    '',
+    'RELEASE_DIR="${RELEASE_DIR:-release}"',
+    '',
+    'echo "=== Release preflight ==="',
+    'bash scripts/preflight-release.sh',
+    '',
+    'echo "=== Type check ==="',
+    'pnpm typecheck',
+    '',
+    'if [ -f "worker/main.py" ]; then',
+    '  echo "=== Python worker environment ==="',
+    '  pnpm setup:python',
+    '  echo "=== Worker bundle ==="',
+    '  pnpm build:worker',
+    'fi',
+    '',
+    'echo "=== Desktop build ==="',
+    'pnpm build',
+    '',
+    'for target in "${TARGETS[@]}"; do',
+    '  echo "=== Publish preflight (${target}) ==="',
+    '  pnpm "publish:check:${target}"',
+    '',
+    '  if [ -d "$RELEASE_DIR" ]; then',
+    '    echo "=== Packaged artifact audit (${target}) ==="',
+    '    if [ "$target" = "github" ]; then',
+    '      pnpm package:verify',
+    '      pnpm package:audit',
+    '    else',
+    '      pnpm package:verify:s3',
+    '      pnpm package:audit:s3',
+    '    fi',
+    '  elif [ "$REQUIRE_RELEASE_OUTPUT" -eq 1 ]; then',
+    '    echo "Release directory not found: $RELEASE_DIR"',
+    '    echo "Run pnpm package first or omit --require-release-output."',
+    '    exit 1',
+    '  else',
+    '    echo "Skipping packaged artifact checks for ${target}; ${RELEASE_DIR} does not exist yet."',
+    '  fi',
+    'done',
+    '',
+    'echo "Production readiness checks passed for: ${TARGETS[*]}"',
+    '',
+  ].join('\n');
 }
 
 function getGitignoreContents(): string {
@@ -7242,12 +7331,12 @@ function getReleasePlaybook(projectName: string, metadata: ScaffoldMetadata): st
     '```bash',
     'pnpm install',
     'pnpm release:check',
-    'pnpm publish:check:github',
-    'pnpm setup:python',
-    'pnpm build:app',
-    'pnpm package:verify',
-    'pnpm package:audit',
+    'pnpm production:check',
+    'pnpm package',
+    'pnpm production:check:github -- --require-release-output',
     '```',
+    '',
+    'Use `pnpm production:check:s3 -- --require-release-output` when the app will ship through a generic/S3 update channel.',
     '',
     '## 4. CI Release',
     '',
@@ -7263,6 +7352,53 @@ function getReleasePlaybook(projectName: string, metadata: ScaffoldMetadata): st
     `- GitHub Releases works out of the box for \`${githubTarget}\` unless you override \`GH_OWNER\` and \`GH_REPO\`.`,
     '- For generic/S3 hosting, switch to `electron-builder.s3.yml` and populate the S3 variables in `.env.example`.',
     '- Run `pnpm publish:check:s3` before a generic/S3 publish so missing bucket, endpoint, or update URL values fail fast.',
+    '- Run `pnpm production:check:all -- --require-release-output` after local packaging when you want one command that rechecks every configured channel.',
+    '',
+  ].join('\n');
+}
+
+function getProductionReadinessGuide(projectName: string, metadata: ScaffoldMetadata): string {
+  const productName = resolveProductName(projectName, metadata);
+
+  return [
+    `# ${productName} Production Readiness`,
+    '',
+    'Use these commands when you want one repeatable production-grade check before tagging or publishing a desktop release.',
+    '',
+    '## Default GitHub Release Path',
+    '',
+    '```bash',
+    'pnpm production:check',
+    'pnpm package',
+    'pnpm production:check:github -- --require-release-output',
+    '```',
+    '',
+    '## Generic or S3 Update Channel',
+    '',
+    '```bash',
+    'pnpm production:check:s3',
+    'pnpm package:s3',
+    'pnpm production:check:s3 -- --require-release-output',
+    '```',
+    '',
+    '## Full Multi-Channel Audit',
+    '',
+    '```bash',
+    'pnpm production:check:all',
+    'pnpm package',
+    'pnpm production:check:all -- --require-release-output',
+    '```',
+    '',
+    '## What Gets Checked',
+    '',
+    '- Release preflight files and metadata',
+    '- TypeScript typecheck',
+    '- Python worker environment and bundled worker build',
+    '- Electron renderer and main-process build',
+    '- Publish environment variables for the requested channel',
+    '- Packaged installer and updater manifest verification when `release/` exists',
+    '',
+    'If you only want to validate source and environment state before packaging, omit `--require-release-output`.',
     '',
   ].join('\n');
 }

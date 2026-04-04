@@ -18,6 +18,7 @@ Today:
 - generated apps now get a vendored Python worker runtime and a default electron-builder release preset
 - generated apps now also get GitHub Actions release workflows, `.env.example`, release preflight, and publish-target preflight scripts
 - generated apps now also get packaged-artifact verification and audit scripts so local packaging can fail fast when release outputs or manifests are incomplete
+- generated apps now also get `pnpm production:check*` commands plus `docs/production-readiness.md` so production-grade validation can be rerun from one entry point
 - official presets plus `production-ready` are now covered by a maintainer release-surface audit before the framework version can move
 - the repo CI now also exercises repo-outside scaffold installs and preset release-surface audit on Ubuntu before changes merge
 - the repo release workflow now uploads per-platform packaged-artifact inventories so maintainers can inspect release output without opening runner files directly
@@ -190,6 +191,8 @@ cd packages/create-forge-app
 node dist/index.js create my-forge-app --template minimal \
   --preset production-ready
 ```
+
+Generated apps from that preset now also include `pnpm production:check`, `pnpm production:check:s3`, and `pnpm production:check:all` plus `docs/production-readiness.md`.
 
 Preset creation for the launch-focused starter:
 

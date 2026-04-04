@@ -49,6 +49,10 @@ const expectedScripts = new Map([
   ['package:verify:s3', 'bash scripts/verify-package-output.sh s3'],
   ['package:audit', 'bash scripts/audit-package-output.sh github'],
   ['package:audit:s3', 'bash scripts/audit-package-output.sh s3'],
+  ['production:check', 'bash scripts/production-readiness.sh github'],
+  ['production:check:github', 'bash scripts/production-readiness.sh github'],
+  ['production:check:s3', 'bash scripts/production-readiness.sh s3'],
+  ['production:check:all', 'bash scripts/production-readiness.sh github s3'],
   ['package:local', 'bash scripts/build-app.sh && bash scripts/verify-package-output.sh github && bash scripts/audit-package-output.sh github'],
   ['publish:github', 'bash scripts/check-publish-env.sh github && electron-builder --publish always'],
   ['publish:s3', 'bash scripts/check-publish-env.sh s3 && electron-builder -c electron-builder.s3.yml'],
@@ -84,12 +88,14 @@ audit_preset_surface() {
   assert_file "$target_dir/electron-builder.s3.yml"
   assert_file "$target_dir/build/entitlements.mac.plist"
   assert_file "$target_dir/docs/release-playbook.md"
+  assert_file "$target_dir/docs/production-readiness.md"
   assert_file "$target_dir/.github/workflows/validate.yml"
   assert_file "$target_dir/.github/workflows/release.yml"
   assert_file "$target_dir/scripts/preflight-release.sh"
   assert_file "$target_dir/scripts/check-publish-env.sh"
   assert_file "$target_dir/scripts/verify-package-output.sh"
   assert_file "$target_dir/scripts/audit-package-output.sh"
+  assert_file "$target_dir/scripts/production-readiness.sh"
   assert_file "$target_dir/scripts/setup-python.sh"
   assert_file "$target_dir/scripts/build-worker.sh"
   assert_file "$target_dir/scripts/build-app.sh"
@@ -99,7 +105,8 @@ audit_preset_surface() {
   assert_contains "$target_dir/electron-builder.yml" "provider: github"
   assert_contains "$target_dir/electron-builder.yml" "output: release"
   assert_contains "$target_dir/electron-builder.s3.yml" "provider: generic"
-  assert_contains "$target_dir/docs/release-playbook.md" "pnpm package:audit"
+  assert_contains "$target_dir/docs/release-playbook.md" "pnpm production:check"
+  assert_contains "$target_dir/docs/production-readiness.md" "pnpm production:check"
   assert_contains "$target_dir/.github/workflows/release.yml" "pnpm publish:check:github"
   assert_contains "$target_dir/.github/workflows/release.yml" "tags:"
   assert_contains "$target_dir/README.md" "Generated with \`create-forge-desktop@${version}\`"

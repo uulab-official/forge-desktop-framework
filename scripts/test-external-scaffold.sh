@@ -160,23 +160,29 @@ verify_external_app() {
 
   echo "==> Verifying external ${preset_id} app"
   pnpm --dir "$target_dir" release:check
-  if [[ "$preset_id" == "launch-ready" || "$preset_id" == "production-ready" ]]; then
+  if [[ "$preset_id" == "launch-ready" ]]; then
     env GH_TOKEN=forge-smoke-token pnpm --dir "$target_dir" publish:check:github
     seed_release_output "$target_dir"
     pnpm --dir "$target_dir" package:verify
     pnpm --dir "$target_dir" package:audit
   fi
-  if [[ "$preset_id" == "document-ready" || "$preset_id" == "production-ready" ]]; then
+  if [[ "$preset_id" == "document-ready" ]]; then
     env AWS_ACCESS_KEY_ID=forge-smoke-key AWS_SECRET_ACCESS_KEY=forge-smoke-secret S3_BUCKET=forge-smoke-bucket S3_ENDPOINT=https://example.com S3_UPDATE_URL=https://downloads.example.com/releases pnpm --dir "$target_dir" publish:check:s3
-    if [[ "$preset_id" != "production-ready" ]]; then
-      seed_release_output "$target_dir"
-    fi
+    seed_release_output "$target_dir"
     pnpm --dir "$target_dir" package:verify:s3
     pnpm --dir "$target_dir" package:audit:s3
   fi
-  if [[ "$preset_id" == "launch-ready" || "$preset_id" == "production-ready" ]]; then
+  if [[ "$preset_id" == "launch-ready" ]]; then
     pnpm --dir "$target_dir" setup:python
     pnpm --dir "$target_dir" build:worker
+    if [ ! -f "$target_dir/worker/dist/forge-worker" ] && [ ! -f "$target_dir/worker/dist/forge-worker.exe" ]; then
+      echo "External ${preset_id} smoke app worker binary was not produced."
+      exit 1
+    fi
+  fi
+  if [[ "$preset_id" == "production-ready" ]]; then
+    seed_release_output "$target_dir"
+    env GH_TOKEN=forge-smoke-token AWS_ACCESS_KEY_ID=forge-smoke-key AWS_SECRET_ACCESS_KEY=forge-smoke-secret S3_BUCKET=forge-smoke-bucket S3_ENDPOINT=https://example.com S3_UPDATE_URL=https://downloads.example.com/releases pnpm --dir "$target_dir" production:check:all -- --require-release-output
     if [ ! -f "$target_dir/worker/dist/forge-worker" ] && [ ! -f "$target_dir/worker/dist/forge-worker.exe" ]; then
       echo "External ${preset_id} smoke app worker binary was not produced."
       exit 1

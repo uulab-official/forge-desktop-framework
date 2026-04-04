@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.118 (2026-04-04)
+
+### Production Readiness Commands
+
+- added generated `pnpm production:check`, `pnpm production:check:s3`, and `pnpm production:check:all` commands plus `scripts/production-readiness.sh` and `docs/production-readiness.md`, so scaffolded apps now have one production-grade entry point for release preflight, worker build, desktop build, publish-env checks, and packaged-artifact audits
+- updated the `production-ready` internal and external smoke paths plus release-surface audit so Forge proves that composite starter can pass the new production-readiness command before the framework version moves
+- fixed generated release helper scripts that were being written with literal `\n` sequences instead of real newlines, which had turned some packaged-artifact and production-readiness checks into shell no-ops
+- extended release/version alignment so distributable template copies under `packages/create-forge-app/templates/` are versioned and checked with the rest of the framework surface
+- updated README, getting-started, deployment, and the CLI README so the production-grade starter path now points at the generated production-readiness workflow instead of only the lower-level release scripts
+
 ## 0.1.117 (2026-04-04)
 
 ### Production Ready Composite Preset

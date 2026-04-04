@@ -150,21 +150,12 @@ pnpm install --dir "$PRODUCTION_READY_APP" --link-workspace-packages >/dev/null
 
 echo "==> Verifying production-ready smoke app"
 pnpm --dir "$PRODUCTION_READY_APP" release:check
-env GH_TOKEN=forge-smoke-token pnpm --dir "$PRODUCTION_READY_APP" publish:check:github
-env AWS_ACCESS_KEY_ID=forge-smoke-key AWS_SECRET_ACCESS_KEY=forge-smoke-secret S3_BUCKET=forge-smoke-bucket S3_ENDPOINT=https://example.com S3_UPDATE_URL=https://downloads.example.com/releases pnpm --dir "$PRODUCTION_READY_APP" publish:check:s3
 seed_release_output "$PRODUCTION_READY_APP"
-pnpm --dir "$PRODUCTION_READY_APP" package:verify
-pnpm --dir "$PRODUCTION_READY_APP" package:verify:s3
-pnpm --dir "$PRODUCTION_READY_APP" package:audit
-pnpm --dir "$PRODUCTION_READY_APP" package:audit:s3
-pnpm --dir "$PRODUCTION_READY_APP" setup:python
-pnpm --dir "$PRODUCTION_READY_APP" build:worker
+env GH_TOKEN=forge-smoke-token AWS_ACCESS_KEY_ID=forge-smoke-key AWS_SECRET_ACCESS_KEY=forge-smoke-secret S3_BUCKET=forge-smoke-bucket S3_ENDPOINT=https://example.com S3_UPDATE_URL=https://downloads.example.com/releases pnpm --dir "$PRODUCTION_READY_APP" production:check:all -- --require-release-output
 if [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker" ] && [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker.exe" ]; then
   echo "Production-ready smoke app worker binary was not produced."
   exit 1
 fi
-pnpm --dir "$PRODUCTION_READY_APP" typecheck
-pnpm --dir "$PRODUCTION_READY_APP" build
 
 echo "==> Scaffolding tray smoke app"
 node packages/create-forge-app/dist/index.js create "$TRAY_APP" --template minimal --feature tray --yes --package-manager pnpm >/dev/null

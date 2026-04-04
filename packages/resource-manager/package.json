@@ -1,6 +1,6 @@
 {
   "name": "@forge/resource-manager",
-  "version": "0.1.117",
+  "version": "0.1.118",
   "description": "Resolve resources, worker paths, and bundled binaries for Forge Desktop apps",
   "type": "module",
   "main": "./dist/index.js",

@@ -71,6 +71,8 @@ For the fastest production-grade baseline, use the preset:
 forge create my-app --template minimal --preset production-ready
 ```
 
+Generated `production-ready` apps now also include `pnpm production:check`, `pnpm production:check:s3`, and `pnpm production:check:all` so teams can rerun release, worker, build, publish-env, and packaged-artifact checks from one command.
+
 If you only want the launch-focused desktop shell baseline, use:
 
 ```bash
@@ -216,6 +218,8 @@ pnpm release:playbook:test
 ```
 
 Every shipped version should also leave a checklist file under `docs/release-checklists/vX.Y.Z.md`. `pnpm release:ship patch` now fails early if that checklist is missing or not marked `ready`.
+
+The release/version checks also cover `packages/create-forge-app/templates/*/package.json`, so the published CLI version and the distributable template copies stay aligned.
 Forge 1.0 release gate criteria are now fixed in [docs/one-point-zero-gate.md](/Users/bonjin/Documents/workspace/uulab/forge-desktop-framework/docs/one-point-zero-gate.md), and `pnpm release:onepointzero:test` verifies that the repo, CI, and public docs still match that `1.0` contract before the version can move.
 Maintainers can now also run `pnpm release:status:test` to verify the final release-status artifact that condenses the `1.0` gate, matrix targets, provenance, and official preset readiness into one summary.
 Maintainers can now also run `pnpm release:freeze:test` to verify the final freeze artifact that combines that release-status summary with the per-version checklist into one explicit `go/no-go` record.

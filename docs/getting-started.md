@@ -93,6 +93,8 @@ node dist/index.js create my-forge-app --template minimal \
   --preset production-ready
 ```
 
+That starter now also includes `pnpm production:check` for the default GitHub path and `pnpm production:check:all -- --require-release-output` for a full post-package audit.
+
 Or preview the bundled launch starter:
 
 ```bash
@@ -127,7 +129,7 @@ The generated project includes:
 - vendored `worker/forge_worker` runtime code
 - a standalone `README.md`
 - default `electron-builder` config
-- `.env.example`, `docs/release-playbook.md`, `pnpm release:check`, `pnpm publish:check:*`, `pnpm package:verify*`, and `pnpm package:audit*`
+- `.env.example`, `docs/release-playbook.md`, `docs/production-readiness.md`, `pnpm release:check`, `pnpm publish:check:*`, `pnpm package:verify*`, `pnpm package:audit*`, and `pnpm production:check*`
 - GitHub Actions workflows for validation and tagged releases
 - packaging scripts for the worker and the desktop app
 - a renderer baseline with `ForgeErrorBoundary` and a floating log dock

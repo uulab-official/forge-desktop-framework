@@ -10,7 +10,7 @@ MISMATCH=0
 
 echo "Checking workspace package versions against root: $ROOT_VERSION"
 
-for pkg_json in packages/*/package.json apps/*/package.json examples/*/package.json; do
+for pkg_json in packages/*/package.json apps/*/package.json examples/*/package.json packages/create-forge-app/templates/*/package.json; do
   if [ ! -f "$pkg_json" ]; then
     continue
   fi
