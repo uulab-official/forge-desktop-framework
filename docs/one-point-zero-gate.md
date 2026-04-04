@@ -415,6 +415,14 @@ Required guard:
 
 - `pnpm release:major:digest:test`
 
+### 48. Major Release Synopsis Is Explicit
+
+Forge must emit one final synopsis artifact that turns the digest artifact plus prepared `v1.0.0` checklist into the exact last immutable synopsis before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:synopsis:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -476,6 +484,7 @@ pnpm release:major:compendium:test
 pnpm release:major:anthology:test
 pnpm release:major:omnibus:test
 pnpm release:major:digest:test
+pnpm release:major:synopsis:test
 pnpm release:ship patch
 pnpm version:check
 ```
