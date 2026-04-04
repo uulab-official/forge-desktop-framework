@@ -232,6 +232,9 @@ jobs:
       - name: Verify One Point Zero major release synopsis
         run: pnpm release:major:synopsis:test
 
+      - name: Verify One Point Zero major release brief
+        run: pnpm release:major:brief:test
+
   python:
     runs-on: ubuntu-latest
     steps:

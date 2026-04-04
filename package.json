@@ -1,7 +1,7 @@
 {
   "name": "forge-desktop-framework",
   "private": true,
-  "version": "0.1.114",
+  "version": "0.1.115",
   "description": "Open source local-engine desktop app framework — Electron + Python Worker",
   "license": "MIT",
   "repository": {
@@ -105,6 +105,7 @@
     "release:major:omnibus:test": "bash scripts/test-one-point-zero-major-release-omnibus.sh",
     "release:major:digest:test": "bash scripts/test-one-point-zero-major-release-digest.sh",
     "release:major:synopsis:test": "bash scripts/test-one-point-zero-major-release-synopsis.sh",
+    "release:major:brief:test": "bash scripts/test-one-point-zero-major-release-brief.sh",
     "release:bump": "bash scripts/release.sh",
     "release:ship": "bash scripts/ship-release.sh",
     "version:check": "bash scripts/check-versions.sh",

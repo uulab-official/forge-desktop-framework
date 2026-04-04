@@ -423,6 +423,14 @@ Required guard:
 
 - `pnpm release:major:synopsis:test`
 
+### 49. Major Release Brief Is Explicit
+
+Forge must emit one final brief artifact that turns the synopsis artifact plus prepared `v1.0.0` checklist into the exact last immutable brief before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:brief:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -485,6 +493,7 @@ pnpm release:major:anthology:test
 pnpm release:major:omnibus:test
 pnpm release:major:digest:test
 pnpm release:major:synopsis:test
+pnpm release:major:brief:test
 pnpm release:ship patch
 pnpm version:check
 ```
