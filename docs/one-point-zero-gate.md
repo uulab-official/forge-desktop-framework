@@ -431,6 +431,14 @@ Required guard:
 
 - `pnpm release:major:brief:test`
 
+### 50. Major Release Abstract Is Explicit
+
+Forge must emit one final abstract artifact that turns the brief artifact plus prepared `v1.0.0` checklist into the exact last immutable abstract before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:abstract:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -494,6 +502,7 @@ pnpm release:major:omnibus:test
 pnpm release:major:digest:test
 pnpm release:major:synopsis:test
 pnpm release:major:brief:test
+pnpm release:major:abstract:test
 pnpm release:ship patch
 pnpm version:check
 ```
