@@ -193,7 +193,7 @@ node dist/index.js create my-forge-app --template minimal \
   --preset production-ready
 ```
 
-Generated apps from that preset now also include `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm production:check`, `pnpm production:check:s3`, and `pnpm production:check:all` plus `docs/production-readiness.md`. The generated validate and tagged release workflows also upload `ops/snapshots/` and `ops/evidence/` artifacts automatically.
+Generated apps from that preset now also include `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:retention`, `pnpm production:check`, `pnpm production:check:s3`, and `pnpm production:check:all` plus `docs/production-readiness.md`. The generated validate and tagged release workflows also upload `ops/snapshots/` and `ops/evidence/` artifacts automatically, and `ops:retention` keeps those directories bounded during repeated production checks.
 
 Preset creation for the launch-focused starter:
 

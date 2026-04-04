@@ -1193,3 +1193,11 @@
 - CLAUDE.md + 7 Claude Code skills (version-bump, ship, new-package, new-action, new-example, add-component, dev)
 - Comprehensive docs: IPC patterns, code signing, deployment
 - CONTRIBUTING.md, CODE_OF_CONDUCT.md
+## 0.1.124 (2026-04-04)
+
+### Production Operations Retention
+
+- added generated `pnpm ops:retention` and `scripts/ops-retention.sh` to the `production-ready` starter so repeated production audits prune stale `ops/snapshots/` and `ops/evidence/` directories
+- wired generated validate and tagged release workflows to run `pnpm ops:retention -- --keep 3` before fresh ops snapshot and evidence collection
+- extended scaffold smoke tests and release-surface audit to verify production-ready apps keep bounded operator evidence after repeated audits
+- updated product docs to treat `ops:retention` as part of the production-grade release and operations flow

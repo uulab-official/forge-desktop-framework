@@ -53,6 +53,7 @@ const expectedScripts = new Map([
   ['ops:check', 'bash scripts/runtime-hygiene.sh'],
   ['ops:snapshot', 'bash scripts/ops-snapshot.sh'],
   ['ops:evidence', 'bash scripts/ops-evidence.sh'],
+  ['ops:retention', 'bash scripts/ops-retention.sh'],
   ['production:check', 'bash scripts/production-readiness.sh github'],
   ['production:check:github', 'bash scripts/production-readiness.sh github'],
   ['production:check:s3', 'bash scripts/production-readiness.sh s3'],
@@ -103,6 +104,7 @@ audit_preset_surface() {
   assert_file "$target_dir/scripts/runtime-hygiene.sh"
   assert_file "$target_dir/scripts/ops-snapshot.sh"
   assert_file "$target_dir/scripts/ops-evidence.sh"
+  assert_file "$target_dir/scripts/ops-retention.sh"
   assert_file "$target_dir/scripts/production-readiness.sh"
   assert_file "$target_dir/scripts/setup-python.sh"
   assert_file "$target_dir/scripts/build-worker.sh"
@@ -117,18 +119,22 @@ audit_preset_surface() {
   assert_contains "$target_dir/docs/release-playbook.md" "pnpm ops:check"
   assert_contains "$target_dir/docs/release-playbook.md" "pnpm ops:snapshot"
   assert_contains "$target_dir/docs/release-playbook.md" "pnpm ops:evidence"
+  assert_contains "$target_dir/docs/release-playbook.md" "pnpm ops:retention"
   assert_contains "$target_dir/docs/release-playbook.md" "pnpm production:check"
   assert_contains "$target_dir/docs/production-readiness.md" "pnpm security:check"
   assert_contains "$target_dir/docs/production-readiness.md" "pnpm ops:check"
   assert_contains "$target_dir/docs/production-readiness.md" "pnpm ops:snapshot"
   assert_contains "$target_dir/docs/production-readiness.md" "pnpm ops:evidence"
+  assert_contains "$target_dir/docs/production-readiness.md" "pnpm ops:retention"
   assert_contains "$target_dir/docs/production-readiness.md" "pnpm production:check"
+  assert_contains "$target_dir/.github/workflows/validate.yml" "pnpm ops:retention"
   assert_contains "$target_dir/.github/workflows/validate.yml" "pnpm ops:check"
   assert_contains "$target_dir/.github/workflows/validate.yml" "pnpm ops:snapshot"
   assert_contains "$target_dir/.github/workflows/validate.yml" "pnpm ops:evidence"
   assert_contains "$target_dir/.github/workflows/validate.yml" "actions/upload-artifact@v4"
   assert_contains "$target_dir/.github/workflows/validate.yml" "ops/snapshots"
   assert_contains "$target_dir/.github/workflows/validate.yml" "ops/evidence"
+  assert_contains "$target_dir/.github/workflows/release.yml" "pnpm ops:retention"
   assert_contains "$target_dir/.github/workflows/release.yml" "pnpm ops:check"
   assert_contains "$target_dir/.github/workflows/release.yml" "pnpm ops:snapshot"
   assert_contains "$target_dir/.github/workflows/release.yml" "pnpm ops:evidence"
