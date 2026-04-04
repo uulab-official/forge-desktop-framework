@@ -399,6 +399,14 @@ Required guard:
 
 - `pnpm release:major:anthology:test`
 
+### 46. Major Release Omnibus Is Explicit
+
+Forge must emit one final omnibus artifact that turns the anthology artifact plus prepared `v1.0.0` checklist into the exact last immutable omnibus before the first `1.0.0` ship.
+
+Required guard:
+
+- `pnpm release:major:omnibus:test`
+
 ## 1.0 Maintainer Rule
 
 Before calling Forge `1.0.0`, keep these statements true:
@@ -458,6 +466,7 @@ pnpm release:major:folio:test
 pnpm release:major:portfolio:test
 pnpm release:major:compendium:test
 pnpm release:major:anthology:test
+pnpm release:major:omnibus:test
 pnpm release:ship patch
 pnpm version:check
 ```
