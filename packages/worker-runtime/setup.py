@@ -2,6 +2,6 @@ from setuptools import setup, find_packages
 
 setup(
     name="forge-worker-runtime",
-    version="0.1.124",
+    version="0.1.125",
     packages=find_packages(),
 )

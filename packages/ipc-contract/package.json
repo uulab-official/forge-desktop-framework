@@ -1,6 +1,6 @@
 {
   "name": "@forge/ipc-contract",
-  "version": "0.1.124",
+  "version": "0.1.125",
   "description": "Shared TypeScript IPC types and constants for Forge Desktop apps",
   "type": "module",
   "main": "./dist/index.js",

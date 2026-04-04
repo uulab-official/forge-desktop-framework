@@ -154,6 +154,7 @@ pnpm --dir "$PRODUCTION_READY_APP" ops:snapshot -- --label production-ready-smok
 pnpm --dir "$PRODUCTION_READY_APP" ops:evidence -- --label production-ready-smoke --skip-snapshot
 seed_release_output "$PRODUCTION_READY_APP"
 env GH_TOKEN=forge-smoke-token AWS_ACCESS_KEY_ID=forge-smoke-key AWS_SECRET_ACCESS_KEY=forge-smoke-secret S3_BUCKET=forge-smoke-bucket S3_ENDPOINT=https://example.com S3_UPDATE_URL=https://downloads.example.com/releases pnpm --dir "$PRODUCTION_READY_APP" production:check:all -- --require-release-output
+pnpm --dir "$PRODUCTION_READY_APP" ops:index -- --label production-ready-smoke
 pnpm --dir "$PRODUCTION_READY_APP" ops:retention -- --keep 1
 if ! find "$PRODUCTION_READY_APP/ops/snapshots" -name 'ops-snapshot.json' -print -quit | grep -q .; then
   echo "Production-ready smoke app ops snapshot JSON was not produced."
@@ -163,12 +164,20 @@ if ! find "$PRODUCTION_READY_APP/ops/evidence" -name 'ops-evidence-summary.json'
   echo "Production-ready smoke app ops evidence summary JSON was not produced."
   exit 1
 fi
+if ! find "$PRODUCTION_READY_APP/ops/index" -name 'ops-index.json' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops index JSON was not produced."
+  exit 1
+fi
 if [ "$(find "$PRODUCTION_READY_APP/ops/snapshots" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
   echo "Production-ready smoke app ops snapshot retention did not keep exactly one directory."
   exit 1
 fi
 if [ "$(find "$PRODUCTION_READY_APP/ops/evidence" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
   echo "Production-ready smoke app ops evidence retention did not keep exactly one directory."
+  exit 1
+fi
+if [ "$(find "$PRODUCTION_READY_APP/ops/index" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
+  echo "Production-ready smoke app ops index retention did not keep exactly one directory."
   exit 1
 fi
 if [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker" ] && [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker.exe" ]; then

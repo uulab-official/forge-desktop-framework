@@ -1201,3 +1201,11 @@
 - wired generated validate and tagged release workflows to run `pnpm ops:retention -- --keep 3` before fresh ops snapshot and evidence collection
 - extended scaffold smoke tests and release-surface audit to verify production-ready apps keep bounded operator evidence after repeated audits
 - updated product docs to treat `ops:retention` as part of the production-grade release and operations flow
+## 0.1.125 (2026-04-04)
+
+### Production Operations Index
+
+- added generated `pnpm ops:index` and `scripts/ops-index.sh` to the `production-ready` starter so operators can see the current snapshot and evidence inventory in one Markdown and JSON surface
+- updated generated validate and tagged release workflows to upload `ops/index/` alongside `ops/snapshots/` and `ops/evidence/`
+- extended production-ready scaffold smoke and release-surface audit to verify generated apps emit an ops index after retention and evidence generation
+- updated production docs so `ops:index` is part of the default production-grade operating flow
