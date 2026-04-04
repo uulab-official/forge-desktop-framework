@@ -86,7 +86,14 @@ node dist/index.js create my-forge-app --template minimal \
   --feature diagnostics-timeline
 ```
 
-Or preview the bundled production starter:
+Or preview the bundled production-grade starter:
+
+```bash
+node dist/index.js create my-forge-app --template minimal \
+  --preset production-ready
+```
+
+Or preview the bundled launch starter:
 
 ```bash
 node dist/index.js create my-forge-app --template minimal \

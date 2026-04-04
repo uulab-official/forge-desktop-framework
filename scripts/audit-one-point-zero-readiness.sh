@@ -44,6 +44,7 @@ require_contains "docs/one-point-zero-gate.md" "launch-ready"
 require_contains "docs/one-point-zero-gate.md" "support-ready"
 require_contains "docs/one-point-zero-gate.md" "ops-ready"
 require_contains "docs/one-point-zero-gate.md" "document-ready"
+require_contains "docs/one-point-zero-gate.md" "production-ready"
 require_contains "docs/one-point-zero-gate.md" "pnpm release:onepointzero:test"
 require_contains "README.md" "Forge 1.0 release gate"
 require_contains "docs/deployment.md" "Forge 1.0 release gate"
@@ -132,12 +133,18 @@ const presetChecks = ['launch-ready', 'support-ready', 'ops-ready', 'document-re
   passed: gateDoc.includes(`- \`${preset}\``),
 }));
 
+const compositePresetChecks = ['production-ready'].map((preset) => ({
+  preset,
+  passed: gateDoc.includes(`- \`${preset}\``) && readme.includes(`\`${preset}\``) && deployment.includes(`\`${preset}\``) && cliReadme.includes(`\`${preset}\``),
+}));
+
 const checks = [
   ...scriptChecks.map((entry) => ({ name: `script:${entry.name}`, passed: entry.passed })),
   ...ciChecks.map((entry) => ({ name: `ci:${entry.command}`, passed: entry.passed })),
   ...releaseChecks.map((entry) => ({ name: `release:${entry.name}`, passed: entry.passed })),
   ...docChecks.map((entry) => ({ name: `doc:${entry.name}`, passed: entry.passed })),
   ...presetChecks.map((entry) => ({ name: `preset:${entry.preset}`, passed: entry.passed })),
+  ...compositePresetChecks.map((entry) => ({ name: `composite:${entry.preset}`, passed: entry.passed })),
 ];
 
 const status = checks.every((entry) => entry.passed) ? 'passed' : 'failed';
@@ -145,6 +152,7 @@ const status = checks.every((entry) => entry.passed) ? 'passed' : 'failed';
 const payload = {
   status,
   officialPresets: presetChecks,
+  compositePresets: compositePresetChecks,
   packageScripts: scriptChecks,
   ciCommands: ciChecks,
   releaseGuards: releaseChecks,
@@ -161,6 +169,12 @@ const markdown = [
   '| Preset | Ready |',
   '| --- | --- |',
   ...presetChecks.map((entry) => `| \`${entry.preset}\` | ${entry.passed} |`),
+  '',
+  '## Composite Production Presets',
+  '',
+  '| Preset | Ready |',
+  '| --- | --- |',
+  ...compositePresetChecks.map((entry) => `| \`${entry.preset}\` | ${entry.passed} |`),
   '',
   '## Package Scripts',
   '',

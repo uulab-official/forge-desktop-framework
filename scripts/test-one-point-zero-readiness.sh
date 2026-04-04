@@ -25,6 +25,10 @@ if (payload.officialPresets.length !== 4) {
   throw new Error(`Expected 4 official presets, found ${payload.officialPresets.length}`);
 }
 
+if (payload.compositePresets.length !== 1 || payload.compositePresets[0].preset !== 'production-ready' || !payload.compositePresets[0].passed) {
+  throw new Error('Expected production-ready composite preset readiness to pass');
+}
+
 if (!payload.packageScripts.find((entry) => entry.name === 'release:onepointzero:test' && entry.passed)) {
   throw new Error('Expected release:onepointzero:test package script to pass');
 }

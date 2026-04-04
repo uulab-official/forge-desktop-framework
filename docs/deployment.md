@@ -65,7 +65,13 @@ The `minimal` starter also supports feature packs during scaffolding:
 forge create my-app --template minimal --feature settings --feature updater --feature diagnostics --feature notifications --feature windowing --feature tray --feature deep-link --feature menu-bar --feature auto-launch --feature global-shortcut --feature file-association --feature file-dialogs --feature recent-files --feature crash-recovery --feature power-monitor --feature idle-presence --feature session-state --feature downloads --feature clipboard --feature external-links --feature system-info --feature permissions --feature network-status --feature secure-storage --feature support-bundle --feature log-archive --feature incident-report --feature diagnostics-timeline
 ```
 
-For the fastest production baseline, use the preset:
+For the fastest production-grade baseline, use the preset:
+
+```bash
+forge create my-app --template minimal --preset production-ready
+```
+
+If you only want the launch-focused desktop shell baseline, use:
 
 ```bash
 forge create my-app --template minimal --preset launch-ready
@@ -357,7 +363,7 @@ For framework maintainers working in this monorepo, the official one-command shi
 pnpm release:ship patch
 ```
 
-That command runs internal scaffold verification, external scaffold verification, official preset release-surface audit, bumps the shared framework version, creates `release: vX.Y.Z`, creates an annotated `vX.Y.Z` tag, and pushes both `main` and the tag to `origin`.
+That command runs internal scaffold verification, external scaffold verification, official preset plus `production-ready` release-surface audit, bumps the shared framework version, creates `release: vX.Y.Z`, creates an annotated `vX.Y.Z` tag, and pushes both `main` and the tag to `origin`.
 
 To fetch an archived bundle from a tagged GitHub Actions release before a rollback drill:
 

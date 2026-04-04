@@ -11,6 +11,10 @@ These are the official preset entry points that Forge should treat as frozen sup
 - `ops-ready`
 - `document-ready`
 
+Forge should also keep one composite production starter aligned with those frozen support targets:
+
+- `production-ready`
+
 These are the public framework entry points that must stay aligned with those presets:
 
 - root `README.md`
@@ -31,7 +35,7 @@ Required guard:
 
 ### 2. Official Presets Are Stable
 
-Forge must keep the official presets release-ready, with their packaging files, publish checks, and generated workflows intact.
+Forge must keep the official presets, plus the `production-ready` composite starter, release-ready with their packaging files, publish checks, and generated workflows intact.
 
 Required guard:
 

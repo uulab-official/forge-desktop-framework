@@ -18,8 +18,8 @@ Today:
 - generated apps now get a vendored Python worker runtime and a default electron-builder release preset
 - generated apps now also get GitHub Actions release workflows, `.env.example`, release preflight, and publish-target preflight scripts
 - generated apps now also get packaged-artifact verification and audit scripts so local packaging can fail fast when release outputs or manifests are incomplete
-- official presets are now covered by a maintainer release-surface audit before the framework version can move
-- the repo CI now also exercises repo-outside scaffold installs and official preset release-surface audit on Ubuntu before changes merge
+- official presets plus `production-ready` are now covered by a maintainer release-surface audit before the framework version can move
+- the repo CI now also exercises repo-outside scaffold installs and preset release-surface audit on Ubuntu before changes merge
 - the repo release workflow now uploads per-platform packaged-artifact inventories so maintainers can inspect release output without opening runner files directly
 - the repo release workflow now also fails if a matrix job misses its platform installer or `latest*.yml` manifest after packaging
 - the repo release workflow now also fails if a matrix job writes a `latest*.yml` manifest with the wrong version, a missing target file, or no `sha512`
@@ -183,7 +183,15 @@ node dist/index.js create my-forge-app --template minimal \
   --feature diagnostics-timeline
 ```
 
-Preset creation for the production starter:
+Preset creation for the production-grade starter:
+
+```bash
+cd packages/create-forge-app
+node dist/index.js create my-forge-app --template minimal \
+  --preset production-ready
+```
+
+Preset creation for the launch-focused starter:
 
 ```bash
 cd packages/create-forge-app
@@ -282,6 +290,7 @@ Feature packs currently target the `minimal` template and add:
 - `diagnostics-timeline` for structured desktop event history exports with reveal, clear, and support investigation controls
 
 Starter presets currently target the `minimal` template:
+- `production-ready` bundles the `launch-ready`, `support-ready`, `ops-ready`, and `document-ready` baselines into one production-grade starter
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`
 - `support-ready` bundles `support-bundle`, `log-archive`, `incident-report`, and `diagnostics-timeline`
 - `ops-ready` bundles `diagnostics`, `support-bundle`, `crash-recovery`, `system-info`, `network-status`, `power-monitor`, `idle-presence`, and `session-state`

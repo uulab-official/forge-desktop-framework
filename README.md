@@ -113,7 +113,14 @@ node dist/index.js create my-forge-app --template minimal \
   --feature diagnostics-timeline
 ```
 
-Or use the bundled production starter preset:
+Or use the bundled production-grade starter preset:
+
+```bash
+node dist/index.js create my-forge-app --template minimal \
+  --preset production-ready
+```
+
+Or use the launch-focused preset if you only want the release, updater, and desktop shell baseline:
 
 ```bash
 node dist/index.js create my-forge-app --template minimal \
@@ -165,7 +172,7 @@ What the scaffold now adds by default:
 Framework CI now checks eight release-readiness layers on Ubuntu before changes land:
 - in-repo scaffold smoke via `pnpm scaffold:test`
 - repo-outside scaffold install and build verification via `pnpm scaffold:external:test`
-- official preset release-surface audit via `pnpm release:audit`
+- official preset plus `production-ready` release-surface audit via `pnpm release:audit`
 - archived release history index smoke via `pnpm release:history:test`
 - archived rollback target selection smoke via `pnpm release:rollback:target:test`
 - archived rollback preparation smoke via `pnpm release:rollback:prepare:test`
@@ -288,6 +295,7 @@ Feature packs available on the `minimal` starter today:
 - `diagnostics-timeline` for structured desktop event history exports with reveal, clear, and support investigation controls
 
 Starter presets available today:
+- `production-ready` bundles the `launch-ready`, `support-ready`, `ops-ready`, and `document-ready` baselines into one production-grade starter
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`
 - `support-ready` bundles `support-bundle`, `log-archive`, `incident-report`, and `diagnostics-timeline`
 - `ops-ready` bundles `diagnostics`, `support-bundle`, `crash-recovery`, `system-info`, `network-status`, `power-monitor`, `idle-presence`, and `session-state`
@@ -415,7 +423,7 @@ pnpm build                                # Build all packages
 pnpm typecheck                            # Type check
 pnpm test                                 # Unit tests (vitest)
 pnpm scaffold:test                        # Scaffold minimal apps and verify install/typecheck/build
-pnpm release:audit                        # Audit official preset release files and scripts
+pnpm release:audit                        # Audit official presets plus production-ready release files and scripts
 pnpm version:check                        # Verify aligned workspace versions
 bash scripts/test-workers.sh              # Test all Python workers
 
@@ -428,7 +436,7 @@ bash scripts/test-workers.sh              # Test all Python workers
 pnpm release:ship patch                   # Verify, bump, commit, tag, and push
 
 # Manual split flow
-pnpm release:audit                        # Audit official preset release surface first
+pnpm release:audit                        # Audit official presets plus production-ready release surface first
 pnpm release:bump patch                   # Verify and bump only
 git add -A
 git commit -m "release: v0.1.x"

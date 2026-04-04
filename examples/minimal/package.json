@@ -1,6 +1,6 @@
 {
   "name": "@forge-example/minimal",
-  "version": "0.1.116",
+  "version": "0.1.117",
   "private": true,
   "main": "./dist-electron/main.js",
   "type": "module",

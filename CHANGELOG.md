@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.117 (2026-04-04)
+
+### Production Ready Composite Preset
+
+- added a new `production-ready` preset to `create-forge-desktop`, bundling the `launch-ready`, `support-ready`, `ops-ready`, and `document-ready` baselines into one production-grade starter for teams that want one official scaffold command
+- extended internal scaffold smoke, external scaffold smoke, and release-surface audit coverage so the new composite preset is validated for GitHub publish checks, S3 publish checks, package verification, package audit, worker build, and app build before any framework version can move
+- updated the root README, getting-started guide, deployment guide, CLI README, and `1.0` gate readiness audit so Forge documents and verifies `production-ready` as the recommended production-grade starter without changing the frozen `1.0` preset contract
+
 ## 0.1.116 (2026-04-04)
 
 ### One Point Zero Major Release Abstract

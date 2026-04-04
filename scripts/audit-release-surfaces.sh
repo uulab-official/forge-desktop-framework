@@ -115,5 +115,6 @@ audit_preset_surface "launch-ready"
 audit_preset_surface "support-ready"
 audit_preset_surface "ops-ready"
 audit_preset_surface "document-ready"
+audit_preset_surface "production-ready"
 
-echo "Official preset release surface audit passed."
+echo "Preset release surface audit passed."

@@ -10,6 +10,7 @@ LAUNCH_READY_APP="examples/__scaffold_test_launch_ready__$$"
 SUPPORT_READY_APP="examples/__scaffold_test_support_ready__$$"
 OPS_READY_APP="examples/__scaffold_test_ops_ready__$$"
 DOCUMENT_READY_APP="examples/__scaffold_test_document_ready__$$"
+PRODUCTION_READY_APP="examples/__scaffold_test_production_ready__$$"
 TRAY_APP="examples/__scaffold_test_tray__$$"
 DEEP_LINK_APP="examples/__scaffold_test_deep_link__$$"
 MENU_BAR_APP="examples/__scaffold_test_menu_bar__$$"
@@ -43,7 +44,7 @@ cleanup() {
     for (const target of process.argv.slice(1)) {
       fs.rmSync(target, { recursive: true, force: true });
     }
-  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$SUPPORT_READY_APP" "$OPS_READY_APP" "$DOCUMENT_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP" "$FILE_ASSOCIATION_APP" "$FILE_DIALOGS_APP" "$RECENT_FILES_APP" "$CRASH_RECOVERY_APP" "$POWER_MONITOR_APP" "$IDLE_PRESENCE_APP" "$SESSION_STATE_APP" "$DOWNLOADS_APP" "$CLIPBOARD_APP" "$EXTERNAL_LINKS_APP" "$SYSTEM_INFO_APP" "$PERMISSIONS_APP" "$NETWORK_STATUS_APP" "$SECURE_STORAGE_APP" "$SUPPORT_BUNDLE_APP" "$LOG_ARCHIVE_APP" "$INCIDENT_REPORT_APP" "$DIAGNOSTICS_TIMELINE_APP"
+  " "$MINIMAL_APP" "$LAUNCH_READY_APP" "$SUPPORT_READY_APP" "$OPS_READY_APP" "$DOCUMENT_READY_APP" "$PRODUCTION_READY_APP" "$TRAY_APP" "$DEEP_LINK_APP" "$MENU_BAR_APP" "$AUTO_LAUNCH_APP" "$GLOBAL_SHORTCUT_APP" "$FILE_ASSOCIATION_APP" "$FILE_DIALOGS_APP" "$RECENT_FILES_APP" "$CRASH_RECOVERY_APP" "$POWER_MONITOR_APP" "$IDLE_PRESENCE_APP" "$SESSION_STATE_APP" "$DOWNLOADS_APP" "$CLIPBOARD_APP" "$EXTERNAL_LINKS_APP" "$SYSTEM_INFO_APP" "$PERMISSIONS_APP" "$NETWORK_STATUS_APP" "$SECURE_STORAGE_APP" "$SUPPORT_BUNDLE_APP" "$LOG_ARCHIVE_APP" "$INCIDENT_REPORT_APP" "$DIAGNOSTICS_TIMELINE_APP"
   cp "$LOCKFILE_BACKUP" pnpm-lock.yaml
   rm -f "$LOCKFILE_BACKUP"
 }
@@ -140,6 +141,30 @@ pnpm --dir "$DOCUMENT_READY_APP" package:verify:s3
 pnpm --dir "$DOCUMENT_READY_APP" package:audit:s3
 pnpm --dir "$DOCUMENT_READY_APP" typecheck
 pnpm --dir "$DOCUMENT_READY_APP" build
+
+echo "==> Scaffolding production-ready smoke app"
+node packages/create-forge-app/dist/index.js create "$PRODUCTION_READY_APP" --template minimal --preset production-ready --yes --package-manager pnpm >/dev/null
+
+echo "==> Installing production-ready smoke app with workspace links"
+pnpm install --dir "$PRODUCTION_READY_APP" --link-workspace-packages >/dev/null
+
+echo "==> Verifying production-ready smoke app"
+pnpm --dir "$PRODUCTION_READY_APP" release:check
+env GH_TOKEN=forge-smoke-token pnpm --dir "$PRODUCTION_READY_APP" publish:check:github
+env AWS_ACCESS_KEY_ID=forge-smoke-key AWS_SECRET_ACCESS_KEY=forge-smoke-secret S3_BUCKET=forge-smoke-bucket S3_ENDPOINT=https://example.com S3_UPDATE_URL=https://downloads.example.com/releases pnpm --dir "$PRODUCTION_READY_APP" publish:check:s3
+seed_release_output "$PRODUCTION_READY_APP"
+pnpm --dir "$PRODUCTION_READY_APP" package:verify
+pnpm --dir "$PRODUCTION_READY_APP" package:verify:s3
+pnpm --dir "$PRODUCTION_READY_APP" package:audit
+pnpm --dir "$PRODUCTION_READY_APP" package:audit:s3
+pnpm --dir "$PRODUCTION_READY_APP" setup:python
+pnpm --dir "$PRODUCTION_READY_APP" build:worker
+if [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker" ] && [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker.exe" ]; then
+  echo "Production-ready smoke app worker binary was not produced."
+  exit 1
+fi
+pnpm --dir "$PRODUCTION_READY_APP" typecheck
+pnpm --dir "$PRODUCTION_READY_APP" build
 
 echo "==> Scaffolding tray smoke app"
 node packages/create-forge-app/dist/index.js create "$TRAY_APP" --template minimal --feature tray --yes --package-manager pnpm >/dev/null

@@ -1,5 +1,5 @@
 export type ScaffoldFeature = 'settings' | 'updater' | 'jobs' | 'plugins' | 'diagnostics' | 'notifications' | 'windowing' | 'tray' | 'deep-link' | 'menu-bar' | 'auto-launch' | 'global-shortcut' | 'file-association' | 'file-dialogs' | 'recent-files' | 'crash-recovery' | 'power-monitor' | 'idle-presence' | 'session-state' | 'downloads' | 'clipboard' | 'external-links' | 'system-info' | 'permissions' | 'network-status' | 'secure-storage' | 'support-bundle' | 'log-archive' | 'incident-report' | 'diagnostics-timeline';
-export type ScaffoldPreset = 'launch-ready' | 'support-ready' | 'ops-ready' | 'document-ready';
+export type ScaffoldPreset = 'launch-ready' | 'support-ready' | 'ops-ready' | 'document-ready' | 'production-ready';
 
 export interface FeatureDefinition {
   id: ScaffoldFeature;
@@ -199,6 +199,34 @@ export const FEATURE_DEFINITIONS: FeatureDefinition[] = [
 ];
 
 export const PRESET_DEFINITIONS: PresetDefinition[] = [
+  {
+    id: 'production-ready',
+    label: 'Production Ready',
+    description: 'Bundle the launch, support, ops, and document presets into one production-grade desktop starter baseline',
+    features: [
+      'settings',
+      'updater',
+      'jobs',
+      'plugins',
+      'diagnostics',
+      'notifications',
+      'windowing',
+      'menu-bar',
+      'support-bundle',
+      'log-archive',
+      'incident-report',
+      'diagnostics-timeline',
+      'crash-recovery',
+      'system-info',
+      'network-status',
+      'power-monitor',
+      'idle-presence',
+      'session-state',
+      'file-association',
+      'file-dialogs',
+      'recent-files',
+    ],
+  },
   {
     id: 'launch-ready',
     label: 'Launch Ready',
