@@ -182,10 +182,15 @@ verify_external_app() {
   fi
   if [[ "$preset_id" == "production-ready" ]]; then
     pnpm --dir "$target_dir" ops:snapshot -- --label production-ready-external-smoke
+    pnpm --dir "$target_dir" ops:evidence -- --label production-ready-external-smoke --skip-snapshot
     seed_release_output "$target_dir"
     env GH_TOKEN=forge-smoke-token AWS_ACCESS_KEY_ID=forge-smoke-key AWS_SECRET_ACCESS_KEY=forge-smoke-secret S3_BUCKET=forge-smoke-bucket S3_ENDPOINT=https://example.com S3_UPDATE_URL=https://downloads.example.com/releases pnpm --dir "$target_dir" production:check:all -- --require-release-output
     if ! find "$target_dir/ops/snapshots" -name 'ops-snapshot.json' -print -quit | grep -q .; then
       echo "External ${preset_id} smoke app ops snapshot JSON was not produced."
+      exit 1
+    fi
+    if ! find "$target_dir/ops/evidence" -name 'ops-evidence-summary.json' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops evidence summary JSON was not produced."
       exit 1
     fi
     if [ ! -f "$target_dir/worker/dist/forge-worker" ] && [ ! -f "$target_dir/worker/dist/forge-worker.exe" ]; then

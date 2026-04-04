@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.123 (2026-04-04)
+
+### Production Operations Evidence Bundles
+
+- added generated `pnpm ops:evidence` plus `scripts/ops-evidence.sh`, so scaffolded apps can package the latest operations snapshot, production docs, env template, and release manifest inventory into a reusable bundle under `ops/evidence/`
+- updated generated `production:check`, validate workflow, and tagged release workflow so production-grade apps now emit evidence bundles during CI and upload `ops/evidence/` alongside `ops/snapshots/`
+- extended release-surface audit coverage plus internal and external `production-ready` smoke verification so Forge now proves the evidence bundle command actually runs and writes operator-facing summary files before the framework version can move
+
 ## 0.1.122 (2026-04-04)
 
 ### Production Operations Snapshot Artifacts
