@@ -50,6 +50,7 @@ const expectedScripts = new Map([
   ['package:audit', 'bash scripts/audit-package-output.sh github'],
   ['package:audit:s3', 'bash scripts/audit-package-output.sh s3'],
   ['security:check', 'bash scripts/security-baseline.sh'],
+  ['ops:check', 'bash scripts/runtime-hygiene.sh'],
   ['production:check', 'bash scripts/production-readiness.sh github'],
   ['production:check:github', 'bash scripts/production-readiness.sh github'],
   ['production:check:s3', 'bash scripts/production-readiness.sh s3'],
@@ -97,6 +98,7 @@ audit_preset_surface() {
   assert_file "$target_dir/scripts/verify-package-output.sh"
   assert_file "$target_dir/scripts/audit-package-output.sh"
   assert_file "$target_dir/scripts/security-baseline.sh"
+  assert_file "$target_dir/scripts/runtime-hygiene.sh"
   assert_file "$target_dir/scripts/production-readiness.sh"
   assert_file "$target_dir/scripts/setup-python.sh"
   assert_file "$target_dir/scripts/build-worker.sh"
@@ -108,9 +110,13 @@ audit_preset_surface() {
   assert_contains "$target_dir/electron-builder.yml" "output: release"
   assert_contains "$target_dir/electron-builder.s3.yml" "provider: generic"
   assert_contains "$target_dir/docs/release-playbook.md" "pnpm security:check"
+  assert_contains "$target_dir/docs/release-playbook.md" "pnpm ops:check"
   assert_contains "$target_dir/docs/release-playbook.md" "pnpm production:check"
   assert_contains "$target_dir/docs/production-readiness.md" "pnpm security:check"
+  assert_contains "$target_dir/docs/production-readiness.md" "pnpm ops:check"
   assert_contains "$target_dir/docs/production-readiness.md" "pnpm production:check"
+  assert_contains "$target_dir/.github/workflows/validate.yml" "pnpm ops:check"
+  assert_contains "$target_dir/.github/workflows/release.yml" "pnpm ops:check"
   assert_contains "$target_dir/.github/workflows/release.yml" "pnpm publish:check:github"
   assert_contains "$target_dir/.github/workflows/release.yml" "tags:"
   assert_contains "$target_dir/README.md" "Generated with \`create-forge-desktop@${version}\`"

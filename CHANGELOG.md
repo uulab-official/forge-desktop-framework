@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.120 (2026-04-04)
+
+### Production Runtime Hygiene Baseline
+
+- added generated `pnpm ops:check` plus `scripts/runtime-hygiene.sh`, so scaffolded apps can fail fast when managed log paths, crash-dump paths, or startup retention cleanup drift away from the framework production baseline
+- hardened the generated minimal shell, the minimal example, the synced templates, and the reference app with explicit `app.setAppLogsPath`, managed `crashDumps` storage, and startup cleanup of old logs and dump files
+- updated generated validation and tagged release workflows, release-surface audit coverage, and production-ready documentation so runtime-hygiene checks now run alongside Electron security, release, publish, and packaged-artifact checks
+
 ## 0.1.119 (2026-04-04)
 
 ### Production Security Baseline

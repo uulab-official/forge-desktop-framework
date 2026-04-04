@@ -120,7 +120,7 @@ node dist/index.js create my-forge-app --template minimal \
   --preset production-ready
 ```
 
-Generated apps from that preset now also ship `pnpm security:check`, `pnpm production:check` for the default GitHub release path, and `pnpm production:check:all -- --require-release-output` for a full post-package audit.
+Generated apps from that preset now also ship `pnpm security:check`, `pnpm ops:check`, `pnpm production:check` for the default GitHub release path, and `pnpm production:check:all -- --require-release-output` for a full post-package audit.
 
 Or use the launch-focused preset if you only want the release, updater, and desktop shell baseline:
 
@@ -168,7 +168,7 @@ What the scaffold now adds by default:
 - `electron-builder` config files for GitHub and S3/R2 publishing
 - local scripts for Python setup, worker bundling, and app packaging
 - `.env.example`, release preflight, publish-target preflight, package-output verification, package-output audit, and a release playbook
-- `docs/production-readiness.md` plus `pnpm security:check` and `pnpm production:check*` commands for repeatable pre-ship validation
+- `docs/production-readiness.md` plus `pnpm security:check`, `pnpm ops:check`, and `pnpm production:check*` commands for repeatable pre-ship validation
 - GitHub Actions workflows for validation and tagged releases
 - renderer safety/diagnostics baseline with an error boundary and runtime log dock
 
@@ -298,7 +298,7 @@ Feature packs available on the `minimal` starter today:
 - `diagnostics-timeline` for structured desktop event history exports with reveal, clear, and support investigation controls
 
 Starter presets available today:
-- `production-ready` bundles the `launch-ready`, `support-ready`, `ops-ready`, and `document-ready` baselines into one production-grade starter, plus a generated Electron security baseline audit
+- `production-ready` bundles the `launch-ready`, `support-ready`, `ops-ready`, and `document-ready` baselines into one production-grade starter, plus generated Electron security and runtime-hygiene audits
 - `launch-ready` bundles `settings`, `updater`, `jobs`, `plugins`, `diagnostics`, `notifications`, `windowing`, and `menu-bar`
 - `support-ready` bundles `support-bundle`, `log-archive`, `incident-report`, and `diagnostics-timeline`
 - `ops-ready` bundles `diagnostics`, `support-bundle`, `crash-recovery`, `system-info`, `network-status`, `power-monitor`, `idle-presence`, and `session-state`

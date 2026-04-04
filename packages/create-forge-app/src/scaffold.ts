@@ -249,6 +249,7 @@ async function rewriteProjectReadme(
       'pnpm typecheck',
       'pnpm release:check',
       'pnpm security:check',
+      'pnpm ops:check',
       'pnpm production:check',
       'pnpm setup:python',
       'pnpm build:worker',
@@ -264,6 +265,7 @@ async function rewriteProjectReadme(
       '- Add GitHub Actions secrets before pushing a release tag',
       '- Run `pnpm release:check` to verify release prerequisites',
       '- Run `pnpm security:check` to confirm the Electron shell still matches the framework security baseline',
+      '- Run `pnpm ops:check` to confirm log retention and crash-dump retention still match the production baseline',
       '- Run `pnpm production:check` for the default GitHub channel, or `pnpm production:check:all -- --require-release-output` after packaging when you need a full multi-channel audit',
       '- Build the bundled worker with `pnpm build:worker`',
       '- Package the desktop app with `pnpm package`',
@@ -324,6 +326,7 @@ async function writeReleasePreset(
   await writeFile(join(targetDir, 'scripts', 'verify-package-output.sh'), getVerifyPackageOutputScript(), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'audit-package-output.sh'), getAuditPackageOutputScript(), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'security-baseline.sh'), getSecurityBaselineScript(), 'utf-8');
+  await writeFile(join(targetDir, 'scripts', 'runtime-hygiene.sh'), getRuntimeHygieneScript(), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'production-readiness.sh'), getProductionReadinessScript(), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'setup-python.sh'), getSetupPythonScript(), 'utf-8');
   await writeFile(join(targetDir, 'scripts', 'build-worker.sh'), getBuildWorkerScript(), 'utf-8');
@@ -371,6 +374,7 @@ async function updatePackageJsonForRelease(
     'package:audit': 'bash scripts/audit-package-output.sh github',
     'package:audit:s3': 'bash scripts/audit-package-output.sh s3',
     'security:check': 'bash scripts/security-baseline.sh',
+    'ops:check': 'bash scripts/runtime-hygiene.sh',
     'production:check': 'bash scripts/production-readiness.sh github',
     'production:check:github': 'bash scripts/production-readiness.sh github',
     'production:check:s3': 'bash scripts/production-readiness.sh s3',
@@ -987,6 +991,9 @@ function getProductionReadinessScript(): string {
     'echo "=== Electron security baseline ==="',
     'pnpm security:check',
     '',
+    'echo "=== Runtime hygiene baseline ==="',
+    'pnpm ops:check',
+    '',
     'if [ -f "worker/main.py" ]; then',
     '  echo "=== Python worker environment ==="',
     '  pnpm setup:python',
@@ -1089,6 +1096,48 @@ function getSecurityBaselineScript(): string {
   ].join('\n');
 }
 
+function getRuntimeHygieneScript(): string {
+  return [
+    '#!/bin/bash',
+    'set -euo pipefail',
+    '',
+    'SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"',
+    'ROOT_DIR="$SCRIPT_DIR/.."',
+    '',
+    'cd "$ROOT_DIR"',
+    '',
+    'assert_contains() {',
+    '  local path="$1"',
+    '  local pattern="$2"',
+    '  local description="$3"',
+    '',
+    '  if ! grep -Fq "$pattern" "$path"; then',
+    '    echo "Runtime hygiene check failed: $description"',
+    '    echo "Missing pattern: $pattern"',
+    '    echo "File: $path"',
+    '    exit 1',
+    '  fi',
+    '}',
+    '',
+    'MAIN_FILE="electron/main.ts"',
+    '',
+    'if [ ! -f "$MAIN_FILE" ]; then',
+    '  echo "Missing Electron main entry: $MAIN_FILE"',
+    '  exit 1',
+    'fi',
+    '',
+    'assert_contains "$MAIN_FILE" "setAppLogsPath(" "app logs path must be explicitly managed"',
+    'assert_contains "$MAIN_FILE" "setPath(\'crashDumps\'" "crash dump path must be explicitly managed"',
+    'assert_contains "$MAIN_FILE" "runtimeRetentionPolicy" "runtime retention policy must be declared"',
+    'assert_contains "$MAIN_FILE" "pruneRuntimeDirectory" "runtime retention cleanup helper must exist"',
+    'assert_contains "$MAIN_FILE" "enforceRuntimeHygiene" "runtime hygiene boot hook must exist"',
+    'assert_contains "$MAIN_FILE" "Runtime hygiene completed" "runtime hygiene should log cleanup results"',
+    '',
+    'echo "Runtime hygiene baseline checks passed."',
+    '',
+  ].join('\n');
+}
+
 function getGitignoreContents(): string {
   return [
     'node_modules',
@@ -1147,15 +1196,33 @@ function getMinimalElectronMainSource(
   const protocolScheme = `${toIdentifier(projectName)}`;
   const fileAssociationExtension = `${toIdentifier(projectName)}doc`;
   const dialogFileName = `${toIdentifier(projectName)}-document.txt`;
+  const fsPromiseImports = Array.from(new Set([
+    'mkdir',
+    'readdir',
+    'rm',
+    'stat',
+    ...(useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage ? ['readFile'] : []),
+    'writeFile',
+    ...(useLogArchive ? ['copyFile'] : []),
+  ]));
 
   return `import { app, BrowserWindow, ipcMain${useNotifications ? ', Notification' : ''}${useTray || useMenuBar ? ', Menu' : ''}${useTray ? ', Tray, nativeImage' : ''}${useMenuBar ? ', type MenuItemConstructorOptions' : ''}${useGlobalShortcut ? ', globalShortcut' : ''}${usePowerMonitor || useIdlePresence ? ', powerMonitor' : ''}${useDownloads ? ', session' : ''}${useClipboard ? ', clipboard' : ''}${usePermissions ? ', systemPreferences' : ''}${useNetworkStatus ? ', net' : ''}${useSecureStorage ? ', safeStorage' : ''}, shell${useFileDialogs ? ', dialog, type OpenDialogOptions' : ''} } from 'electron';
 import path from 'node:path';
 ${useSystemInfo ? "import os from 'node:os';\n" : ''}
-${useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage || useSupportBundle || useLogArchive || useIncidentReport || useDiagnosticsTimeline ? `import { ${[useDiagnostics || useWindowing || useRecentFiles || useCrashRecovery || useSecureStorage ? 'readFile' : '', 'writeFile', ...((useDiagnostics || useSupportBundle || useLogArchive || useIncidentReport || useDiagnosticsTimeline) ? ['mkdir'] : []), ...(useLogArchive ? ['readdir', 'stat', 'copyFile'] : [])].filter(Boolean).join(', ')} } from 'node:fs/promises';\n` : ''}import { createResourceManager } from '@forge/resource-manager';
+import { ${fsPromiseImports.join(', ')} } from 'node:fs/promises';
+import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
 import { createLogger } from '@forge/logger';
 import { IPC_CHANNELS, type WorkerRequest } from '@forge/ipc-contract';
 ${useSettings ? "import { createSettingsManager } from '@forge/settings-core';\n" : ''}${useJobs ? "import { createJobEngine } from '@forge/job-engine';\n" : ''}${useUpdater ? "import { createUpdater } from '@forge/updater';\n" : ''}
+const runtimePaths = {
+  logs: path.join(app.getPath('userData'), 'logs'),
+  crashDumps: path.join(app.getPath('userData'), 'crashDumps'),
+};
+
+app.setAppLogsPath(runtimePaths.logs);
+app.setPath('crashDumps', runtimePaths.crashDumps);
+
 const logger = createLogger('main');
 let mainWindow: BrowserWindow | null = null;
 ${useTray ? 'let appTray: Tray | null = null;\n' : ''}
@@ -1176,6 +1243,81 @@ const workerClient = createWorkerClient({
   pythonPath: resourceManager.getPythonPath(),
   isDev,
 });
+
+const runtimeRetentionPolicy = {
+  logs: {
+    maxAgeDays: 14,
+    maxEntries: 40,
+  },
+  crashDumps: {
+    maxAgeDays: 7,
+    maxEntries: 20,
+  },
+};
+
+async function ensureRuntimeDirectory(directoryPath: string) {
+  await mkdir(directoryPath, { recursive: true });
+}
+
+async function pruneRuntimeDirectory(
+  label: keyof typeof runtimeRetentionPolicy,
+  directoryPath: string,
+  policy: (typeof runtimeRetentionPolicy)[keyof typeof runtimeRetentionPolicy],
+) {
+  const cutoff = Date.now() - policy.maxAgeDays * 24 * 60 * 60 * 1000;
+  const entries = await readdir(directoryPath, { withFileTypes: true });
+  const files: Array<{ path: string; modifiedAt: number }> = [];
+
+  for (const entry of entries) {
+    if (!entry.isFile()) {
+      continue;
+    }
+
+    const entryPath = path.join(directoryPath, entry.name);
+    const details = await stat(entryPath);
+    files.push({
+      path: entryPath,
+      modifiedAt: details.mtimeMs,
+    });
+  }
+
+  files.sort((left, right) => right.modifiedAt - left.modifiedAt);
+  const removed: string[] = [];
+
+  for (const [index, file] of files.entries()) {
+    const expired = file.modifiedAt < cutoff;
+    const overflow = index >= policy.maxEntries;
+    if (!expired && !overflow) {
+      continue;
+    }
+
+    await rm(file.path, { force: true });
+    removed.push(path.basename(file.path));
+  }
+
+  return {
+    label,
+    retained: Math.max(files.length - removed.length, 0),
+    removed,
+  };
+}
+
+async function enforceRuntimeHygiene() {
+  await ensureRuntimeDirectory(runtimePaths.logs);
+  await ensureRuntimeDirectory(runtimePaths.crashDumps);
+
+  const logs = await pruneRuntimeDirectory('logs', runtimePaths.logs, runtimeRetentionPolicy.logs);
+  const crashDumps = await pruneRuntimeDirectory('crashDumps', runtimePaths.crashDumps, runtimeRetentionPolicy.crashDumps);
+
+  logger.info('Runtime hygiene completed', {
+    logsPath: runtimePaths.logs,
+    crashDumpsPath: runtimePaths.crashDumps,
+    logsRetained: logs.retained,
+    logsRemoved: logs.removed,
+    crashDumpsRetained: crashDumps.retained,
+    crashDumpsRemoved: crashDumps.removed,
+  });
+}
 
 const enabledFeatures = ${JSON.stringify(features)};
 ${useSettings ? "const settingsManager = createSettingsManager(path.join(app.getPath('userData'), 'settings.json'));\n" : ''}${useJobs ? 'const jobEngine = createJobEngine(workerClient);\n' : ''}${useUpdater ? "const updater = createUpdater({ autoDownload: false, autoInstallOnAppQuit: true });\n" : ''}function isTrustedRendererUrl(targetUrl: string) {
@@ -3837,6 +3979,7 @@ ${useWindowing || useDeepLink ? `    if (mainWindow.isMinimized()) {
 
 ` : ''}app.whenReady().then(async () => {
   logger.info('App starting', { isDev, appRoot });
+  await enforceRuntimeHygiene();
 ${useSettings ? '  await settingsManager.load();\n' : ''}${useWindowing ? '  await loadWindowState();\n' : ''}${useRecentFiles ? '  await loadRecentFiles();\n' : ''}${useCrashRecovery ? '  await loadCrashRecoveryState();\n' : ''}${useSecureStorage ? '  await loadSecureStorageRecord();\n' : ''}  registerIpcHandlers();
 ${useDeepLink ? "  captureDeepLink(findProtocolArg(process.argv));\n" : ''}${useFileAssociation ? "  captureAssociatedFile(findAssociatedFileArg(process.argv), 'startup-argv');\n" : ''}  createWindow();
 ${useDiagnosticsTimeline ? "  pushDiagnosticsTimelineEvent('app', 'ready', isDev ? 'development' : 'packaged');\n" : ''}${useTray ? '  createTray();\n' : ''}${useMenuBar ? '  installApplicationMenu();\n' : ''}${useGlobalShortcut ? '  registerStarterShortcut();\n' : ''}${usePowerMonitor ? '  registerPowerMonitor();\n' : ''}${useSessionState ? '  registerSessionState();\n' : ''}${useDownloads ? '  registerDownloadTracking();\n' : ''}${useUpdater ? `  if (app.isPackaged) {
@@ -7334,6 +7477,12 @@ function getValidateWorkflow(): string {
     '      - name: Release preflight',
     '        run: pnpm release:check',
     '',
+    '      - name: Electron security baseline',
+    '        run: pnpm security:check',
+    '',
+    '      - name: Runtime hygiene baseline',
+    '        run: pnpm ops:check',
+    '',
     '      - name: Type check',
     '        run: pnpm typecheck',
     '',
@@ -7389,6 +7538,12 @@ function getReleaseWorkflow(): string {
     '',
     '      - name: Verify release preset',
     '        run: pnpm release:check',
+    '',
+    '      - name: Electron security baseline',
+    '        run: pnpm security:check',
+    '',
+    '      - name: Runtime hygiene baseline',
+    '        run: pnpm ops:check',
     '',
     '      - name: Verify publish environment',
     '        env:',
@@ -7455,6 +7610,7 @@ function getReleasePlaybook(projectName: string, metadata: ScaffoldMetadata): st
     'pnpm install',
     'pnpm release:check',
     'pnpm security:check',
+    'pnpm ops:check',
     'pnpm production:check',
     'pnpm package',
     'pnpm production:check:github -- --require-release-output',
@@ -7493,6 +7649,7 @@ function getProductionReadinessGuide(projectName: string, metadata: ScaffoldMeta
     '',
     '```bash',
     'pnpm security:check',
+    'pnpm ops:check',
     'pnpm production:check',
     'pnpm package',
     'pnpm production:check:github -- --require-release-output',
@@ -7502,6 +7659,7 @@ function getProductionReadinessGuide(projectName: string, metadata: ScaffoldMeta
     '',
     '```bash',
     'pnpm security:check',
+    'pnpm ops:check',
     'pnpm production:check:s3',
     'pnpm package:s3',
     'pnpm production:check:s3 -- --require-release-output',
@@ -7511,6 +7669,7 @@ function getProductionReadinessGuide(projectName: string, metadata: ScaffoldMeta
     '',
     '```bash',
     'pnpm security:check',
+    'pnpm ops:check',
     'pnpm production:check:all',
     'pnpm package',
     'pnpm production:check:all -- --require-release-output',
@@ -7520,6 +7679,7 @@ function getProductionReadinessGuide(projectName: string, metadata: ScaffoldMeta
     '',
     '- Release preflight files and metadata',
     '- Electron security baseline in `electron/main.ts` and `electron/preload.ts`',
+    '- Runtime hygiene baseline for log retention and crash-dump retention in `electron/main.ts`',
     '- TypeScript typecheck',
     '- Python worker environment and bundled worker build',
     '- Electron renderer and main-process build',

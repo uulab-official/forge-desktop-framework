@@ -55,6 +55,7 @@ Scaffolded apps now include baseline packaging files:
 Scaffolded apps also include:
 - `pnpm release:check` for local release preflight
 - `pnpm security:check` for Electron shell hardening and preload-bridge baseline checks
+- `pnpm ops:check` for runtime log-retention and crash-dump-retention baseline checks
 - `pnpm publish:check:github` and `pnpm publish:check:s3` for publish-target preflight
 - `pnpm package:verify` and `pnpm package:verify:s3` for packaged artifact verification
 - `pnpm package:audit` and `pnpm package:audit:s3` for manifest-to-artifact audit checks
@@ -72,7 +73,7 @@ For the fastest production-grade baseline, use the preset:
 forge create my-app --template minimal --preset production-ready
 ```
 
-Generated `production-ready` apps now also include `pnpm security:check`, `pnpm production:check`, `pnpm production:check:s3`, and `pnpm production:check:all` so teams can rerun Electron shell hardening checks, release, worker, build, publish-env, and packaged-artifact checks from one command.
+Generated `production-ready` apps now also include `pnpm security:check`, `pnpm ops:check`, `pnpm production:check`, `pnpm production:check:s3`, and `pnpm production:check:all` so teams can rerun Electron shell hardening checks, runtime hygiene checks, release, worker, build, publish-env, and packaged-artifact checks from one command.
 
 If you only want the launch-focused desktop shell baseline, use:
 

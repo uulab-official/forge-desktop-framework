@@ -1,9 +1,18 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { mkdir, readdir, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { createResourceManager } from '@forge/resource-manager';
 import { createWorkerClient } from '@forge/worker-client';
 import { createLogger } from '@forge/logger';
 import type { WorkerRequest } from '@forge/ipc-contract';
+
+const runtimePaths = {
+  logs: path.join(app.getPath('userData'), 'logs'),
+  crashDumps: path.join(app.getPath('userData'), 'crashDumps'),
+};
+
+app.setAppLogsPath(runtimePaths.logs);
+app.setPath('crashDumps', runtimePaths.crashDumps);
 
 const logger = createLogger('main');
 const isDev = !app.isPackaged;
@@ -20,6 +29,81 @@ const workerClient = createWorkerClient({
   pythonPath: resourceManager.getPythonPath(),
   isDev,
 });
+
+const runtimeRetentionPolicy = {
+  logs: {
+    maxAgeDays: 14,
+    maxEntries: 40,
+  },
+  crashDumps: {
+    maxAgeDays: 7,
+    maxEntries: 20,
+  },
+};
+
+async function ensureRuntimeDirectory(directoryPath: string) {
+  await mkdir(directoryPath, { recursive: true });
+}
+
+async function pruneRuntimeDirectory(
+  label: keyof typeof runtimeRetentionPolicy,
+  directoryPath: string,
+  policy: (typeof runtimeRetentionPolicy)[keyof typeof runtimeRetentionPolicy],
+) {
+  const cutoff = Date.now() - policy.maxAgeDays * 24 * 60 * 60 * 1000;
+  const entries = await readdir(directoryPath, { withFileTypes: true });
+  const files: Array<{ path: string; modifiedAt: number }> = [];
+
+  for (const entry of entries) {
+    if (!entry.isFile()) {
+      continue;
+    }
+
+    const entryPath = path.join(directoryPath, entry.name);
+    const details = await stat(entryPath);
+    files.push({
+      path: entryPath,
+      modifiedAt: details.mtimeMs,
+    });
+  }
+
+  files.sort((left, right) => right.modifiedAt - left.modifiedAt);
+  const removed: string[] = [];
+
+  for (const [index, file] of files.entries()) {
+    const expired = file.modifiedAt < cutoff;
+    const overflow = index >= policy.maxEntries;
+    if (!expired && !overflow) {
+      continue;
+    }
+
+    await rm(file.path, { force: true });
+    removed.push(path.basename(file.path));
+  }
+
+  return {
+    label,
+    retained: Math.max(files.length - removed.length, 0),
+    removed,
+  };
+}
+
+async function enforceRuntimeHygiene() {
+  await ensureRuntimeDirectory(runtimePaths.logs);
+  await ensureRuntimeDirectory(runtimePaths.crashDumps);
+
+  const logs = await pruneRuntimeDirectory('logs', runtimePaths.logs, runtimeRetentionPolicy.logs);
+  const crashDumps = await pruneRuntimeDirectory('crashDumps', runtimePaths.crashDumps, runtimeRetentionPolicy.crashDumps);
+
+  logger.info('Runtime hygiene completed', {
+    logsPath: runtimePaths.logs,
+    crashDumpsPath: runtimePaths.crashDumps,
+    logsRetained: logs.retained,
+    logsRemoved: logs.removed,
+    crashDumpsRetained: crashDumps.retained,
+    crashDumpsRemoved: crashDumps.removed,
+  });
+}
 
 function isTrustedRendererUrl(targetUrl: string) {
   if (!targetUrl) {
@@ -95,7 +179,10 @@ ipcMain.handle('worker:execute', async (_event, request: WorkerRequest) => {
   return workerClient.execute(request);
 });
 
-app.whenReady().then(createWindow);
+app.whenReady().then(async () => {
+  await enforceRuntimeHygiene();
+  createWindow();
+});
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
