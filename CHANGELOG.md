@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.130 (2026-04-05)
+
+### Production Operations Ready Pipeline
+
+- added generated `pnpm ops:ready` plus `scripts/ops-ready.sh`, so scaffolded `production-ready` apps can refresh snapshot, evidence, report, bundle, index, doctor, refreshed index, and handoff into one final Markdown and JSON ready verdict under `ops/ready/`
+- updated generated validate and tagged release workflows so scaffolded apps now run the single `ops:ready` pipeline and upload `ops/ready/` alongside the existing operator evidence directories
+- extended release-surface audit coverage plus internal and external `production-ready` scaffold smoke so Forge now proves the one-shot ready pipeline emits bounded ready summaries after repeated production checks
+- updated product docs so `ops:ready` is the documented production-grade orchestration path on top of the lower-level ops surfaces
+
 ## 0.1.129 (2026-04-05)
 
 ### Production Operations Handoff

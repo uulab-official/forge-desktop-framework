@@ -150,16 +150,8 @@ pnpm install --dir "$PRODUCTION_READY_APP" --link-workspace-packages >/dev/null
 
 echo "==> Verifying production-ready smoke app"
 pnpm --dir "$PRODUCTION_READY_APP" release:check
-pnpm --dir "$PRODUCTION_READY_APP" ops:snapshot -- --label production-ready-smoke
-pnpm --dir "$PRODUCTION_READY_APP" ops:evidence -- --label production-ready-smoke --skip-snapshot
 seed_release_output "$PRODUCTION_READY_APP"
 env GH_TOKEN=forge-smoke-token AWS_ACCESS_KEY_ID=forge-smoke-key AWS_SECRET_ACCESS_KEY=forge-smoke-secret S3_BUCKET=forge-smoke-bucket S3_ENDPOINT=https://example.com S3_UPDATE_URL=https://downloads.example.com/releases pnpm --dir "$PRODUCTION_READY_APP" production:check:all -- --require-release-output
-pnpm --dir "$PRODUCTION_READY_APP" ops:report -- --label production-ready-smoke
-pnpm --dir "$PRODUCTION_READY_APP" ops:bundle -- --label production-ready-smoke
-pnpm --dir "$PRODUCTION_READY_APP" ops:index -- --label production-ready-smoke
-pnpm --dir "$PRODUCTION_READY_APP" ops:doctor -- --label production-ready-smoke --require-release-output
-pnpm --dir "$PRODUCTION_READY_APP" ops:index -- --label production-ready-smoke
-pnpm --dir "$PRODUCTION_READY_APP" ops:handoff -- --label production-ready-smoke --require-release-output
 pnpm --dir "$PRODUCTION_READY_APP" ops:retention -- --keep 1
 if ! find "$PRODUCTION_READY_APP/ops/snapshots" -name 'ops-snapshot.json' -print -quit | grep -q .; then
   echo "Production-ready smoke app ops snapshot JSON was not produced."
@@ -197,6 +189,14 @@ if ! find "$PRODUCTION_READY_APP/ops/handoffs" -name 'ops-handoff.tgz' -print -q
   echo "Production-ready smoke app ops handoff archive was not produced."
   exit 1
 fi
+if ! find "$PRODUCTION_READY_APP/ops/ready" -name 'ops-ready.json' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops ready JSON was not produced."
+  exit 1
+fi
+if ! find "$PRODUCTION_READY_APP/ops/ready" -name 'ops-ready.md' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops ready Markdown was not produced."
+  exit 1
+fi
 if [ "$(find "$PRODUCTION_READY_APP/ops/snapshots" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
   echo "Production-ready smoke app ops snapshot retention did not keep exactly one directory."
   exit 1
@@ -223,6 +223,10 @@ if [ "$(find "$PRODUCTION_READY_APP/ops/doctors" -mindepth 1 -maxdepth 1 -type d
 fi
 if [ "$(find "$PRODUCTION_READY_APP/ops/handoffs" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
   echo "Production-ready smoke app ops handoff retention did not keep exactly one directory."
+  exit 1
+fi
+if [ "$(find "$PRODUCTION_READY_APP/ops/ready" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
+  echo "Production-ready smoke app ops ready retention did not keep exactly one directory."
   exit 1
 fi
 if [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker" ] && [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker.exe" ]; then

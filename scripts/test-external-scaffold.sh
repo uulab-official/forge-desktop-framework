@@ -181,16 +181,8 @@ verify_external_app() {
     fi
   fi
   if [[ "$preset_id" == "production-ready" ]]; then
-    pnpm --dir "$target_dir" ops:snapshot -- --label production-ready-external-smoke
-    pnpm --dir "$target_dir" ops:evidence -- --label production-ready-external-smoke --skip-snapshot
     seed_release_output "$target_dir"
     env GH_TOKEN=forge-smoke-token AWS_ACCESS_KEY_ID=forge-smoke-key AWS_SECRET_ACCESS_KEY=forge-smoke-secret S3_BUCKET=forge-smoke-bucket S3_ENDPOINT=https://example.com S3_UPDATE_URL=https://downloads.example.com/releases pnpm --dir "$target_dir" production:check:all -- --require-release-output
-    pnpm --dir "$target_dir" ops:report -- --label production-ready-external-smoke
-    pnpm --dir "$target_dir" ops:bundle -- --label production-ready-external-smoke
-    pnpm --dir "$target_dir" ops:index -- --label production-ready-external-smoke
-    pnpm --dir "$target_dir" ops:doctor -- --label production-ready-external-smoke --require-release-output
-    pnpm --dir "$target_dir" ops:index -- --label production-ready-external-smoke
-    pnpm --dir "$target_dir" ops:handoff -- --label production-ready-external-smoke --require-release-output
     pnpm --dir "$target_dir" ops:retention -- --keep 1
     if ! find "$target_dir/ops/snapshots" -name 'ops-snapshot.json' -print -quit | grep -q .; then
       echo "External ${preset_id} smoke app ops snapshot JSON was not produced."
@@ -228,6 +220,14 @@ verify_external_app() {
       echo "External ${preset_id} smoke app ops handoff archive was not produced."
       exit 1
     fi
+    if ! find "$target_dir/ops/ready" -name 'ops-ready.json' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops ready JSON was not produced."
+      exit 1
+    fi
+    if ! find "$target_dir/ops/ready" -name 'ops-ready.md' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops ready Markdown was not produced."
+      exit 1
+    fi
     if [ "$(find "$target_dir/ops/snapshots" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
       echo "External ${preset_id} smoke app ops snapshot retention did not keep exactly one directory."
       exit 1
@@ -254,6 +254,10 @@ verify_external_app() {
     fi
     if [ "$(find "$target_dir/ops/handoffs" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
       echo "External ${preset_id} smoke app ops handoff retention did not keep exactly one directory."
+      exit 1
+    fi
+    if [ "$(find "$target_dir/ops/ready" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
+      echo "External ${preset_id} smoke app ops ready retention did not keep exactly one directory."
       exit 1
     fi
     if [ ! -f "$target_dir/worker/dist/forge-worker" ] && [ ! -f "$target_dir/worker/dist/forge-worker.exe" ]; then

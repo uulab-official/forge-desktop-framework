@@ -60,11 +60,12 @@ Scaffolded apps also include:
 - `pnpm ops:evidence` for reusable operations evidence bundles under `ops/evidence/`
 - `pnpm ops:report` for one consolidated Markdown and JSON operator handoff under `ops/reports/`
 - `pnpm ops:bundle` for one portable tarball and summary bundle under `ops/bundles/`
-- `pnpm ops:index` for a current inventory of retained `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/doctors/`, and `ops/handoffs/` output under `ops/index/`
+- `pnpm ops:index` for a current inventory of retained `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/doctors/`, `ops/handoffs/`, and `ops/ready/` output under `ops/index/`
 - `pnpm ops:doctor` for a final Markdown and JSON verdict under `ops/doctors/` that the latest ops surfaces are present and internally aligned
 - `pnpm ops:handoff` for one final portable Markdown, JSON, and tarball handoff package under `ops/handoffs/`
-- `pnpm ops:retention` for pruning old `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, `ops/doctors/`, and `ops/handoffs/` directories between repeated production audits
-- GitHub Actions artifact upload of `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, `ops/doctors/`, and `ops/handoffs/` from generated validate and tagged release workflows
+- `pnpm ops:ready` for one production-grade orchestration pass that refreshes the latest snapshot, evidence, report, bundle, index, doctor, handoff, and final ready verdict under `ops/ready/`
+- `pnpm ops:retention` for pruning old `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, `ops/doctors/`, `ops/handoffs/`, and `ops/ready/` directories between repeated production audits
+- GitHub Actions artifact upload of `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, `ops/doctors/`, `ops/handoffs/`, and `ops/ready/` from generated validate and tagged release workflows
 - `pnpm publish:check:github` and `pnpm publish:check:s3` for publish-target preflight
 - `pnpm package:verify` and `pnpm package:verify:s3` for packaged artifact verification
 - `pnpm package:audit` and `pnpm package:audit:s3` for manifest-to-artifact audit checks
@@ -82,7 +83,7 @@ For the fastest production-grade baseline, use the preset:
 forge create my-app --template minimal --preset production-ready
 ```
 
-Generated `production-ready` apps now also include `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:report`, `pnpm ops:bundle`, `pnpm ops:index`, `pnpm ops:doctor`, `pnpm ops:handoff`, `pnpm ops:retention`, `pnpm production:check`, `pnpm production:check:s3`, and `pnpm production:check:all` so teams can rerun Electron shell hardening checks, runtime hygiene checks, release, worker, build, publish-env, packaged-artifact checks, and operator-facing evidence generation from one command. Generated validate and tagged release workflows now also preserve those snapshots, evidence bundles, consolidated ops reports, portable ops bundles, ops indexes, final ops doctor verdicts, and final ops handoff packages as GitHub Actions artifacts, while `ops:retention` keeps repeated validation runs from growing unbounded evidence directories.
+Generated `production-ready` apps now also include `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:report`, `pnpm ops:bundle`, `pnpm ops:index`, `pnpm ops:doctor`, `pnpm ops:handoff`, `pnpm ops:ready`, `pnpm ops:retention`, `pnpm production:check`, `pnpm production:check:s3`, and `pnpm production:check:all` so teams can rerun Electron shell hardening checks, runtime hygiene checks, release, worker, build, publish-env, packaged-artifact checks, and operator-facing evidence generation from one command. Generated validate and tagged release workflows now also preserve those snapshots, evidence bundles, consolidated ops reports, portable ops bundles, ops indexes, final ops doctor verdicts, final ops handoff packages, and final ops ready verdicts as GitHub Actions artifacts, while `ops:retention` keeps repeated validation runs from growing unbounded evidence directories.
 
 If you only want the launch-focused desktop shell baseline, use:
 
