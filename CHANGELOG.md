@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.126 (2026-04-05)
+
+### Production Operations Reports
+
+- added generated `pnpm ops:report` plus `scripts/ops-report.sh`, so scaffolded `production-ready` apps can emit one consolidated Markdown and JSON operator handoff under `ops/reports/`
+- updated generated validate and tagged release workflows so scaffolded apps now upload `ops/reports/` alongside `ops/snapshots/`, `ops/evidence/`, and `ops/index/`
+- extended `ops:retention`, release-surface audit coverage, and internal plus external `production-ready` smoke verification so Forge now proves repeated production audits keep reports bounded and present
+- updated product docs so `ops:report` is part of the documented production-grade operating flow
 ## 0.1.123 (2026-04-04)
 
 ### Production Operations Evidence Bundles

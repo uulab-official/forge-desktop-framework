@@ -59,8 +59,9 @@ Scaffolded apps also include:
 - `pnpm ops:snapshot` for operator-facing Markdown and JSON release-surface snapshots under `ops/snapshots/`
 - `pnpm ops:evidence` for reusable operations evidence bundles under `ops/evidence/`
 - `pnpm ops:index` for a current inventory of retained `ops/snapshots/` and `ops/evidence/` output under `ops/index/`
-- `pnpm ops:retention` for pruning old `ops/snapshots/`, `ops/evidence/`, and `ops/index/` directories between repeated production audits
-- GitHub Actions artifact upload of `ops/snapshots/`, `ops/evidence/`, and `ops/index/` from generated validate and tagged release workflows
+- `pnpm ops:report` for one consolidated Markdown and JSON operator handoff under `ops/reports/`
+- `pnpm ops:retention` for pruning old `ops/snapshots/`, `ops/evidence/`, `ops/index/`, and `ops/reports/` directories between repeated production audits
+- GitHub Actions artifact upload of `ops/snapshots/`, `ops/evidence/`, `ops/index/`, and `ops/reports/` from generated validate and tagged release workflows
 - `pnpm publish:check:github` and `pnpm publish:check:s3` for publish-target preflight
 - `pnpm package:verify` and `pnpm package:verify:s3` for packaged artifact verification
 - `pnpm package:audit` and `pnpm package:audit:s3` for manifest-to-artifact audit checks
@@ -78,7 +79,7 @@ For the fastest production-grade baseline, use the preset:
 forge create my-app --template minimal --preset production-ready
 ```
 
-Generated `production-ready` apps now also include `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:index`, `pnpm ops:retention`, `pnpm production:check`, `pnpm production:check:s3`, and `pnpm production:check:all` so teams can rerun Electron shell hardening checks, runtime hygiene checks, release, worker, build, publish-env, packaged-artifact checks, and operator-facing evidence generation from one command. Generated validate and tagged release workflows now also preserve those snapshots, evidence bundles, and ops index reports as GitHub Actions artifacts, while `ops:retention` keeps repeated validation runs from growing unbounded evidence directories.
+Generated `production-ready` apps now also include `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:index`, `pnpm ops:report`, `pnpm ops:retention`, `pnpm production:check`, `pnpm production:check:s3`, and `pnpm production:check:all` so teams can rerun Electron shell hardening checks, runtime hygiene checks, release, worker, build, publish-env, packaged-artifact checks, and operator-facing evidence generation from one command. Generated validate and tagged release workflows now also preserve those snapshots, evidence bundles, ops index reports, and consolidated ops reports as GitHub Actions artifacts, while `ops:retention` keeps repeated validation runs from growing unbounded evidence directories.
 
 If you only want the launch-focused desktop shell baseline, use:
 
