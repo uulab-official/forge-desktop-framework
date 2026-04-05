@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.129 (2026-04-05)
+
+### Production Operations Handoff
+
+- added generated `pnpm ops:handoff` plus `scripts/ops-handoff.sh`, so scaffolded `production-ready` apps can emit one final operator handoff package under `ops/handoffs/` with Markdown, JSON, and `ops-handoff.tgz`
+- updated generated validate and tagged release workflows so scaffolded apps now upload `ops/handoffs/` alongside `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, and `ops/doctors/`
+- extended `ops:index`, `ops:retention`, release-surface audit coverage, and internal plus external `production-ready` smoke verification so Forge now proves repeated production audits keep final handoff packages bounded and present
+- updated product docs so `ops:handoff` is part of the documented production-grade operating flow
+
 ## 0.1.128 (2026-04-05)
 
 ### Production Operations Doctor

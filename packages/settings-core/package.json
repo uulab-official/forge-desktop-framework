@@ -1,6 +1,6 @@
 {
   "name": "@forge/settings-core",
-  "version": "0.1.128",
+  "version": "0.1.129",
   "description": "Typed settings persistence for Forge Desktop apps",
   "type": "module",
   "main": "./dist/index.js",

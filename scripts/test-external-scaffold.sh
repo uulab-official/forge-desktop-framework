@@ -189,6 +189,8 @@ verify_external_app() {
     pnpm --dir "$target_dir" ops:bundle -- --label production-ready-external-smoke
     pnpm --dir "$target_dir" ops:index -- --label production-ready-external-smoke
     pnpm --dir "$target_dir" ops:doctor -- --label production-ready-external-smoke --require-release-output
+    pnpm --dir "$target_dir" ops:index -- --label production-ready-external-smoke
+    pnpm --dir "$target_dir" ops:handoff -- --label production-ready-external-smoke --require-release-output
     pnpm --dir "$target_dir" ops:retention -- --keep 1
     if ! find "$target_dir/ops/snapshots" -name 'ops-snapshot.json' -print -quit | grep -q .; then
       echo "External ${preset_id} smoke app ops snapshot JSON was not produced."
@@ -218,6 +220,14 @@ verify_external_app() {
       echo "External ${preset_id} smoke app ops doctor JSON was not produced."
       exit 1
     fi
+    if ! find "$target_dir/ops/handoffs" -name 'ops-handoff.json' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops handoff JSON was not produced."
+      exit 1
+    fi
+    if ! find "$target_dir/ops/handoffs" -name 'ops-handoff.tgz' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops handoff archive was not produced."
+      exit 1
+    fi
     if [ "$(find "$target_dir/ops/snapshots" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
       echo "External ${preset_id} smoke app ops snapshot retention did not keep exactly one directory."
       exit 1
@@ -240,6 +250,10 @@ verify_external_app() {
     fi
     if [ "$(find "$target_dir/ops/doctors" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
       echo "External ${preset_id} smoke app ops doctor retention did not keep exactly one directory."
+      exit 1
+    fi
+    if [ "$(find "$target_dir/ops/handoffs" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
+      echo "External ${preset_id} smoke app ops handoff retention did not keep exactly one directory."
       exit 1
     fi
     if [ ! -f "$target_dir/worker/dist/forge-worker" ] && [ ! -f "$target_dir/worker/dist/forge-worker.exe" ]; then

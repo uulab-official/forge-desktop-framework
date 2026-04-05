@@ -18,8 +18,8 @@ Today:
 - generated apps now get a vendored Python worker runtime and a default electron-builder release preset
 - generated apps now also get GitHub Actions release workflows, `.env.example`, release preflight, and publish-target preflight scripts
 - generated apps now also get packaged-artifact verification and audit scripts so local packaging can fail fast when release outputs or manifests are incomplete
-- generated apps now also get `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:report`, `pnpm ops:bundle`, `pnpm ops:index`, `pnpm ops:doctor`, and `pnpm production:check*` commands plus `docs/production-readiness.md` so production-grade validation can be rerun from one entry point
-- generated validate and tagged release workflows now also upload `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, and `ops/doctors/` so CI and release runs keep operator-facing evidence without extra setup
+- generated apps now also get `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:report`, `pnpm ops:bundle`, `pnpm ops:index`, `pnpm ops:doctor`, `pnpm ops:handoff`, and `pnpm production:check*` commands plus `docs/production-readiness.md` so production-grade validation can be rerun from one entry point
+- generated validate and tagged release workflows now also upload `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, `ops/doctors/`, and `ops/handoffs/` so CI and release runs keep operator-facing evidence without extra setup
 - official presets plus `production-ready` are now covered by a maintainer release-surface audit before the framework version can move
 - the repo CI now also exercises repo-outside scaffold installs and preset release-surface audit on Ubuntu before changes merge
 - the repo release workflow now uploads per-platform packaged-artifact inventories so maintainers can inspect release output without opening runner files directly
@@ -193,7 +193,7 @@ node dist/index.js create my-forge-app --template minimal \
   --preset production-ready
 ```
 
-Generated apps from that preset now also include `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:report`, `pnpm ops:bundle`, `pnpm ops:index`, `pnpm ops:doctor`, `pnpm ops:retention`, `pnpm production:check`, `pnpm production:check:s3`, and `pnpm production:check:all` plus `docs/production-readiness.md`. The generated validate and tagged release workflows also upload `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, and `ops/doctors/` artifacts automatically, and `ops:retention` keeps those directories bounded during repeated production checks.
+Generated apps from that preset now also include `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:report`, `pnpm ops:bundle`, `pnpm ops:index`, `pnpm ops:doctor`, `pnpm ops:handoff`, `pnpm ops:retention`, `pnpm production:check`, `pnpm production:check:s3`, and `pnpm production:check:all` plus `docs/production-readiness.md`. The generated validate and tagged release workflows also upload `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, `ops/doctors/`, and `ops/handoffs/` artifacts automatically, and `ops:retention` keeps those directories bounded during repeated production checks.
 
 Preset creation for the launch-focused starter:
 
