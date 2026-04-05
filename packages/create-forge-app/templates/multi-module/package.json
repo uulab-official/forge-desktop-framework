@@ -1,6 +1,6 @@
 {
   "name": "@forge-example/multi-module",
-  "version": "0.1.133",
+  "version": "0.1.134",
   "private": true,
   "main": "./dist-electron/main.js",
   "type": "module",

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.134 (2026-04-05)
+
+### Production Operations Exports
+
+- added generated `pnpm ops:export` plus `scripts/ops-export.sh`, so scaffolded `production-ready` apps now emit one final offline-friendly export directory, Markdown or JSON summary, and `ops-export.tgz` under `ops/exports/`
+- updated generated `production:check`, validate workflow, tagged release workflow, `ops:index`, and retention so scaffolded apps now inventory, upload, and keep `ops/exports/` bounded as part of the standard production audit flow
+- extended release-surface audit coverage plus internal and external `production-ready` scaffold smoke so Forge now proves the final export exists, includes the latest release pack and packaged release output, and survives repeated retention cycles before the framework version can move
+- updated product docs so `ops:export` is the documented final offline-friendly operator handoff on top of the existing production operations chain
+
 ## 0.1.133 (2026-04-05)
 
 ### Production Release Packs
