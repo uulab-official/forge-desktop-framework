@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.132 (2026-04-05)
+
+### Production Operations Gate
+
+- added generated `pnpm ops:gate` plus `scripts/ops-gate.sh`, so scaffolded `production-ready` apps now emit a final Markdown and JSON go/no-go verdict under `ops/gates/` after the latest ready, handoff, attestation, index, and release output are aligned
+- updated generated `production:check`, validate workflow, tagged release workflow, `ops:index`, and retention so scaffolded apps now run, retain, inventory, and upload `ops/gates/` as part of the standard production audit flow
+- extended release-surface audit coverage plus internal and external `production-ready` scaffold smoke so Forge now proves gate output exists, stays bounded, and is exercised through the real production-readiness path before the framework version can move
+- updated product docs so `ops:gate` is the documented final operator-facing production verdict on top of the existing ops chain
+
 ## 0.1.131 (2026-04-05)
 
 ### Production Operations Attestation

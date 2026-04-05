@@ -1,6 +1,6 @@
 {
   "name": "@forge-example/ai-tool",
-  "version": "0.1.131",
+  "version": "0.1.132",
   "private": true,
   "main": "./dist-electron/main.js",
   "type": "module",
