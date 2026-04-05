@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.127 (2026-04-05)
+
+### Production Operations Bundles
+
+- added generated `pnpm ops:bundle` plus `scripts/ops-bundle.sh`, so scaffolded `production-ready` apps can package the latest ops snapshot, evidence bundle, report, docs, env template, and release manifest inventory into one portable tarball under `ops/bundles/`
+- updated generated validate and tagged release workflows so scaffolded apps now upload `ops/bundles/` alongside `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, and `ops/index/`
+- extended `ops:index`, `ops:retention`, release-surface audit coverage, and internal plus external `production-ready` smoke verification so Forge now proves repeated production audits keep portable operator bundles bounded and present
+- updated product docs so `ops:bundle` is part of the documented production-grade operating flow
+
 ## 0.1.126 (2026-04-05)
 
 ### Production Operations Reports
