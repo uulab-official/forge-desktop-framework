@@ -244,6 +244,18 @@ verify_external_app() {
       echo "External ${preset_id} smoke app ops gate Markdown was not produced."
       exit 1
     fi
+    if ! find "$target_dir/ops/releasepacks" -name 'ops-releasepack.json' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops release pack JSON was not produced."
+      exit 1
+    fi
+    if ! find "$target_dir/ops/releasepacks" -name 'ops-releasepack.md' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops release pack Markdown was not produced."
+      exit 1
+    fi
+    if ! find "$target_dir/ops/releasepacks" -name 'ops-releasepack.tgz' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops release pack archive was not produced."
+      exit 1
+    fi
     if [ "$(find "$target_dir/ops/snapshots" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
       echo "External ${preset_id} smoke app ops snapshot retention did not keep exactly one directory."
       exit 1
@@ -282,6 +294,10 @@ verify_external_app() {
     fi
     if [ "$(find "$target_dir/ops/gates" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
       echo "External ${preset_id} smoke app ops gate retention did not keep exactly one directory."
+      exit 1
+    fi
+    if [ "$(find "$target_dir/ops/releasepacks" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
+      echo "External ${preset_id} smoke app ops release pack retention did not keep exactly one directory."
       exit 1
     fi
     if [ ! -f "$target_dir/worker/dist/forge-worker" ] && [ ! -f "$target_dir/worker/dist/forge-worker.exe" ]; then

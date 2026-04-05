@@ -60,13 +60,14 @@ Scaffolded apps also include:
 - `pnpm ops:evidence` for reusable operations evidence bundles under `ops/evidence/`
 - `pnpm ops:report` for one consolidated Markdown and JSON operator handoff under `ops/reports/`
 - `pnpm ops:bundle` for one portable tarball and summary bundle under `ops/bundles/`
-- `pnpm ops:index` for a current inventory of retained `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/doctors/`, `ops/handoffs/`, `ops/attestations/`, `ops/ready/`, and `ops/gates/` output under `ops/index/`
+- `pnpm ops:index` for a current inventory of retained `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/doctors/`, `ops/handoffs/`, `ops/attestations/`, `ops/ready/`, `ops/gates/`, and `ops/releasepacks/` output under `ops/index/`
 - `pnpm ops:doctor` for a final Markdown and JSON verdict under `ops/doctors/` that the latest ops surfaces are present and internally aligned
 - `pnpm ops:handoff` for one final portable Markdown, JSON, and tarball handoff package under `ops/handoffs/`
 - `pnpm ops:attest` for one checksum-backed Markdown and JSON attestation under `ops/attestations/` covering the latest bundle, handoff, ready surface, and release output
 - `pnpm ops:ready` for one production-grade orchestration pass that refreshes the latest snapshot, evidence, report, bundle, index, doctor, handoff, attestation, and final ready verdict under `ops/ready/`
 - `pnpm ops:gate` for one final Markdown and JSON go/no-go verdict under `ops/gates/` that proves the latest ready, handoff, attestation, index, and release output are aligned
-- `pnpm ops:retention` for pruning old `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, `ops/doctors/`, `ops/handoffs/`, `ops/attestations/`, `ops/ready/`, and `ops/gates/` directories between repeated production audits
+- `pnpm ops:releasepack` for one final portable release-evidence directory and tarball under `ops/releasepacks/` that packages the latest gate, handoff, attestation, ready, index, docs, env template, and packaged release output
+- `pnpm ops:retention` for pruning old `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, `ops/doctors/`, `ops/handoffs/`, `ops/attestations/`, `ops/ready/`, `ops/gates/`, and `ops/releasepacks/` directories between repeated production audits
 - GitHub Actions artifact upload of `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, `ops/doctors/`, `ops/handoffs/`, `ops/attestations/`, `ops/ready/`, and `ops/gates/` from generated validate and tagged release workflows
 - `pnpm publish:check:github` and `pnpm publish:check:s3` for publish-target preflight
 - `pnpm package:verify` and `pnpm package:verify:s3` for packaged artifact verification
@@ -85,7 +86,7 @@ For the fastest production-grade baseline, use the preset:
 forge create my-app --template minimal --preset production-ready
 ```
 
-Generated `production-ready` apps now also include `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:report`, `pnpm ops:bundle`, `pnpm ops:index`, `pnpm ops:doctor`, `pnpm ops:handoff`, `pnpm ops:attest`, `pnpm ops:ready`, `pnpm ops:gate`, `pnpm ops:retention`, `pnpm production:check`, `pnpm production:check:s3`, and `pnpm production:check:all` so teams can rerun Electron shell hardening checks, runtime hygiene checks, release, worker, build, publish-env, packaged-artifact checks, and operator-facing evidence generation from one command. Generated validate and tagged release workflows now also preserve those snapshots, evidence bundles, consolidated ops reports, portable ops bundles, ops indexes, final ops doctor verdicts, final ops handoff packages, checksum-backed ops attestations, final ops ready verdicts, and final ops gate verdicts as GitHub Actions artifacts, while `ops:retention` keeps repeated validation runs from growing unbounded evidence directories.
+Generated `production-ready` apps now also include `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:report`, `pnpm ops:bundle`, `pnpm ops:index`, `pnpm ops:doctor`, `pnpm ops:handoff`, `pnpm ops:attest`, `pnpm ops:ready`, `pnpm ops:gate`, `pnpm ops:releasepack`, `pnpm ops:retention`, `pnpm production:check`, `pnpm production:check:s3`, and `pnpm production:check:all` so teams can rerun Electron shell hardening checks, runtime hygiene checks, release, worker, build, publish-env, packaged-artifact checks, and operator-facing evidence generation from one command. Generated validate and tagged release workflows now also preserve those snapshots, evidence bundles, consolidated ops reports, portable ops bundles, ops indexes, final ops doctor verdicts, final ops handoff packages, checksum-backed ops attestations, final ops ready verdicts, final ops gate verdicts, and final portable release packs as GitHub Actions artifacts, while `ops:retention` keeps repeated validation runs from growing unbounded evidence directories.
 
 If you only want the launch-focused desktop shell baseline, use:
 

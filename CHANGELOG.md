@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.133 (2026-04-05)
+
+### Production Release Packs
+
+- added generated `pnpm ops:releasepack` plus `scripts/ops-releasepack.sh`, so scaffolded `production-ready` apps now emit one final portable release-evidence directory, Markdown or JSON summary, and `ops-releasepack.tgz` under `ops/releasepacks/`
+- updated generated `production:check`, validate workflow, tagged release workflow, `ops:index`, and retention so scaffolded apps now inventory, upload, and keep `ops/releasepacks/` bounded as part of the standard production audit flow
+- extended release-surface audit coverage plus internal and external `production-ready` scaffold smoke so Forge now proves the final release pack exists, includes packaged release output, and survives repeated retention cycles before the framework version can move
+- updated product docs so `ops:releasepack` is the documented final portable release-evidence handoff on top of the existing production operations chain
+
 ## 0.1.132 (2026-04-05)
 
 ### Production Operations Gate

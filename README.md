@@ -120,7 +120,7 @@ node dist/index.js create my-forge-app --template minimal \
   --preset production-ready
 ```
 
-Generated apps from that preset now also ship `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:report`, `pnpm ops:bundle`, `pnpm ops:index`, `pnpm ops:doctor`, `pnpm ops:handoff`, `pnpm ops:attest`, `pnpm ops:ready`, `pnpm ops:gate`, `pnpm ops:retention`, `pnpm production:check` for the default GitHub release path, and `pnpm production:check:all -- --require-release-output` for a full post-package audit. The generated validate and tagged release workflows now also upload `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, `ops/doctors/`, `ops/handoffs/`, `ops/attestations/`, `ops/ready/`, and `ops/gates/` as GitHub Actions artifacts, while `ops:retention` keeps those directories bounded during repeated production checks.
+Generated apps from that preset now also ship `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:report`, `pnpm ops:bundle`, `pnpm ops:index`, `pnpm ops:doctor`, `pnpm ops:handoff`, `pnpm ops:attest`, `pnpm ops:ready`, `pnpm ops:gate`, `pnpm ops:releasepack`, `pnpm ops:retention`, `pnpm production:check` for the default GitHub release path, and `pnpm production:check:all -- --require-release-output` for a full post-package audit. The generated validate and tagged release workflows now also upload `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, `ops/doctors/`, `ops/handoffs/`, `ops/attestations/`, `ops/ready/`, `ops/gates/`, and `ops/releasepacks/` as GitHub Actions artifacts, while `ops:retention` keeps those directories bounded during repeated production checks.
 
 Or use the launch-focused preset if you only want the release, updater, and desktop shell baseline:
 
@@ -168,8 +168,8 @@ What the scaffold now adds by default:
 - `electron-builder` config files for GitHub and S3/R2 publishing
 - local scripts for Python setup, worker bundling, and app packaging
 - `.env.example`, release preflight, publish-target preflight, package-output verification, package-output audit, and a release playbook
-- `docs/production-readiness.md` plus `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:report`, `pnpm ops:bundle`, `pnpm ops:index`, `pnpm ops:doctor`, `pnpm ops:handoff`, `pnpm ops:attest`, `pnpm ops:ready`, `pnpm ops:gate`, `pnpm ops:retention`, and `pnpm production:check*` commands for repeatable pre-ship validation
-- GitHub Actions artifact upload for generated `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, `ops/doctors/`, `ops/handoffs/`, `ops/attestations/`, `ops/ready/`, and `ops/gates/` operator evidence from validate and tagged release runs
+- `docs/production-readiness.md` plus `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:report`, `pnpm ops:bundle`, `pnpm ops:index`, `pnpm ops:doctor`, `pnpm ops:handoff`, `pnpm ops:attest`, `pnpm ops:ready`, `pnpm ops:gate`, `pnpm ops:releasepack`, `pnpm ops:retention`, and `pnpm production:check*` commands for repeatable pre-ship validation
+- GitHub Actions artifact upload for generated `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, `ops/doctors/`, `ops/handoffs/`, `ops/attestations/`, `ops/ready/`, `ops/gates/`, and `ops/releasepacks/` operator evidence from validate and tagged release runs
 - GitHub Actions workflows for validation and tagged releases
 - renderer safety/diagnostics baseline with an error boundary and runtime log dock
 
