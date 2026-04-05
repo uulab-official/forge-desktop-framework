@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.128 (2026-04-05)
+
+### Production Operations Doctor
+
+- added generated `pnpm ops:doctor` plus `scripts/ops-doctor.sh`, so scaffolded `production-ready` apps can emit one final Markdown and JSON verdict under `ops/doctors/` that the latest snapshot, evidence, report, bundle, index, and optional release output are present and aligned
+- updated generated validate and tagged release workflows so scaffolded apps now upload `ops/doctors/` alongside `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, and `ops/index/`
+- extended `ops:index`, `ops:retention`, release-surface audit coverage, and internal plus external `production-ready` smoke verification so Forge now proves repeated production audits keep final doctor verdicts bounded and present
+- updated product docs so `ops:doctor` is part of the documented production-grade operating flow
+
 ## 0.1.127 (2026-04-05)
 
 ### Production Operations Bundles

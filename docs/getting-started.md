@@ -93,7 +93,7 @@ node dist/index.js create my-forge-app --template minimal \
   --preset production-ready
 ```
 
-That starter now also includes `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:report`, `pnpm ops:bundle`, `pnpm ops:index`, `pnpm ops:retention`, `pnpm production:check` for the default GitHub path, and `pnpm production:check:all -- --require-release-output` for a full post-package audit. Its generated validate and tagged release workflows also upload `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, and `ops/index/` as build artifacts, while `ops:retention` trims old operator evidence before repeated audits.
+That starter now also includes `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:report`, `pnpm ops:bundle`, `pnpm ops:index`, `pnpm ops:doctor`, `pnpm ops:retention`, `pnpm production:check` for the default GitHub path, and `pnpm production:check:all -- --require-release-output` for a full post-package audit. Its generated validate and tagged release workflows also upload `ops/snapshots/`, `ops/evidence/`, `ops/reports/`, `ops/bundles/`, `ops/index/`, and `ops/doctors/` as build artifacts, while `ops:retention` trims old operator evidence before repeated audits.
 
 Or preview the bundled launch starter:
 
@@ -129,7 +129,7 @@ The generated project includes:
 - vendored `worker/forge_worker` runtime code
 - a standalone `README.md`
 - default `electron-builder` config
-- `.env.example`, `docs/release-playbook.md`, `docs/production-readiness.md`, `pnpm release:check`, `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:report`, `pnpm ops:bundle`, `pnpm ops:index`, `pnpm ops:retention`, `pnpm publish:check:*`, `pnpm package:verify*`, `pnpm package:audit*`, and `pnpm production:check*`
+- `.env.example`, `docs/release-playbook.md`, `docs/production-readiness.md`, `pnpm release:check`, `pnpm security:check`, `pnpm ops:check`, `pnpm ops:snapshot`, `pnpm ops:evidence`, `pnpm ops:report`, `pnpm ops:bundle`, `pnpm ops:index`, `pnpm ops:doctor`, `pnpm ops:retention`, `pnpm publish:check:*`, `pnpm package:verify*`, `pnpm package:audit*`, and `pnpm production:check*`
 - GitHub Actions workflows for validation and tagged releases
 - packaging scripts for the worker and the desktop app
 - a renderer baseline with `ForgeErrorBoundary` and a floating log dock

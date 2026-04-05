@@ -157,6 +157,7 @@ env GH_TOKEN=forge-smoke-token AWS_ACCESS_KEY_ID=forge-smoke-key AWS_SECRET_ACCE
 pnpm --dir "$PRODUCTION_READY_APP" ops:report -- --label production-ready-smoke
 pnpm --dir "$PRODUCTION_READY_APP" ops:bundle -- --label production-ready-smoke
 pnpm --dir "$PRODUCTION_READY_APP" ops:index -- --label production-ready-smoke
+pnpm --dir "$PRODUCTION_READY_APP" ops:doctor -- --label production-ready-smoke --require-release-output
 pnpm --dir "$PRODUCTION_READY_APP" ops:retention -- --keep 1
 if ! find "$PRODUCTION_READY_APP/ops/snapshots" -name 'ops-snapshot.json' -print -quit | grep -q .; then
   echo "Production-ready smoke app ops snapshot JSON was not produced."
@@ -182,6 +183,10 @@ if ! find "$PRODUCTION_READY_APP/ops/bundles" -name 'ops-bundle.tgz' -print -qui
   echo "Production-ready smoke app ops bundle archive was not produced."
   exit 1
 fi
+if ! find "$PRODUCTION_READY_APP/ops/doctors" -name 'ops-doctor.json' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops doctor JSON was not produced."
+  exit 1
+fi
 if [ "$(find "$PRODUCTION_READY_APP/ops/snapshots" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
   echo "Production-ready smoke app ops snapshot retention did not keep exactly one directory."
   exit 1
@@ -200,6 +205,10 @@ if [ "$(find "$PRODUCTION_READY_APP/ops/reports" -mindepth 1 -maxdepth 1 -type d
 fi
 if [ "$(find "$PRODUCTION_READY_APP/ops/bundles" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
   echo "Production-ready smoke app ops bundle retention did not keep exactly one directory."
+  exit 1
+fi
+if [ "$(find "$PRODUCTION_READY_APP/ops/doctors" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
+  echo "Production-ready smoke app ops doctor retention did not keep exactly one directory."
   exit 1
 fi
 if [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker" ] && [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker.exe" ]; then

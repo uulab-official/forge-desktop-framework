@@ -56,6 +56,7 @@ const expectedScripts = new Map([
   ['ops:report', 'bash scripts/ops-report.sh'],
   ['ops:bundle', 'bash scripts/ops-bundle.sh'],
   ['ops:index', 'bash scripts/ops-index.sh'],
+  ['ops:doctor', 'bash scripts/ops-doctor.sh'],
   ['ops:retention', 'bash scripts/ops-retention.sh'],
   ['production:check', 'bash scripts/production-readiness.sh github'],
   ['production:check:github', 'bash scripts/production-readiness.sh github'],
@@ -110,6 +111,7 @@ audit_preset_surface() {
   assert_file "$target_dir/scripts/ops-report.sh"
   assert_file "$target_dir/scripts/ops-bundle.sh"
   assert_file "$target_dir/scripts/ops-index.sh"
+  assert_file "$target_dir/scripts/ops-doctor.sh"
   assert_file "$target_dir/scripts/ops-retention.sh"
   assert_file "$target_dir/scripts/production-readiness.sh"
   assert_file "$target_dir/scripts/setup-python.sh"
@@ -128,6 +130,7 @@ audit_preset_surface() {
   assert_contains "$target_dir/docs/release-playbook.md" "pnpm ops:report"
   assert_contains "$target_dir/docs/release-playbook.md" "pnpm ops:bundle"
   assert_contains "$target_dir/docs/release-playbook.md" "pnpm ops:index"
+  assert_contains "$target_dir/docs/release-playbook.md" "pnpm ops:doctor"
   assert_contains "$target_dir/docs/release-playbook.md" "pnpm ops:retention"
   assert_contains "$target_dir/docs/release-playbook.md" "pnpm production:check"
   assert_contains "$target_dir/docs/production-readiness.md" "pnpm security:check"
@@ -137,6 +140,7 @@ audit_preset_surface() {
   assert_contains "$target_dir/docs/production-readiness.md" "pnpm ops:report"
   assert_contains "$target_dir/docs/production-readiness.md" "pnpm ops:bundle"
   assert_contains "$target_dir/docs/production-readiness.md" "pnpm ops:index"
+  assert_contains "$target_dir/docs/production-readiness.md" "pnpm ops:doctor"
   assert_contains "$target_dir/docs/production-readiness.md" "pnpm ops:retention"
   assert_contains "$target_dir/docs/production-readiness.md" "pnpm production:check"
   assert_contains "$target_dir/.github/workflows/validate.yml" "pnpm ops:retention"
@@ -144,6 +148,7 @@ audit_preset_surface() {
   assert_contains "$target_dir/.github/workflows/validate.yml" "pnpm ops:report"
   assert_contains "$target_dir/.github/workflows/validate.yml" "pnpm ops:bundle"
   assert_contains "$target_dir/.github/workflows/validate.yml" "pnpm ops:index"
+  assert_contains "$target_dir/.github/workflows/validate.yml" "pnpm ops:doctor"
   assert_contains "$target_dir/.github/workflows/validate.yml" "pnpm ops:snapshot"
   assert_contains "$target_dir/.github/workflows/validate.yml" "pnpm ops:evidence"
   assert_contains "$target_dir/.github/workflows/validate.yml" "actions/upload-artifact@v4"
@@ -152,11 +157,13 @@ audit_preset_surface() {
   assert_contains "$target_dir/.github/workflows/validate.yml" "ops/index"
   assert_contains "$target_dir/.github/workflows/validate.yml" "ops/reports"
   assert_contains "$target_dir/.github/workflows/validate.yml" "ops/bundles"
+  assert_contains "$target_dir/.github/workflows/validate.yml" "ops/doctors"
   assert_contains "$target_dir/.github/workflows/release.yml" "pnpm ops:retention"
   assert_contains "$target_dir/.github/workflows/release.yml" "pnpm ops:check"
   assert_contains "$target_dir/.github/workflows/release.yml" "pnpm ops:report"
   assert_contains "$target_dir/.github/workflows/release.yml" "pnpm ops:bundle"
   assert_contains "$target_dir/.github/workflows/release.yml" "pnpm ops:index"
+  assert_contains "$target_dir/.github/workflows/release.yml" "pnpm ops:doctor"
   assert_contains "$target_dir/.github/workflows/release.yml" "pnpm ops:snapshot"
   assert_contains "$target_dir/.github/workflows/release.yml" "pnpm ops:evidence"
   assert_contains "$target_dir/.github/workflows/release.yml" "actions/upload-artifact@v4"
@@ -165,6 +172,7 @@ audit_preset_surface() {
   assert_contains "$target_dir/.github/workflows/release.yml" "ops/index"
   assert_contains "$target_dir/.github/workflows/release.yml" "ops/reports"
   assert_contains "$target_dir/.github/workflows/release.yml" "ops/bundles"
+  assert_contains "$target_dir/.github/workflows/release.yml" "ops/doctors"
   assert_contains "$target_dir/.github/workflows/release.yml" "pnpm publish:check:github"
   assert_contains "$target_dir/.github/workflows/release.yml" "tags:"
   assert_contains "$target_dir/README.md" "Generated with \`create-forge-desktop@${version}\`"
