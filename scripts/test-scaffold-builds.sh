@@ -189,6 +189,14 @@ if ! find "$PRODUCTION_READY_APP/ops/handoffs" -name 'ops-handoff.tgz' -print -q
   echo "Production-ready smoke app ops handoff archive was not produced."
   exit 1
 fi
+if ! find "$PRODUCTION_READY_APP/ops/attestations" -name 'ops-attestation.json' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops attestation JSON was not produced."
+  exit 1
+fi
+if ! find "$PRODUCTION_READY_APP/ops/attestations" -name 'ops-attestation.md' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops attestation Markdown was not produced."
+  exit 1
+fi
 if ! find "$PRODUCTION_READY_APP/ops/ready" -name 'ops-ready.json' -print -quit | grep -q .; then
   echo "Production-ready smoke app ops ready JSON was not produced."
   exit 1
@@ -223,6 +231,10 @@ if [ "$(find "$PRODUCTION_READY_APP/ops/doctors" -mindepth 1 -maxdepth 1 -type d
 fi
 if [ "$(find "$PRODUCTION_READY_APP/ops/handoffs" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
   echo "Production-ready smoke app ops handoff retention did not keep exactly one directory."
+  exit 1
+fi
+if [ "$(find "$PRODUCTION_READY_APP/ops/attestations" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
+  echo "Production-ready smoke app ops attestation retention did not keep exactly one directory."
   exit 1
 fi
 if [ "$(find "$PRODUCTION_READY_APP/ops/ready" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.131 (2026-04-05)
+
+### Production Operations Attestation
+
+- added generated `pnpm ops:attest` plus `scripts/ops-attest.sh`, so scaffolded `production-ready` apps now emit a checksum-backed Markdown and JSON attestation under `ops/attestations/` for the latest bundle, handoff, ready surface, and release output
+- updated generated `ops:index`, `ops:ready`, retention, and GitHub Actions workflows so scaffolded apps now retain, inventory, upload, and refresh `ops/attestations/` as part of the standard production audit flow
+- extended release-surface audit coverage plus internal and external `production-ready` scaffold smoke so Forge now proves attestation output exists and stays bounded after repeated production checks
+- updated product docs so `ops:attest` is part of the documented production-grade operator evidence chain
+
 ## 0.1.130 (2026-04-05)
 
 ### Production Operations Ready Pipeline

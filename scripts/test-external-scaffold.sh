@@ -220,6 +220,14 @@ verify_external_app() {
       echo "External ${preset_id} smoke app ops handoff archive was not produced."
       exit 1
     fi
+    if ! find "$target_dir/ops/attestations" -name 'ops-attestation.json' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops attestation JSON was not produced."
+      exit 1
+    fi
+    if ! find "$target_dir/ops/attestations" -name 'ops-attestation.md' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops attestation Markdown was not produced."
+      exit 1
+    fi
     if ! find "$target_dir/ops/ready" -name 'ops-ready.json' -print -quit | grep -q .; then
       echo "External ${preset_id} smoke app ops ready JSON was not produced."
       exit 1
@@ -254,6 +262,10 @@ verify_external_app() {
     fi
     if [ "$(find "$target_dir/ops/handoffs" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
       echo "External ${preset_id} smoke app ops handoff retention did not keep exactly one directory."
+      exit 1
+    fi
+    if [ "$(find "$target_dir/ops/attestations" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
+      echo "External ${preset_id} smoke app ops attestation retention did not keep exactly one directory."
       exit 1
     fi
     if [ "$(find "$target_dir/ops/ready" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
