@@ -268,6 +268,18 @@ verify_external_app() {
       echo "External ${preset_id} smoke app ops export archive was not produced."
       exit 1
     fi
+    if ! find "$target_dir/ops/restores" -name 'ops-restore.json' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops restore JSON was not produced."
+      exit 1
+    fi
+    if ! find "$target_dir/ops/restores" -name 'ops-restore.md' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops restore Markdown was not produced."
+      exit 1
+    fi
+    if ! find "$target_dir/ops/restores" -path '*/restored/payload/releasepack/ops-releasepack.json' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app restored release pack payload was not produced."
+      exit 1
+    fi
     if [ "$(find "$target_dir/ops/snapshots" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
       echo "External ${preset_id} smoke app ops snapshot retention did not keep exactly one directory."
       exit 1
@@ -314,6 +326,10 @@ verify_external_app() {
     fi
     if [ "$(find "$target_dir/ops/exports" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
       echo "External ${preset_id} smoke app ops export retention did not keep exactly one directory."
+      exit 1
+    fi
+    if [ "$(find "$target_dir/ops/restores" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
+      echo "External ${preset_id} smoke app ops restore retention did not keep exactly one directory."
       exit 1
     fi
     if [ ! -f "$target_dir/worker/dist/forge-worker" ] && [ ! -f "$target_dir/worker/dist/forge-worker.exe" ]; then

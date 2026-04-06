@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.135 (2026-04-06)
+
+### Production Restore Rehearsals
+
+- added generated `pnpm ops:restore` plus `scripts/ops-restore.sh`, so scaffolded `production-ready` apps now rehydrate the latest offline export, verify the restored payload, and leave one final Markdown or JSON restore rehearsal record under `ops/restores/`
+- updated generated `production:check`, validate workflow, tagged release workflow, `ops:index`, and retention so scaffolded apps now inventory, upload, and keep `ops/restores/` bounded as part of the standard production audit flow
+- extended release-surface audit coverage plus internal and external `production-ready` scaffold smoke so Forge now proves the final offline export can be unpacked and verified outside CI artifacts before the framework version can move
+
 ## 0.1.134 (2026-04-05)
 
 ### Production Operations Exports
