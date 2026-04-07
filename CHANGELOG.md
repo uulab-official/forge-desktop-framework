@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.138 (2026-04-07)
+
+### Production Incident Packets
+
+- added generated `pnpm ops:incident` plus `scripts/ops-incident.sh`, so scaffolded `production-ready` apps now turn the latest rollback rehearsal into one final incident-response Markdown, JSON, and tarball packet under `ops/incidents/`
+- updated generated `production:check`, validate workflow, tagged release workflow, `ops:index`, and retention so scaffolded apps now inventory, upload, and keep `ops/incidents/` bounded as part of the standard production audit flow
+- extended release-surface audit coverage plus internal and external `production-ready` scaffold smoke so Forge now proves the latest rollback proof, handoff surface, and release evidence can be elevated into one portable operator escalation bundle before the framework version can move
+
 ## 0.1.137 (2026-04-07)
 
 ### Production Rollback Rehearsals
