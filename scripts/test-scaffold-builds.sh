@@ -261,6 +261,18 @@ if ! find "$PRODUCTION_READY_APP/ops/recoveries" -path '*/proof/restore/ops-rest
   echo "Production-ready smoke app ops recover proof did not capture the latest restore JSON."
   exit 1
 fi
+if ! find "$PRODUCTION_READY_APP/ops/rollbacks" -name 'ops-rollback.json' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops rollback JSON was not produced."
+  exit 1
+fi
+if ! find "$PRODUCTION_READY_APP/ops/rollbacks" -name 'ops-rollback.md' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops rollback Markdown was not produced."
+  exit 1
+fi
+if ! find "$PRODUCTION_READY_APP/ops/rollbacks" -path '*/proof/recover/ops-recover.json' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops rollback proof did not capture the latest recover JSON."
+  exit 1
+fi
 if [ "$(find "$PRODUCTION_READY_APP/ops/snapshots" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
   echo "Production-ready smoke app ops snapshot retention did not keep exactly one directory."
   exit 1
@@ -315,6 +327,10 @@ if [ "$(find "$PRODUCTION_READY_APP/ops/restores" -mindepth 1 -maxdepth 1 -type 
 fi
 if [ "$(find "$PRODUCTION_READY_APP/ops/recoveries" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
   echo "Production-ready smoke app ops recover retention did not keep exactly one directory."
+  exit 1
+fi
+if [ "$(find "$PRODUCTION_READY_APP/ops/rollbacks" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
+  echo "Production-ready smoke app ops rollback retention did not keep exactly one directory."
   exit 1
 fi
 if [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker" ] && [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker.exe" ]; then

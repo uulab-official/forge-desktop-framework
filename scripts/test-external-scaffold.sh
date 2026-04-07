@@ -292,6 +292,18 @@ verify_external_app() {
       echo "External ${preset_id} smoke app ops recover proof did not capture the latest restore JSON."
       exit 1
     fi
+    if ! find "$target_dir/ops/rollbacks" -name 'ops-rollback.json' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops rollback JSON was not produced."
+      exit 1
+    fi
+    if ! find "$target_dir/ops/rollbacks" -name 'ops-rollback.md' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops rollback Markdown was not produced."
+      exit 1
+    fi
+    if ! find "$target_dir/ops/rollbacks" -path '*/proof/recover/ops-recover.json' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops rollback proof did not capture the latest recover JSON."
+      exit 1
+    fi
     if [ "$(find "$target_dir/ops/snapshots" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
       echo "External ${preset_id} smoke app ops snapshot retention did not keep exactly one directory."
       exit 1
@@ -346,6 +358,10 @@ verify_external_app() {
     fi
     if [ "$(find "$target_dir/ops/recoveries" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
       echo "External ${preset_id} smoke app ops recover retention did not keep exactly one directory."
+      exit 1
+    fi
+    if [ "$(find "$target_dir/ops/rollbacks" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
+      echo "External ${preset_id} smoke app ops rollback retention did not keep exactly one directory."
       exit 1
     fi
     if [ ! -f "$target_dir/worker/dist/forge-worker" ] && [ ! -f "$target_dir/worker/dist/forge-worker.exe" ]; then

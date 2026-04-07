@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.137 (2026-04-07)
+
+### Production Rollback Rehearsals
+
+- added generated `pnpm ops:rollback` plus `scripts/ops-rollback.sh`, so scaffolded `production-ready` apps now turn the latest recovery rehearsal into one final rollback Markdown or JSON record under `ops/rollbacks/`
+- updated generated `production:check`, validate workflow, tagged release workflow, `ops:index`, and retention so scaffolded apps now inventory, upload, and keep `ops/rollbacks/` bounded as part of the standard production audit flow
+- extended release-surface audit coverage plus internal and external `production-ready` scaffold smoke so Forge now proves the latest recovery proof can be elevated into an operator-facing rollback go or no-go packet before the framework version can move
+
 ## 0.1.136 (2026-04-07)
 
 ### Production Recovery Rehearsals
