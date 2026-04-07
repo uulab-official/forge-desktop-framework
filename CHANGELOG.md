@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.136 (2026-04-07)
+
+### Production Recovery Rehearsals
+
+- added generated `pnpm ops:recover` plus `scripts/ops-recover.sh`, so scaffolded `production-ready` apps now turn the latest restore rehearsal into one final recovery Markdown or JSON record under `ops/recoveries/`
+- updated generated `production:check`, validate workflow, tagged release workflow, `ops:index`, and retention so scaffolded apps now inventory, upload, and keep `ops/recoveries/` bounded as part of the standard production audit flow
+- extended release-surface audit coverage plus internal and external `production-ready` scaffold smoke so Forge now proves the latest restore record, gate verdict, and restored payload stay coherent enough for operator recovery handoff before the framework version can move
+
 ## 0.1.135 (2026-04-06)
 
 ### Production Restore Rehearsals
