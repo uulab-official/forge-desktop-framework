@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.140 (2026-04-07)
+
+### Production Continuity Handoffs
+
+- added generated `pnpm ops:continuity` plus `scripts/ops-continuity.sh`, so scaffolded `production-ready` apps now turn the latest escalation packet, recovery chain, export surface, attestation, gate verdict, and release evidence into one final business-continuity Markdown, JSON, and tarball handoff under `ops/continuity/`
+- updated generated `production:check`, validate workflow, tagged release workflow, `ops:index`, and retention so scaffolded apps now inventory, upload, and keep `ops/continuity/` bounded as part of the standard production audit flow
+- extended release-surface audit coverage plus internal and external `production-ready` scaffold smoke so Forge now proves the latest escalation chain can be elevated into one portable continuity handoff before the framework version can move
+
 ## 0.1.139 (2026-04-07)
 
 ### Production Escalation Handoffs
