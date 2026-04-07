@@ -352,6 +352,22 @@ verify_external_app() {
       echo "External ${preset_id} smoke app ops continuity packet did not capture the latest escalation JSON."
       exit 1
     fi
+    if ! find "$target_dir/ops/resilience" -name 'ops-resilience.json' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops resilience JSON was not produced."
+      exit 1
+    fi
+    if ! find "$target_dir/ops/resilience" -name 'ops-resilience.md' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops resilience Markdown was not produced."
+      exit 1
+    fi
+    if ! find "$target_dir/ops/resilience" -name 'ops-resilience.tgz' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops resilience archive was not produced."
+      exit 1
+    fi
+    if ! find "$target_dir/ops/resilience" -path '*/packet/continuity/ops-continuity.json' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops resilience packet did not capture the latest continuity JSON."
+      exit 1
+    fi
     if [ "$(find "$target_dir/ops/snapshots" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
       echo "External ${preset_id} smoke app ops snapshot retention did not keep exactly one directory."
       exit 1
@@ -422,6 +438,10 @@ verify_external_app() {
     fi
     if [ "$(find "$target_dir/ops/continuity" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
       echo "External ${preset_id} smoke app ops continuity retention did not keep exactly one directory."
+      exit 1
+    fi
+    if [ "$(find "$target_dir/ops/resilience" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
+      echo "External ${preset_id} smoke app ops resilience retention did not keep exactly one directory."
       exit 1
     fi
     if [ ! -f "$target_dir/worker/dist/forge-worker" ] && [ ! -f "$target_dir/worker/dist/forge-worker.exe" ]; then

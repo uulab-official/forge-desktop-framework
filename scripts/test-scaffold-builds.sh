@@ -321,6 +321,22 @@ if ! find "$PRODUCTION_READY_APP/ops/continuity" -path '*/packet/escalation/ops-
   echo "Production-ready smoke app ops continuity packet did not capture the latest escalation JSON."
   exit 1
 fi
+if ! find "$PRODUCTION_READY_APP/ops/resilience" -name 'ops-resilience.json' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops resilience JSON was not produced."
+  exit 1
+fi
+if ! find "$PRODUCTION_READY_APP/ops/resilience" -name 'ops-resilience.md' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops resilience Markdown was not produced."
+  exit 1
+fi
+if ! find "$PRODUCTION_READY_APP/ops/resilience" -name 'ops-resilience.tgz' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops resilience archive was not produced."
+  exit 1
+fi
+if ! find "$PRODUCTION_READY_APP/ops/resilience" -path '*/packet/continuity/ops-continuity.json' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops resilience packet did not capture the latest continuity JSON."
+  exit 1
+fi
 if [ "$(find "$PRODUCTION_READY_APP/ops/snapshots" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
   echo "Production-ready smoke app ops snapshot retention did not keep exactly one directory."
   exit 1
@@ -391,6 +407,10 @@ if [ "$(find "$PRODUCTION_READY_APP/ops/escalations" -mindepth 1 -maxdepth 1 -ty
 fi
 if [ "$(find "$PRODUCTION_READY_APP/ops/continuity" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
   echo "Production-ready smoke app ops continuity retention did not keep exactly one directory."
+  exit 1
+fi
+if [ "$(find "$PRODUCTION_READY_APP/ops/resilience" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
+  echo "Production-ready smoke app ops resilience retention did not keep exactly one directory."
   exit 1
 fi
 if [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker" ] && [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker.exe" ]; then
