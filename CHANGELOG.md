@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.139 (2026-04-07)
+
+### Production Escalation Handoffs
+
+- added generated `pnpm ops:escalate` plus `scripts/ops-escalate.sh`, so scaffolded `production-ready` apps now turn the latest incident packet, attestation, gate verdict, export, rollback proof, and release evidence into one final operator escalation Markdown, JSON, and tarball handoff under `ops/escalations/`
+- updated generated `production:check`, validate workflow, tagged release workflow, `ops:index`, and retention so scaffolded apps now inventory, upload, and keep `ops/escalations/` bounded as part of the standard production audit flow
+- extended release-surface audit coverage plus internal and external `production-ready` scaffold smoke so Forge now proves the latest incident chain can be elevated into one portable escalation handoff before the framework version can move
+
 ## 0.1.138 (2026-04-07)
 
 ### Production Incident Packets
