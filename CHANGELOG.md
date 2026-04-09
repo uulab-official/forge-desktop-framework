@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.146 (2026-04-09)
+
+### Production Assurance Packets
+
+- added generated `pnpm ops:assure` plus `scripts/ops-assure.sh`, so scaffolded `production-ready` apps now turn the latest certification packet, compliance verdict, integrity verdict, release evidence, and operator docs into one final Markdown, JSON, and tarball assurance packet under `ops/assurances/`
+- updated generated `production:check`, validate workflow, tagged release workflow, `ops:index`, and retention so scaffolded apps now inventory, upload, and keep `ops/assurances/` bounded as part of the standard production audit flow
+
 ## 0.1.145 (2026-04-09)
 
 ### Production Certification Packets
