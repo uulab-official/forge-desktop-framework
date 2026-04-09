@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.144 (2026-04-09)
+
+### Production Compliance Packets
+
+- added generated `pnpm ops:compliance` plus `scripts/ops-compliance.sh`, so scaffolded `production-ready` apps now turn the latest integrity packet, runbook, resilience chain, gate verdict, attestation, release evidence, and operator docs into one final Markdown, JSON, and tarball compliance packet under `ops/compliance/`
+- updated generated `production:check`, validate workflow, tagged release workflow, `ops:index`, and retention so scaffolded apps now inventory, upload, and keep `ops/compliance/` bounded as part of the standard production audit flow
+- extended release-surface audit coverage plus internal and external `production-ready` scaffold smoke so Forge now proves the final audit-ready compliance packet exists, captures the latest integrity packet, and stays coherent with release output before the framework version can move
+
 ## 0.1.143 (2026-04-07)
 
 ### Production Integrity Packets

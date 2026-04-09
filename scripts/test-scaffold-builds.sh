@@ -369,6 +369,22 @@ if ! find "$PRODUCTION_READY_APP/ops/integrity" -path '*/packet/runbook/ops-runb
   echo "Production-ready smoke app ops integrity packet did not capture the latest runbook JSON."
   exit 1
 fi
+if ! find "$PRODUCTION_READY_APP/ops/compliance" -name 'ops-compliance.json' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops compliance JSON was not produced."
+  exit 1
+fi
+if ! find "$PRODUCTION_READY_APP/ops/compliance" -name 'ops-compliance.md' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops compliance Markdown was not produced."
+  exit 1
+fi
+if ! find "$PRODUCTION_READY_APP/ops/compliance" -name 'ops-compliance.tgz' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops compliance archive was not produced."
+  exit 1
+fi
+if ! find "$PRODUCTION_READY_APP/ops/compliance" -path '*/packet/integrity/ops-integrity.json' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops compliance packet did not capture the latest integrity JSON."
+  exit 1
+fi
 if [ "$(find "$PRODUCTION_READY_APP/ops/snapshots" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
   echo "Production-ready smoke app ops snapshot retention did not keep exactly one directory."
   exit 1
@@ -451,6 +467,10 @@ if [ "$(find "$PRODUCTION_READY_APP/ops/runbooks" -mindepth 1 -maxdepth 1 -type 
 fi
 if [ "$(find "$PRODUCTION_READY_APP/ops/integrity" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
   echo "Production-ready smoke app ops integrity retention did not keep exactly one directory."
+  exit 1
+fi
+if [ "$(find "$PRODUCTION_READY_APP/ops/compliance" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
+  echo "Production-ready smoke app ops compliance retention did not keep exactly one directory."
   exit 1
 fi
 if [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker" ] && [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker.exe" ]; then
