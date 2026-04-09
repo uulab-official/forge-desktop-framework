@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.145 (2026-04-09)
+
+### Production Certification Packets
+
+- added generated `pnpm ops:certify` plus `scripts/ops-certify.sh`, so scaffolded `production-ready` apps now turn the latest compliance packet, integrity verdict, gate, attestation, release pack, export, index, operator docs, and packaged release output into one final Markdown, JSON, and tarball certification packet under `ops/certifications/`
+- updated generated `production:check`, validate workflow, tagged release workflow, `ops:index`, and retention so scaffolded apps now inventory, upload, and keep `ops/certifications/` bounded as part of the standard production audit flow
+- extended release-surface audit coverage plus internal and external `production-ready` scaffold smoke so Forge now proves the final ship certificate exists, captures the latest compliance packet, and stays coherent with release output before the framework version can move
+
 ## 0.1.144 (2026-04-09)
 
 ### Production Compliance Packets
