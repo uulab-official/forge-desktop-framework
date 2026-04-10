@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.148 (2026-04-10)
+
+### Production Oversight Packets
+
+- added generated `pnpm ops:oversight` plus `scripts/ops-oversight.sh`, so scaffolded `production-ready` apps now turn the latest governance packet, assurance chain, release evidence, docs, env template, and packaged release output into one final Markdown, JSON, and tarball oversight packet under `ops/oversight/`
+- updated generated `production:check`, validate workflow, tagged release workflow, `ops:index`, and retention so scaffolded apps now inventory, upload, and keep `ops/oversight/` bounded as part of the standard production audit flow
+- extended release-surface audit coverage plus internal and external `production-ready` scaffold smoke so Forge now proves the final oversight packet exists, captures the latest governance packet, and stays coherent with release output before the framework version can move
+
 ## 0.1.147 (2026-04-10)
 
 ### Production Governance Packets
