@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.150 (2026-04-10)
+
+### Production Authority Packets
+
+- added generated `pnpm ops:authority` plus `scripts/ops-authority.sh`, so scaffolded `production-ready` apps now turn the latest control packet, oversight packet, governance chain, assurance chain, release evidence, docs, env template, and packaged release output into one final Markdown, JSON, and tarball authority packet under `ops/authority/`
+- updated generated `production:check`, validate workflow, tagged release workflow, `ops:index`, and retention so scaffolded apps now inventory, upload, and keep `ops/authority/` bounded as part of the standard production audit flow
+- extended release-surface audit coverage plus internal and external `production-ready` scaffold smoke so Forge now proves the final authority packet exists, captures the latest control packet, and stays coherent with release output before the framework version can move
+
 ## 0.1.149 (2026-04-10)
 
 ### Production Control Packets

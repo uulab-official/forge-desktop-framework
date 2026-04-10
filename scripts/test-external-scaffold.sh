@@ -496,6 +496,22 @@ verify_external_app() {
       echo "External ${preset_id} smoke app ops control packet did not capture the latest oversight JSON."
       exit 1
     fi
+    if ! find "$target_dir/ops/authority" -name 'ops-authority.json' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops authority JSON was not produced."
+      exit 1
+    fi
+    if ! find "$target_dir/ops/authority" -name 'ops-authority.md' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops authority Markdown was not produced."
+      exit 1
+    fi
+    if ! find "$target_dir/ops/authority" -name 'ops-authority.tgz' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops authority archive was not produced."
+      exit 1
+    fi
+    if ! find "$target_dir/ops/authority" -path '*/packet/control/ops-control.json' -print -quit | grep -q .; then
+      echo "External ${preset_id} smoke app ops authority packet did not capture the latest control JSON."
+      exit 1
+    fi
     if [ "$(find "$target_dir/ops/snapshots" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
       echo "External ${preset_id} smoke app ops snapshot retention did not keep exactly one directory."
       exit 1
@@ -602,6 +618,10 @@ verify_external_app() {
     fi
     if [ "$(find "$target_dir/ops/control" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
       echo "External ${preset_id} smoke app ops control retention did not keep exactly one directory."
+      exit 1
+    fi
+    if [ "$(find "$target_dir/ops/authority" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
+      echo "External ${preset_id} smoke app ops authority retention did not keep exactly one directory."
       exit 1
     fi
     if [ ! -f "$target_dir/worker/dist/forge-worker" ] && [ ! -f "$target_dir/worker/dist/forge-worker.exe" ]; then
