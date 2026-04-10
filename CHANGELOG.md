@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.149 (2026-04-10)
+
+### Production Control Packets
+
+- added generated `pnpm ops:control` plus `scripts/ops-control.sh`, so scaffolded `production-ready` apps now turn the latest oversight packet, governance chain, assurance chain, release evidence, docs, env template, and packaged release output into one final Markdown, JSON, and tarball control packet under `ops/control/`
+- updated generated `production:check`, validate workflow, tagged release workflow, `ops:index`, and retention so scaffolded apps now inventory, upload, and keep `ops/control/` bounded as part of the standard production audit flow
+- extended release-surface audit coverage plus internal and external `production-ready` scaffold smoke so Forge now proves the final control packet exists, captures the latest oversight packet, and stays coherent with release output before the framework version can move
+
 ## 0.1.148 (2026-04-10)
 
 ### Production Oversight Packets
