@@ -1,0 +1,319 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  package:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: windows-latest
+            platform: win
+          - os: macos-14
+            platform: mac
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Verify release preset
+        run: pnpm release:check
+
+      - name: Electron security baseline
+        run: pnpm security:check
+
+      - name: Runtime hygiene baseline
+        run: pnpm ops:check
+
+      - name: Operations retention baseline
+        run: pnpm ops:retention -- --keep 3
+
+      - name: Verify publish environment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          GH_OWNER: ${{ vars.GH_OWNER }}
+          GH_REPO: ${{ vars.GH_REPO }}
+        run: pnpm publish:check:github
+
+      - name: Build worker bundle
+        run: pnpm build:worker
+
+      - name: Build desktop app
+        run: pnpm build
+
+      - name: Publish desktop artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          GH_OWNER: ${{ vars.GH_OWNER }}
+          GH_REPO: ${{ vars.GH_REPO }}
+        run: pnpm package -- --publish always
+
+      - name: Operations stewardship handoff
+        run: pnpm ops:stewardship -- --label release-${{ matrix.platform }} --skip-retention --require-release-output
+
+      - name: Upload operations snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-snapshots-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/snapshots
+          if-no-files-found: error
+
+      - name: Upload operations evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-evidence-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/evidence
+          if-no-files-found: error
+
+      - name: Upload operations index
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-index-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/index
+          if-no-files-found: error
+
+      - name: Upload operations reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-reports-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/reports
+          if-no-files-found: error
+
+      - name: Upload operations bundles
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-bundles-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/bundles
+          if-no-files-found: error
+
+      - name: Upload operations doctors
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-doctors-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/doctors
+          if-no-files-found: error
+
+      - name: Upload operations handoffs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-handoffs-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/handoffs
+          if-no-files-found: error
+
+      - name: Upload operations attestations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-attestations-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/attestations
+          if-no-files-found: error
+
+      - name: Upload operations ready summaries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-ready-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/ready
+          if-no-files-found: error
+
+      - name: Upload operations gates
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-gates-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/gates
+          if-no-files-found: error
+
+      - name: Upload operations release packs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-releasepacks-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/releasepacks
+          if-no-files-found: error
+
+      - name: Upload operations exports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-exports-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/exports
+          if-no-files-found: error
+
+      - name: Upload operations restores
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-restores-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/restores
+          if-no-files-found: error
+
+      - name: Upload operations recoveries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-recoveries-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/recoveries
+          if-no-files-found: error
+
+      - name: Upload operations rollbacks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-rollbacks-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/rollbacks
+          if-no-files-found: error
+
+      - name: Upload operations incidents
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-incidents-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/incidents
+          if-no-files-found: error
+
+      - name: Upload operations escalations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-escalations-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/escalations
+          if-no-files-found: error
+
+      - name: Upload operations continuity
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-continuity-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/continuity
+          if-no-files-found: error
+
+      - name: Upload operations resilience
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-resilience-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/resilience
+          if-no-files-found: error
+
+      - name: Upload operations runbooks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-runbooks-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/runbooks
+          if-no-files-found: error
+
+      - name: Upload operations integrity
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-integrity-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/integrity
+          if-no-files-found: error
+
+      - name: Upload operations compliance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-compliance-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/compliance
+          if-no-files-found: error
+
+      - name: Upload operations certifications
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-certifications-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/certifications
+          if-no-files-found: error
+
+      - name: Upload operations assurances
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-assurances-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/assurances
+          if-no-files-found: error
+
+      - name: Upload operations governance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-governance-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/governance
+          if-no-files-found: error
+
+      - name: Upload operations oversight
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-oversight-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/oversight
+          if-no-files-found: error
+
+      - name: Upload operations control
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-control-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/control
+          if-no-files-found: error
+
+      - name: Upload operations authority
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-authority-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/authority
+          if-no-files-found: error
+
+      - name: Upload operations stewardship
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-stewardship-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ops/stewardship
+          if-no-files-found: error

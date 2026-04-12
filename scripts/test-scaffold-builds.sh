@@ -481,6 +481,22 @@ if ! find "$PRODUCTION_READY_APP/ops/authority" -path '*/packet/control/ops-cont
   echo "Production-ready smoke app ops authority packet did not capture the latest control JSON."
   exit 1
 fi
+if ! find "$PRODUCTION_READY_APP/ops/stewardship" -name 'ops-stewardship.json' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops stewardship JSON was not produced."
+  exit 1
+fi
+if ! find "$PRODUCTION_READY_APP/ops/stewardship" -name 'ops-stewardship.md' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops stewardship Markdown was not produced."
+  exit 1
+fi
+if ! find "$PRODUCTION_READY_APP/ops/stewardship" -name 'ops-stewardship.tgz' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops stewardship archive was not produced."
+  exit 1
+fi
+if ! find "$PRODUCTION_READY_APP/ops/stewardship" -path '*/packet/authority/ops-authority.json' -print -quit | grep -q .; then
+  echo "Production-ready smoke app ops stewardship packet did not capture the latest authority JSON."
+  exit 1
+fi
 if [ "$(find "$PRODUCTION_READY_APP/ops/snapshots" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
   echo "Production-ready smoke app ops snapshot retention did not keep exactly one directory."
   exit 1
@@ -591,6 +607,10 @@ if [ "$(find "$PRODUCTION_READY_APP/ops/control" -mindepth 1 -maxdepth 1 -type d
 fi
 if [ "$(find "$PRODUCTION_READY_APP/ops/authority" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
   echo "Production-ready smoke app ops authority retention did not keep exactly one directory."
+  exit 1
+fi
+if [ "$(find "$PRODUCTION_READY_APP/ops/stewardship" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')" -ne 1 ]; then
+  echo "Production-ready smoke app ops stewardship retention did not keep exactly one directory."
   exit 1
 fi
 if [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker" ] && [ ! -f "$PRODUCTION_READY_APP/worker/dist/forge-worker.exe" ]; then

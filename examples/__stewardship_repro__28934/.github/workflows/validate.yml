@@ -1,0 +1,285 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Release preflight
+        run: pnpm release:check
+
+      - name: Electron security baseline
+        run: pnpm security:check
+
+      - name: Runtime hygiene baseline
+        run: pnpm ops:check
+
+      - name: Operations retention baseline
+        run: pnpm ops:retention -- --keep 3
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Build worker bundle
+        run: pnpm build:worker
+
+      - name: Build desktop app
+        run: pnpm build
+
+      - name: Operations stewardship handoff
+        run: pnpm ops:stewardship -- --label validate --skip-retention
+
+      - name: Upload operations snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-snapshots-validate-${{ github.run_id }}
+          path: ops/snapshots
+          if-no-files-found: error
+
+      - name: Upload operations evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-evidence-validate-${{ github.run_id }}
+          path: ops/evidence
+          if-no-files-found: error
+
+      - name: Upload operations index
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-index-validate-${{ github.run_id }}
+          path: ops/index
+          if-no-files-found: error
+
+      - name: Upload operations reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-reports-validate-${{ github.run_id }}
+          path: ops/reports
+          if-no-files-found: error
+
+      - name: Upload operations bundles
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-bundles-validate-${{ github.run_id }}
+          path: ops/bundles
+          if-no-files-found: error
+
+      - name: Upload operations doctors
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-doctors-validate-${{ github.run_id }}
+          path: ops/doctors
+          if-no-files-found: error
+
+      - name: Upload operations handoffs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-handoffs-validate-${{ github.run_id }}
+          path: ops/handoffs
+          if-no-files-found: error
+
+      - name: Upload operations attestations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-attestations-validate-${{ github.run_id }}
+          path: ops/attestations
+          if-no-files-found: error
+
+      - name: Upload operations ready summaries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-ready-validate-${{ github.run_id }}
+          path: ops/ready
+          if-no-files-found: error
+
+      - name: Upload operations gates
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-gates-validate-${{ github.run_id }}
+          path: ops/gates
+          if-no-files-found: error
+
+      - name: Upload operations release packs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-releasepacks-validate-${{ github.run_id }}
+          path: ops/releasepacks
+          if-no-files-found: error
+
+      - name: Upload operations exports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-exports-validate-${{ github.run_id }}
+          path: ops/exports
+          if-no-files-found: error
+
+      - name: Upload operations restores
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-restores-validate-${{ github.run_id }}
+          path: ops/restores
+          if-no-files-found: error
+
+      - name: Upload operations recoveries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-recoveries-validate-${{ github.run_id }}
+          path: ops/recoveries
+          if-no-files-found: error
+
+      - name: Upload operations rollbacks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-rollbacks-validate-${{ github.run_id }}
+          path: ops/rollbacks
+          if-no-files-found: error
+
+      - name: Upload operations incidents
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-incidents-validate-${{ github.run_id }}
+          path: ops/incidents
+          if-no-files-found: error
+
+      - name: Upload operations escalations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-escalations-validate-${{ github.run_id }}
+          path: ops/escalations
+          if-no-files-found: error
+
+      - name: Upload operations continuity
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-continuity-validate-${{ github.run_id }}
+          path: ops/continuity
+          if-no-files-found: error
+
+      - name: Upload operations resilience
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-resilience-validate-${{ github.run_id }}
+          path: ops/resilience
+          if-no-files-found: error
+
+      - name: Upload operations runbooks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-runbooks-validate-${{ github.run_id }}
+          path: ops/runbooks
+          if-no-files-found: error
+
+      - name: Upload operations integrity
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-integrity-validate-${{ github.run_id }}
+          path: ops/integrity
+          if-no-files-found: error
+
+      - name: Upload operations compliance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-compliance-validate-${{ github.run_id }}
+          path: ops/compliance
+          if-no-files-found: error
+
+      - name: Upload operations certifications
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-certifications-validate-${{ github.run_id }}
+          path: ops/certifications
+          if-no-files-found: error
+
+      - name: Upload operations assurances
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-assurances-validate-${{ github.run_id }}
+          path: ops/assurances
+          if-no-files-found: error
+
+      - name: Upload operations governance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-governance-validate-${{ github.run_id }}
+          path: ops/governance
+          if-no-files-found: error
+
+      - name: Upload operations oversight
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-oversight-validate-${{ github.run_id }}
+          path: ops/oversight
+          if-no-files-found: error
+
+      - name: Upload operations control
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-control-validate-${{ github.run_id }}
+          path: ops/control
+          if-no-files-found: error
+
+      - name: Upload operations authority
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-authority-validate-${{ github.run_id }}
+          path: ops/authority
+          if-no-files-found: error
+
+      - name: Upload operations stewardship
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops-stewardship-validate-${{ github.run_id }}
+          path: ops/stewardship
+          if-no-files-found: error
